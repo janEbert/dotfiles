@@ -9,9 +9,7 @@
 "   tmp: backups, undofiles, ...
 "
 " Colors:
-"   - [Tomorrow themes](https://github.com/chriskempson/tomorrow-theme)
-"   - [Monokai](https://github.com/ErichDonGubler/vim-sublime-monokai)
-"   - [Peaksea](https://github.com/vim-scripts/peaksea)
+"   - [Tomorrow themes not in base16 repo](https://github.com/chriskempson/tomorrow-theme)
 "
 " Optional plugins:
 "   - [ale](https://github.com/w0rp/ale)
@@ -22,29 +20,33 @@
 "   - [vim-snippets](https://github.com/honza/vim-snippets)
 "   - [vimtex](https://github.com/lervag/vimtex)
 "
-" Default plugins:
+" Default plugins (! at EOL marks more important ones):
 "   - [Apprentice](https://github.com/romainl/Apprentice)
-"   - [ctrlp.vim](https://github.com/ctrlpvim/ctrlp.vim)
-"   - [gutentags_plus](https://github.com/skywind3000/gutentags_plus)
-"   - [julia-vim](https://github.com/JuliaEditorSupport/julia-vim)
+"   - [base16-vim](https://github.com/chriskempson/base16-vim)
+"   - [ctrlp.vim](https://github.com/ctrlpvim/ctrlp.vim)!
+"   - [gutentags_plus](https://github.com/skywind3000/gutentags_plus)!
+"   - [julia-vim](https://github.com/JuliaEditorSupport/julia-vim)!
+"   - [peaksea](https://github.com/vim-scripts/peaksea)
 "   - [tabular](https://github.com/godlygeek/tabular)
 "   - [targets.vim](https://github.com/wellle/targets.vim)
-"   - [vim-abolish](https://github.com/tpope/vim-abolish)
+"   - [vim-abolish](https://github.com/tpope/vim-abolish)!
 "   - [vimagit](https://github.com/jreybert/vimagit)
-"   - [vim-asterisk](https://github.com/haya14busa/vim-asterisk)
+"   - [vim-asterisk](https://github.com/haya14busa/vim-asterisk)!
 "   - [vim-characterize](https://github.com/tpope/vim-characterize)
-"   - [vim-colors-solarized](https://github.com/altercation/vim-colors-solarized/)
-"   - [vim-commentary](https://github.com/tpope/vim-commentary)
-"   - [vim-fugitive](https://github.com/tpope/vim-fugitive)
-"   - [vim-git](https://github.com/tpope/vim-git)
-"   - [vim-gutentags](https://github.com/ludovicchabant/vim-gutentags)
-"   - [vim-lion](https://github.com/tommcdo/vim-lion)
-"   - [vim-repeat](https://github.com/tpope/vim-repeat)
-"   - [vim-sneak](https://github.com/justinmk/vim-sneak)
+"   - [vim-colors-solarized](https://github.com/altercation/vim-colors-solarized/)!
+"   - [vim-commentary](https://github.com/tpope/vim-commentary)!
+"   - [vim-fugitive](https://github.com/tpope/vim-fugitive)!
+"   - [vim-git](https://github.com/tpope/vim-git)!
+"   - [vim-gotham](https://github.com/whatyouhide/vim-gotham)
+"   - [vim-gutentags](https://github.com/ludovicchabant/vim-gutentags)!
+"   - [vim-lion](https://github.com/tommcdo/vim-lion)!
+"   - [vim-monokai](https://github.com/sickill/vim-monokai)
+"   - [vim-repeat](https://github.com/tpope/vim-repeat)!
+"   - [vim-sneak](https://github.com/justinmk/vim-sneak)!
 "   - [vim-speeddating](https://github.com/tpope/vim-speeddating)
-"   - [vim-surround](https://github.com/tpope/vim-surround)
-"   - [vim-unimpaired](https://github.com/tpope/vim-unimpaired)
-"   - [vim-wordmotion](https://github.com/chaoren/vim-wordmotion)
+"   - [vim-surround](https://github.com/tpope/vim-surround)!
+"   - [vim-unimpaired](https://github.com/tpope/vim-unimpaired)!
+"   - [vim-wordmotion](https://github.com/chaoren/vim-wordmotion)!
 "   - [Zenburn](https://github.com/jnurmine/Zenburn)
 
 if v:progname =~? "evim" || exists('g:myvimrcloaded')
@@ -60,6 +62,7 @@ endif
 silent! while 0
     set nocompatible
 silent! endwhile
+
 
 set encoding=utf-8
 set langmenu=en_US.UTF-8

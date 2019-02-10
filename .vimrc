@@ -478,8 +478,10 @@ cnoremap <a-h> <Left>
 cnoremap <a-j> <Down>
 cnoremap <a-k> <Up>
 cnoremap <a-l> <Right>
+cnoremap <a-b> <S-Left>
+cnoremap <a-f> <S-Right>
 
-" Split and ex mode movement
+" Split movement
 nnoremap <a-h> <c-w>h
 nnoremap <a-j> <c-w>j
 nnoremap <a-k> <c-w>k

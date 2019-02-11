@@ -8,6 +8,9 @@ CapsLock::Backspace
 LAlt::Ctrl
 LCtrl::Alt
 
+; Uncomment if Alt-Tab does not work
+; *Tab::Send {Blind}{Tab}
+
 
 ; Programmer Dvorak does not offer these
 ; If these modifiers do not work, use <^>! instead

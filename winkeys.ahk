@@ -5,11 +5,14 @@
 CapsLock::Backspace
 
 ; Swap left Alt and Ctrl keys
-LAlt::Ctrl
-LCtrl::Alt
+LAlt::LCtrl
+LCtrl::LAlt
+; And right ones
+;RAlt::Ctrl
+;RCtrl::Alt
 
 ; Uncomment if Alt-Tab does not work
-; *Tab::Send {Blind}{Tab}
+;*Tab::Send {Blind}{Tab}
 
 
 ; Programmer Dvorak does not offer these

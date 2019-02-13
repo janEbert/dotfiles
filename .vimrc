@@ -272,7 +272,7 @@ set pastetoggle=<F2>
 " right side: [textwidth, linenumber] line, col %buffer location
 set statusline=%<%f\ %h%m%r%w%y\ %n\ %=%{gutentags#statusline()}\ [%{&textwidth?&textwidth.',':''}%L]\ %-14.(%l,%c%V%)\ %P
 
-set fileformat=unix  " no crlf
+set fileformat=unix  " no CRLF, only LF
 
 set path+=**  " smarter path for find and other commands
 
@@ -280,7 +280,19 @@ set completeopt+=longest
 
 set nrformats-=octal  " no octal numbers for <C-A> and <C-X>
 
-set colorcolumn+=73,80,101,121  " several syntax line rulers
+" Several syntax line rulers.
+" Add a linebreak so the text stops *before* the marked line to follow
+" the syntax rules.
+" The exception is the marker at 80 (and 100) which – with the exception
+" of Python – should be broken when text goes *beyond* the marker.
+" 72 - Python docstrings
+" 79 - Python
+" 80 - C, C++, Fortran, Pascal, ...
+" 92 - Julia
+" 99 - longer agreed on Python
+" 100 - longer agreed on C++
+" 120 - IntelliJ (even longer agreed on code style)
+set colorcolumn+=73,80,93,101,121
 
 set splitbelow  " new horizontal split below
 set splitright  " new vertical split on the right
@@ -592,7 +604,7 @@ if has("autocmd")
     autocmd FileType c
                 \ setlocal tabstop=8 shiftwidth=8 softtabstop=8
                 \ noexpandtab cindent
-    " undo '{' at beginning of line fix
+    " undo '{' at beginning of line fix for K&R style
     autocmd FileType c unmap <buffer> [[
     autocmd FileType c unmap <buffer> ]]
 

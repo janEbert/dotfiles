@@ -541,9 +541,11 @@ endif
 if has("gui_running") || &t_Co > 2
     " GVim options
     if has("gui_running")
-        set guifont=DejaVu_Sans_Mono:h12
         set guioptions-=m
-        if has('win32')
+        if has('unix')
+            set guifont=DejaVu\ Sans\ Mono\ 12
+        elseif has('win32')
+            set guifont=DejaVu_Sans_Mono:h12
             set guioptions-=t
         endif
         set guioptions-=T

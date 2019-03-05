@@ -519,6 +519,7 @@ nnoremap <silent> <F9> :call ToggleBackground()<CR>
 inoremap <silent> <F9> <C-O>:call ToggleBackground()<CR>
 vnoremap <silent> <F9> :<C-U>call ToggleBackground()<CR>gv
 cnoremap <F9> <C-F>qzqqwq"wd0"zCcall ToggleBackground()<CR>:<C-R>z<C-B><C-R>w
+tnoremap <silent> <F9> <C-W>:call ToggleBackground()<CR>
 
 " Section or function movement fix (from :h motions.txt)
 

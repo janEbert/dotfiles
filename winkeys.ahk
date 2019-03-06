@@ -1,15 +1,15 @@
 ﻿; Activate CapsLock with Shift+CapsLock
 +CapsLock::CapsLock
 
+; CapsLock is Ctrl
+CapsLock::Ctrl
+
 ; CapsLock is Backspace
-CapsLock::Backspace
+;CapsLock::Backspace
 
 ; Swap left Alt and Ctrl keys
-LAlt::LCtrl
-LCtrl::LAlt
-; And right ones
-;RAlt::Ctrl
-;RCtrl::Alt
+;LAlt::LCtrl
+;LCtrl::LAlt
 
 ; Uncomment if Alt-Tab does not work
 ;*Tab::Send {Blind}{Tab}

@@ -1,5 +1,6 @@
-﻿; Activate CapsLock with Shift+CapsLock
-+CapsLock::CapsLock
+﻿; Activate CapsLock with both Shift keys
++LShift::CapsLock
++RShift::CapsLock
 
 ; CapsLock is Ctrl
 CapsLock::Ctrl

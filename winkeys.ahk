@@ -4,6 +4,10 @@
 ; CapsLock is Ctrl
 CapsLock::Ctrl
 
+; Shift Backspace as DEL
++Backspace::Delete
+
+
 ; CapsLock is Backspace
 ;CapsLock::Backspace
 

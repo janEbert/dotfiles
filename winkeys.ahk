@@ -6,7 +6,7 @@
 CapsLock::Ctrl
 
 ; Shift Backspace as DEL
-+Backspace::Delete
+;+Backspace::Delete
 
 
 ; CapsLock is Backspace

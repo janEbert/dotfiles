@@ -402,7 +402,7 @@ let g:gutentags_cache_dir = expand(g:myvimhome . 'tags')
 let g:gutentags_auto_add_gtags_cscope = 0
 
 " rainbow
-let g:rainbow_active = 1 " or 0 to :RainbowToggle later
+let g:rainbow_active = 0  " 0 to :RainbowToggle later
 
 " vimtex
 let g:vimtex_view_general_viewer = g:mytexviewer

@@ -27,6 +27,7 @@
 "   - [gutentags_plus](https://github.com/skywind3000/gutentags_plus)!
 "   - [julia-vim](https://github.com/JuliaEditorSupport/julia-vim)!
 "   - [peaksea](https://github.com/vim-scripts/peaksea)
+"   - [rainbow](https://github.com/luochen1990/rainbow.git)
 "   - [tabular](https://github.com/godlygeek/tabular)
 "   - [targets.vim](https://github.com/wellle/targets.vim)
 "   - [vim-abolish](https://github.com/tpope/vim-abolish)!
@@ -399,6 +400,9 @@ let g:gutentags_cache_dir = expand(g:myvimhome . 'tags')
 
 " forbid gutentags adding gtags databases
 let g:gutentags_auto_add_gtags_cscope = 0
+
+" rainbow
+let g:rainbow_active = 1 " or 0 to :RainbowToggle later
 
 " vimtex
 let g:vimtex_view_general_viewer = g:mytexviewer

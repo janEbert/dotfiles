@@ -621,6 +621,17 @@ if has("autocmd")
     " Julia autoclose
     " autocmd FileType julia inoremap <buffer> <silent> ,end <CR>end<C-O>O
 
+    " vim -b : hex edit binary using xxd-format!
+    augroup Binary
+        au!
+        au BufReadPre   *.bin,*.smc,*.map let &bin=1
+        au BufReadPost  *.bin,*.smc,*.map if &bin | %!xxd
+        au BufReadPost  *.bin,*.smc,*.map set ft=xxd | endif
+        au BufWritePre  *.bin,*.smc,*.map if &bin | %!xxd -r
+        au BufWritePre  *.bin,*.smc,*.map endif
+        au BufWritePost *.bin,*.smc,*.map if &bin | %!xxd
+        au BufWritePost *.bin,*.smc,*.map set nomod | endif
+    augroup END
 else
     set autoindent
 endif " has("autocmd")

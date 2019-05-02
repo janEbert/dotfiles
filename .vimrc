@@ -225,9 +225,9 @@ if has("nvim")
     " let $TERM=xterm
     autocmd OptionSet guicursor noautocmd set guicursor=
 elseif has("unix")
-    set term=xterm
-    set t_Co=16
-    let g:solarized_termcolors=16
+    " set term=xterm
+    " set t_Co=16
+    " let g:solarized_termcolors=16
 elseif has("win32")
     set termguicolors
     set t_Co=256

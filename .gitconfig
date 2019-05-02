@@ -1,0 +1,9 @@
+[user]
+	email = janpublicebert@posteo.net
+	name = janEbert
+[credential]
+	helper = cache --timeout 1200
+[pull]
+	rebase = true
+[core]
+	editor = vim

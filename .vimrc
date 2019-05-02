@@ -73,9 +73,9 @@ if has("unix")
     language en_US.UTF-8
     let g:myvimhome='~/.vim/'
 
-    let g:myctagsbin='/homes/jebert/.local/bin/uctags'
-    let g:mygtagsbin='/homes/jebert/.local/bin/gtags'
-    let g:mycscopebin='/homes/jebert/.local/bin/gtags-cscope'
+    let g:myctagsbin='/usr/local/bin/uctags'
+    let g:mygtagsbin='/usr/local/bin/gtags'
+    let g:mycscopebin='/usr/local/bin/gtags-cscope'
 
     let g:mytexviewer='xdg-open'
 elseif has("win32")

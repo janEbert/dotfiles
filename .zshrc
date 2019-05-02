@@ -124,9 +124,9 @@ export PATH="$HOME/local/bin:/usr/lib/ccache:$PATH"
 export CCACHE_DIR=/tmp/ccache
 
 # GNU Global
-# export GTAGSCONF=$HOME/.local/share/gtags/gtags.conf
-# export GTAGSLABEL=uctags
-# export GTAGSFORCECPP=true
+export GTAGSCONF=/usr/local/share/gtags/gtags.conf
+export GTAGSLABEL=uctags
+export GTAGSFORCECPP=true
 
 # CUDA path
 export PATH=/usr/local/cuda-10.1/bin:/usr/local/cuda-10.1/NsightCompute-2019.1${PATH:+:${PATH}}

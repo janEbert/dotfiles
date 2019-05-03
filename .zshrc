@@ -116,6 +116,8 @@ if [ -f ~/.bash_aliases ]; then
     . ~/.bash_aliases
 fi
 
+xmodmap ~/.Xmodmap
+
 stty -ixon
 
 export PATH="$HOME/local/bin:/usr/lib/ccache:$PATH"

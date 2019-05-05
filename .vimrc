@@ -261,7 +261,9 @@ set laststatus=2
 set shortmess-=c
 set scrolloff=2  " vertical space between cursor and display end
 set sidescrolloff=2  " horizontal space between cursor and display end
-set formatoptions+=jwn
+set formatoptions+=jn
+" append trailing whitespace to indicate continuation in next line
+" set formatoptions+=w
 set formatlistpat=^\\s*\\d\\+[\\]:.)}\\t]\\s*
 set nojoinspaces
 set linebreak

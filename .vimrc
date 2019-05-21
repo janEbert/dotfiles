@@ -247,7 +247,7 @@ if has("win32")
     let $PATH .= ';C:\Users\jan\Anaconda3;C:\Users\jan\Anaconda3\envs\gans;C:\Users\jan\Anaconda3\envs\py27'
 endif
 
-set history=500  " lines of command history to keep
+set history=2000  " lines of command history to keep
 set number relativenumber  " display line number and relative ones
 set ruler  " cursor position at bottom
 set showcmd  " display incomplete commands
@@ -487,6 +487,9 @@ vnoremap <silent> <Leader>e "vy:@v<CR>
 nnoremap <C-j> f r<CR>l
 nnoremap g<C-j> F r<CR>l
 
+" Open line like in Emacs
+nnoremap g<C-o> i<CR><Esc>kA
+
 " ALT-X works as <Del>
 inoremap <A-x> <Del>
 cnoremap <A-x> <Del>
@@ -570,7 +573,7 @@ if has("gui_running") || &t_Co > 2
     " let c_comment_strings=1
 
     " colorscheme desert  " fallback
-    set background=dark
+    set background=light
     exec 'colorscheme ' . g:mydefaultcolors
 
     set hlsearch  " highlight search matches

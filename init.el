@@ -17,10 +17,19 @@
  ;; If there is more than one, they won't work right.
  '(backup-by-copying t)
  '(backup-directory-alist (quote (("" . "~/.emacs.d/backups/"))))
- '(frame-background-mode (quote dark))
+ '(column-number-mode t)
+ '(completion-cycle-threshold 4)
+ '(custom-safe-themes
+   (quote
+    ("8db4b03b9ae654d4a57804286eb3e332725c84d7cdab38463cb6b97d5762ad26" default)))
+ '(frame-background-mode (quote light))
+ '(history-length 500)
  '(kept-new-versions 6)
  '(kept-old-versions 4)
  '(package-selected-packages (quote (color-theme-solarized julia-mode)))
+ '(read-buffer-completion-ignore-case t)
+ '(read-file-name-completion-ignore-case t)
+ '(read-quoted-char-radix 16)
  '(vc-make-backup-files t)
  '(version-control t))
 (custom-set-faces

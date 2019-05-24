@@ -17,6 +17,7 @@
  ;; If there is more than one, they won't work right.
  '(backup-by-copying t)
  '(backup-directory-alist (quote (("" . "~/.emacs.d/backups/"))))
+ '(bookmark-save-flag 1)
  '(column-number-mode t)
  '(completion-cycle-threshold 4)
  '(custom-safe-themes
@@ -26,10 +27,12 @@
  '(history-length 500)
  '(kept-new-versions 6)
  '(kept-old-versions 4)
+ '(kill-do-not-save-duplicates t)
  '(package-selected-packages (quote (color-theme-solarized julia-mode)))
  '(read-buffer-completion-ignore-case t)
  '(read-file-name-completion-ignore-case t)
  '(read-quoted-char-radix 16)
+ '(register-separator 43)
  '(vc-make-backup-files t)
  '(version-control t))
 (custom-set-faces

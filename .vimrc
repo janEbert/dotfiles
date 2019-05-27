@@ -176,9 +176,9 @@ function! PullSubgits()
             execute 'cd ' . path
             " Run asynchronously with !start on Windows, with ! on Unix.
             if has("unix")
-                silent execute '!git pull &'
-            elif has("win32")
-                silent execute '!start /b git pull'
+                silent execute '!git pull --quiet &'
+            elseif has("win32")
+                silent execute '!start /b git pull --quiet'
             endif
             cd ..
         endfor
@@ -205,6 +205,8 @@ function! UpdatePlugins()
             cd ..
         endfor
         execute 'cd ' . orig_folder
+        redraw!
+        echo 'Done updating'
     else
         echo 'fugitive is not loaded'
     endif

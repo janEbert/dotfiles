@@ -341,11 +341,12 @@ set list
 " Maybe other order
 execute 'set tags+=' . g:myvimhome . 'tags,./tags,../tags'
 set cscopetag
-exec 'set cscopeprg=' . g:mycscopebin
+execute 'set cscopeprg=' . g:mycscopebin
 
 set sessionoptions-=options
 set sessionoptions-=buffers
 set sessionoptions+=localoptions
+set sessionoptions+=unix
 
 digraph <3 10084
 digraph 69 128169
@@ -457,6 +458,8 @@ map Q gq
 
 " CTRL-C behaves like Esc in insert mode
 inoremap <C-C> <Esc>
+" Swap the behaviour so we can still use Esc like CTRL-C
+inoremap <Esc> <C-C>
 
 " CTRL-U in insert mode deletes a lot. Use CTRL-G u to first break undo,
 " so that you can undo CTRL-U after inserting a line break.
@@ -517,6 +520,9 @@ xnoremap <a-l> <c-w>l
 " Path from active file
 cnoremap <expr> %% getcmdtype() == ':' ? expand('%:h').'/' : '%%'
 
+" Write as sudo
+cnoremap sudow exec 'w !sudo tee % > /dev/null' <bar> e!
+
 " Autoclose
 inoremap (<CR> (<CR>)<C-O>O
 inoremap {<CR> {<CR>}<C-O>O
@@ -535,8 +541,8 @@ tnoremap <silent> <F9> <C-W>:call ToggleBackground()<CR>
 " Section or function movement fix (from :h motions.txt)
 
 " For '{' not at beginning of line
-map <silent> [[ ?{<CR>:noh<CR>w99[{
-map <silent> ]] j0[[%/{<CR>:noh<CR>
+" map <silent> [[ ?{<CR>:noh<CR>w99[{
+" map <silent> ]] j0[[%/{<CR>:noh<CR>
 
 " For '}' not at beginning of line
 " map ][ /}<CR>:noh<CR>b99]}
@@ -622,8 +628,11 @@ if has("autocmd")
                 \ setlocal tabstop=8 shiftwidth=8 softtabstop=8
                 \ noexpandtab cindent
     " undo '{' at beginning of line fix for K&R style
-    autocmd FileType c unmap <buffer> [[
-    autocmd FileType c unmap <buffer> ]]
+    " autocmd FileType c unmap <buffer> <silent> [[
+    " autocmd FileType c unmap <buffer> <silent> ]]
+
+    autocmd FileType cpp map <buffer> <silent> [[ ?{<CR>:noh<CR>w99[{
+    autocmd Filetype cpp map <buffer> <silent> ]] j0[[%/{<CR>:noh<CR>
 
     " Julia autoclose
     " autocmd FileType julia inoremap <buffer> <silent> ,end <CR>end<C-O>O

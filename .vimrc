@@ -493,6 +493,7 @@ nnoremap <C-j> f r<CR>l
 nnoremap g<C-j> F r<CR>l
 
 " Open line like in Emacs
+nnoremap g<CR> i<CR><Esc>k$
 nnoremap g<C-o> i<CR><Esc>kA
 
 " ALT-X works as <Del>

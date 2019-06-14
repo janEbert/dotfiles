@@ -94,6 +94,8 @@ endif
 let g:myplugindir = 'pack/'
 let g:mydefaultcolors = 'solarized'
 
+let g:myhexfiles = "*.bin,*.smc,*.map,*.ent,*.ent2,*.exits,*.bg,*.sp"
+
 " We do not need defaults
 let skip_defaults_vim = 1
 " source $VIMRUNTIME/vimrc_example.vim
@@ -529,8 +531,10 @@ inoremap (<CR> (<CR>)<C-O>O
 inoremap {<CR> {<CR>}<C-O>O
 inoremap [<CR> [<CR>]<C-O>O
 inoremap """ """"""<C-O>2h
+inoremap ""o """<CR>"""<C-O>O<C-H>
+inoremap ``` ```<CR>```<Esc>kA
+inoremap ``r ````<C-O>h
 inoremap ,end <CR>end<C-O>O
-inoremap `` ````<C-O>h
 
 " Background toggle
 nnoremap <silent> <F9> :call ToggleBackground()<CR>
@@ -641,13 +645,13 @@ if has("autocmd")
     " vim -b : hex edit binary using xxd-format!
     augroup Binary
         au!
-        au BufReadPre   *.bin,*.smc,*.map let &bin=1
-        au BufReadPost  *.bin,*.smc,*.map if &bin | %!xxd
-        au BufReadPost  *.bin,*.smc,*.map set ft=xxd | endif
-        au BufWritePre  *.bin,*.smc,*.map if &bin | %!xxd -r
-        au BufWritePre  *.bin,*.smc,*.map endif
-        au BufWritePost *.bin,*.smc,*.map if &bin | %!xxd
-        au BufWritePost *.bin,*.smc,*.map set nomod | endif
+        exec 'au BufReadPre   ' . g:myhexfiles . ' let &bin=1'
+        exec 'au BufReadPost  ' . g:myhexfiles . ' if &bin | %!xxd'
+        exec 'au BufReadPost  ' . g:myhexfiles . ' set ft=xxd | endif'
+        exec 'au BufWritePre  ' . g:myhexfiles . ' if &bin | %!xxd -r'
+        exec 'au BufWritePre  ' . g:myhexfiles . ' endif'
+        exec 'au BufWritePost ' . g:myhexfiles . ' if &bin | %!xxd'
+        exec 'au BufWritePost ' . g:myhexfiles . ' set nomod | endif'
     augroup END
 else
     set autoindent

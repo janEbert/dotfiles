@@ -33,6 +33,7 @@
  '(global-hl-line-mode t)
  '(history-length 500)
  '(indicate-buffer-boundaries (quote right))
+ '(isearch-allow-scroll nil nil nil "Maybe change this.")
  '(kept-new-versions 6)
  '(kept-old-versions 4)
  '(kill-do-not-save-duplicates t)
@@ -56,6 +57,7 @@
  ;; If there is more than one, they won't work right.
  '(mode-line ((t (:background "#eee8d5" :foreground "#586e75" :inverse-video t :box nil))))
  '(whitespace-tab ((t (:background "#dc322f" :foreground "#eee8d5")))))
+
 
 (setq visible-bell 1)
 

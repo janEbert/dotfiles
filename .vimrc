@@ -350,11 +350,15 @@ set sessionoptions-=buffers
 set sessionoptions+=localoptions
 set sessionoptions+=unix
 
-digraph <3 10084
-digraph 69 128169
-digraph v_ 8891
-digraph (/ 8713
-digraph /) 8716
+digraph <3 10084   " ❤
+digraph 69 128169  " 💩
+digraph *e 1013    " ϵ
+digraph v_ 8891    " ⊻
+digraph in 8714    " ∊
+digraph cn 8717    " ∍
+digraph (/ 8713    " ∉
+digraph /) 8716    " ∌
+digraph qe 8718    " ∎
 
 " Autoclose (plugin)
 let g:autoclose_vim_commentmode = 1

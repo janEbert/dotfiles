@@ -23,6 +23,7 @@
 " Optional plugins:
 "   - [ale](https://github.com/w0rp/ale)
 "   - [LanguageClient-neovim](https://github.com/autozimu/LanguageClient-neovim)
+"   - [matchit](https://github.com/chrisbra/matchit)
 "   - [nerdtree](https://github.com/scrooloose/nerdtree)
 "   - [ultisnips](https://github.com/SirVer/ultisnips)
 "   - [vim-autoclose](https://github.com/spf13/vim-autoclose)
@@ -233,11 +234,25 @@ endif
 " allow backspacing over everything in insert mode
 set backspace=indent,eol,start
 
+" Change Neovim defaults to behave like Vim
 if has("nvim")
-    set termguicolors
-    set guicursor=
+    set noautoread
+    set belloff=""
+    set complete+=i
+    set fillchars=vert:\|,fold:-  " maybe change to fold:. due to diff:-
+    set fsync
+    set shortmess-=F
+    set sidescroll=0
+    " maybe activate this
+    set nosmarttab
+    set tabpagemax=10
+endif
+
+if has("nvim")
+    " set termguicolors
+    " set guicursor=
     " let $TERM=xterm
-    autocmd OptionSet guicursor noautocmd set guicursor=
+    " autocmd OptionSet guicursor noautocmd set guicursor=
 elseif has("unix")
     " set term=xterm
     " set t_Co=16
@@ -261,6 +276,10 @@ if has("win32")
     let $PATH .= ';C:\Users\jan\Anaconda3;C:\Users\jan\Anaconda3\envs\gans;C:\Users\jan\Anaconda3\envs\py27'
 endif
 
+if !has('nvim')
+    set cryptmethod=blowfish2  " most secure crypt in vim
+endif
+
 set history=2000  " lines of command history to keep
 set number relativenumber  " display line number and relative ones
 set ruler  " cursor position at bottom
@@ -281,8 +300,11 @@ set formatoptions+=jn
 set formatlistpat=^\\s*\\d\\+[\\]:.)}\\t]\\s*
 set nojoinspaces
 set linebreak
+set nolangremap
+" save global variables starting with uppercase but containing no
+" lowercase letters
+set viminfo+=!
 set diffopt+=vertical  " split diffs vertically
-set cryptmethod=blowfish2  " securest crypt in vim
 set pastetoggle=<F2>
 
 " left side: file path, file type-related stuff, buffer number
@@ -314,10 +336,8 @@ set colorcolumn+=73,80,93,101,121
 set splitbelow  " new horizontal split below
 set splitright  " new vertical split on the right
 
-if !has('nvim')
-    set ttimeout
-    set ttimeoutlen=100  " more time for commands
-endif
+set ttimeout
+set ttimeoutlen=100  " more time for commands
 
 " Activate if it is possible to timeout.
 if has('reltime')
@@ -354,6 +374,7 @@ set list
 execute 'set tags+=' . g:myvimhome . 'tags,./tags,../tags'
 set cscopetag
 execute 'set cscopeprg=' . g:mycscopebin
+set cscopeverbose
 
 set sessionoptions-=options
 set sessionoptions-=buffers
@@ -404,7 +425,7 @@ let g:wordmotion_mappings = {
 \}
 
 " Gutentags (Plus)
-let g:gutentags_dont_load = 1
+let g:gutentags_dont_load = 0  " change to 1 if not setup
 
 let g:gutentags_ctags_executable = g:myctagsbin
 let g:gutentags_gtags_executable = g:mygtagsbin
@@ -425,8 +446,14 @@ let g:gutentags_auto_add_gtags_cscope = 0
 " rainbow
 let g:rainbow_active = 0  " 0 to :RainbowToggle later
 
+" julia-vim
+noremap <expr> <F7> LaTeXtoUnicode#Toggle()
+inoremap <expr> <F7> LaTeXtoUnicode#Toggle()
+
 " vimtex
-let g:vimtex_view_general_viewer = g:mytexviewer
+if has("win32")
+    let g:vimtex_view_general_viewer = g:mytexviewer
+endif
 
 " ALE
 let g:ale_enabled = 0
@@ -490,12 +517,14 @@ let g:UltiSnipsEditSplit = "vertical"
 iabbrev #i #include
 iabbrev #d #define
 
-" Fix ALT keys in Unix
-for i in range(97, 122)
-    let c = nr2char(i)
-    exec "map \e" . c . " <a-" . c . ">"
-    exec "map! \e" . c . " <a-" . c . ">"
-endfor
+" Fix ALT keys in Unix terminal
+if !has('gui_running') && !has('nvim')
+    for i in range(97, 122)
+        let c = nr2char(i)
+        exec "map \e" . c . " <A-" . c . ">"
+        exec "map! \e" . c . " <A-" . c . ">"
+    endfor
+endif
 
 " Don't use Ex mode, use Q for formatting
 map Q gq

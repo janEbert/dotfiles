@@ -13,6 +13,7 @@
 "
 " Optional plugins:
 "   - [ale](https://github.com/w0rp/ale)
+"   - [LanguageClient-neovim](https://github.com/autozimu/LanguageClient-neovim)
 "   - [nerdtree](https://github.com/scrooloose/nerdtree)
 "   - [ultisnips](https://github.com/SirVer/ultisnips)
 "   - [vim-autoclose](https://github.com/spf13/vim-autoclose)
@@ -438,6 +439,34 @@ let g:ale_warn_about_trailing_whitespace = 1
 let g:ale_set_highlights = 0
 let g:ale_maximum_file_size = 1000000  " do not lint files > 1 MB
 
+" LanguageClient-neovim LSP
+
+" need the Julia packages below
+"    - LanguageServer
+"    - StaticLint
+"    - SymbolServer
+
+" language serner
+let g:LanguageClient_autoStart = 0
+let g:LanguageClient_serverCommands = {
+\    'julia': ['julia', '--startup-file=no', '--history-file=no', '-e', '
+\        using LanguageServer;
+\        using Pkg;
+\        import StaticLint;
+\        import SymbolServer;
+\        env_path = dirname(Pkg.Types.Context().env.project_file);
+\        debug = false;
+\        server = LanguageServer.LanguageServerInstance(stdin, stdout, debug, env_path, "", Dict());
+\        server.runlinter = true;
+\        run(server);
+\    ']
+\}
+
+" plugin-specific mappings
+nnoremap <silent> g<C-k> :call LanguageClient_textDocument_hover()<CR>
+nnoremap <silent> g<C-d> :call LanguageClient_textDocument_definition()<CR>
+nnoremap <silent> g<C-r> :call LanguageClient_textDocument_rename()<CR>
+
 " UltiSnips
 " Trigger configuration
 let g:UltiSnipsExpandTrigger       = "<c-s>"
@@ -685,6 +714,7 @@ packadd! VimCompletesMe
 packadd! vimtex
 " packadd! vim-autoclose
 " packadd! nerdtree
+" packadd! LanguageClient-neovim
 " packadd! ale
 
 let g:myvimrcloaded = 1

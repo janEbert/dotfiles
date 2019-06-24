@@ -43,6 +43,7 @@
  '(read-quoted-char-radix 16)
  '(recenter-redisplay t nil nil "Change this so we redraw when calling `C-u C-l`.")
  '(register-separator 43)
+ '(search-default-mode t)
  '(show-trailing-whitespace t)
  '(tab-width 4)
  '(vc-make-backup-files t)

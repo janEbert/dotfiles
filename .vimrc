@@ -1,6 +1,15 @@
 " Jan's vimrc
 "
-" On Windows at `~/_vimrc`.
+" Setup:
+"   symlink ~/.vimrc (or ~/_vimrc, see below) to this file
+"   :call mkdir(expand(g:myvimhome . "colors"), "p", 0700)
+"   :call mkdir(expand(g:myvimhome . g:plugindir), "p", 0700)
+"   :call mkdir(expand(g:myvimhome . "sessions"), "p", 0700)
+"   :call mkdir(expand(g:myvimhome . "tags"), "p", 0700)
+"   :call mkdir(expand(g:myvimhome . "tmp"), "p", 0700)
+"   and download desired plugins (below) to <g:plugindir>/*/{start,opt}/
+"
+" On Windows at `~/_vimrc`, on Unix at `~/.vimrc`.
 " Directories in `g:myvimhome`:
 "   colors: usercolors
 "   <g:plugindir>: path to the plugin dirs is `./*/{start,opt}/`

@@ -59,6 +59,7 @@ include "%L"
 <Multi_key> <n> <b> : "∇"
 <Multi_key> <+> <Z> : "∑"
 <Multi_key> <*> <P> : "∏"
+<Multi_key> <O> <b> : "∘"
 
 <Multi_key> <<> <3> : "❤"
 <Multi_key> <6> <9> : "💩"

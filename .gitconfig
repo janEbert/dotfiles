@@ -7,3 +7,24 @@
 	rebase = true
 [core]
 	editor = vim
+[alias]
+	a = add
+	ap = add -p
+	br = branch
+	ci = commit
+	cm = commit -m
+	co = checkout
+	cb = checkout -b
+	d = diff
+	dc = diff --cached
+	dn = diff --name-status
+	ds = diff --stat
+	llog = log --date=local
+	st = status
+
+	unstage = reset HEAD --
+	last = log -1 HEAD
+	pr = !sh -c 'git fetch origin pull/$1/head:pr-$1' -
+	prc = !sh -c 'git fetch origin pull/$1/head:pr-$1 && git checkout pr-$1' -
+	prune-all = !git remote | xargs -n 1 git remote prune
+

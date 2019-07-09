@@ -612,6 +612,9 @@ cnoremap <expr> %% getcmdtype() == ':' ? expand('%:h').'/' : '%%'
 " Write as sudo
 cnoremap sudow exec 'w !sudo tee % > /dev/null' <bar> e!
 
+" Run most recent command in other (next) tmux pane
+noremap <Leader>t :silent exec '!tmux send-keys -t .+ C-p Enter'<CR><C-L>
+
 " Autoclose
 inoremap (<CR> (<CR>)<C-O>O
 inoremap {<CR> {<CR>}<C-O>O

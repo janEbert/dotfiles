@@ -295,6 +295,7 @@ endif
 
 if isdirectory(expand(g:myfzfdir))
     set runtimepath+=~/.fzf
+    let g:loaded_ctrlp = 1
 endif
 
 set history=2000  " lines of command history to keep
@@ -504,6 +505,33 @@ let g:ale_warn_about_trailing_whitespace = 1
 
 let g:ale_set_highlights = 0
 let g:ale_maximum_file_size = 1000000  " do not lint files > 1 MB
+
+" fzf
+if isdirectory(expand(g:myfzfdir))
+    if executable('ag')
+        nnoremap <c-p> :Ag<CR>
+    else
+        nnoremap <c-p> :Files<CR>
+    end
+endif
+let g:fzf_tags_command = 'uctags -R'
+
+" Customize fzf colors to match color scheme
+let g:fzf_colors = {
+\    'fg':      ['fg', 'Normal'],
+\    'bg':      ['bg', 'Normal'],
+\    'hl':      ['fg', 'Comment'],
+\    'fg+':     ['fg', 'CursorLine', 'CursorColumn', 'Normal'],
+\    'bg+':     ['bg', 'CursorLine', 'CursorColumn'],
+\    'hl+':     ['fg', 'Statement'],
+\    'info':    ['fg', 'PreProc'],
+\    'border':  ['fg', 'Ignore'],
+\    'prompt':  ['fg', 'Conditional'],
+\    'pointer': ['fg', 'Exception'],
+\    'marker':  ['fg', 'Keyword'],
+\    'spinner': ['fg', 'Label'],
+\    'header':  ['fg', 'Comment']
+\}
 
 " LanguageClient-neovim LSP
 

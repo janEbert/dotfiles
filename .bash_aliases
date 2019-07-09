@@ -1,9 +1,11 @@
-function tglbg() {
+tglbg() {
     if [[ "$SOLARIZED_THEME" = "dark" ]]; then
         export SOLARIZED_THEME="light"
     else
         export SOLARIZED_THEME="dark"
     fi
+    _gen_fzf_default_opts
+    [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
     source $ZSH/oh-my-zsh.sh
 }
 

@@ -32,6 +32,7 @@
 "   - [vimtex](https://github.com/lervag/vimtex)
 "
 " Default plugins (! at EOL marks more important ones):
+"   - [ack.vim](https://github.com/mileszs/ack.vim)!
 "   - [Apprentice](https://github.com/romainl/Apprentice)
 "   - [base16-vim](https://github.com/chriskempson/base16-vim)
 "   - [ctrlp.vim](https://github.com/ctrlpvim/ctrlp.vim)!
@@ -229,6 +230,10 @@ if !exists(':UpdatePlugins')
     command UpdatePlugins call UpdatePlugins()
 endif
 
+if !exists(':Resource')
+    command Resource exec 'unlet g:myvimrcloaded | source $MYVIMRC'
+endif
+
 " Options
 
 " allow backspacing over everything in insert mode
@@ -315,6 +320,7 @@ set fileformat=unix  " no CRLF, only LF
 
 set path+=**  " smarter path for find and other commands
 
+" set complete-=t  " Ignore tags for completion
 set completeopt+=longest
 
 set nrformats-=octal  " no octal numbers for <C-A> and <C-X>
@@ -390,6 +396,12 @@ digraph cn 8717    " ∍
 digraph (/ 8713    " ∉
 digraph /) 8716    " ∌
 digraph qe 8718    " ∎
+
+" ack.vim
+" Use ag if available
+if executable('ag')
+    let g:ackprg = 'ag --vimgrep'
+endif
 
 " Autoclose (plugin)
 let g:autoclose_vim_commentmode = 1
@@ -605,7 +617,7 @@ inoremap (<CR> (<CR>)<C-O>O
 inoremap {<CR> {<CR>}<C-O>O
 inoremap [<CR> [<CR>]<C-O>O
 inoremap """ """"""<C-O>2h
-inoremap ""o """<CR>"""<C-O>O<C-H>
+inoremap ""o """<CR>"""<C-O>O<C-O>S
 inoremap ``` ```<CR>```<Esc>kA
 inoremap ``r ````<C-O>h
 inoremap ,end <CR>end<C-O>O
@@ -635,35 +647,6 @@ endif
 " Do not use mouse in insert mode
 if has("mouse")
     set mouse=nv
-endif
-
-" Syntax highlighting when the terminal supports is or GVim is running
-if has("gui_running") || &t_Co > 2
-    " GVim options
-    if has("gui_running")
-        set guioptions-=m
-        if has('unix')
-            set guifont=DejaVu\ Sans\ Mono\ 12
-        elseif has('win32')
-            set guifont=DejaVu_Sans_Mono:h12
-            set guioptions-=t
-        endif
-        set guioptions-=T
-        set guioptions-=e
-        set lines=999 columns=999  " Max height and width
-    endif
-    if has('syntax') && !exists('g:syntax_on')
-        syntax enable
-    endif
-
-    " highlight strings in C comments
-    " let c_comment_strings=1
-
-    " colorscheme desert  " fallback
-    set background=light
-    exec 'colorscheme ' . g:mydefaultcolors
-
-    set hlsearch  " highlight search matches
 endif
 
 " Convenient command to see the difference between the current buffer and the
@@ -730,6 +713,35 @@ if has("autocmd")
 else
     set autoindent
 endif " has("autocmd")
+
+" Syntax highlighting when the terminal supports is or GVim is running
+if has("gui_running") || &t_Co > 2
+    " GVim options
+    if has("gui_running")
+        set guioptions-=m
+        if has('unix')
+            set guifont=DejaVu\ Sans\ Mono\ 12
+        elseif has('win32')
+            set guifont=DejaVu_Sans_Mono:h12
+            set guioptions-=t
+        endif
+        set guioptions-=T
+        set guioptions-=e
+        set lines=999 columns=999  " Max height and width
+    endif
+    if has('syntax') && !exists('g:syntax_on')
+        syntax enable
+    endif
+
+    " highlight strings in C comments
+    " let c_comment_strings=1
+
+    " colorscheme desert  " fallback
+    set background=light
+    exec 'colorscheme ' . g:mydefaultcolors
+
+    set hlsearch  " highlight search matches
+endif
 
 if has('langmap') && exists('+langremap')
     " Prevent that the langmap option applies to characters that result

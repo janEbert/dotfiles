@@ -22,6 +22,7 @@
 "
 " Optional plugins:
 "   - [ale](https://github.com/w0rp/ale)
+"   - [fzf.vim](https://github.com/junegunn/fzf.vim)
 "   - [LanguageClient-neovim](https://github.com/autozimu/LanguageClient-neovim)
 "   - [matchit](https://github.com/chrisbra/matchit)
 "   - [nerdtree](https://github.com/scrooloose/nerdtree)
@@ -39,7 +40,7 @@
 "   - [gutentags_plus](https://github.com/skywind3000/gutentags_plus)!
 "   - [julia-vim](https://github.com/JuliaEditorSupport/julia-vim)!
 "   - [peaksea](https://github.com/vim-scripts/peaksea)
-"   - [rainbow](https://github.com/luochen1990/rainbow.git)
+"   - [rainbow](https://github.com/luochen1990/rainbow)
 "   - [tabular](https://github.com/godlygeek/tabular)
 "   - [targets.vim](https://github.com/wellle/targets.vim)
 "   - [vim-abolish](https://github.com/tpope/vim-abolish)!
@@ -61,6 +62,9 @@
 "   - [vim-unimpaired](https://github.com/tpope/vim-unimpaired)!
 "   - [vim-wordmotion](https://github.com/chaoren/vim-wordmotion)!
 "   - [Zenburn](https://github.com/jnurmine/Zenburn)
+"
+" [fzf](https://github.com/junegunn/fzf) is needed for the optional
+" plugin 'fzf.vim'
 
 if v:progname =~? "evim" || exists('g:myvimrcloaded')
     finish
@@ -89,6 +93,8 @@ if has("unix")
     let g:mygtagsbin='/usr/local/bin/gtags'
     let g:mycscopebin='/usr/local/bin/gtags-cscope'
 
+    let g:myfzfdir='~/.fzf'
+
     let g:mytexviewer='xdg-open'
 elseif has("win32")
     language en
@@ -97,6 +103,8 @@ elseif has("win32")
     let g:myctagsbin='C:\Users\jan\Downloads\tags\ctags-2018-11-27_a74b8474-x64\ctags.exe'
     let g:mygtagsbin='C:\Users\jan\Downloads\tags\glo662wb\bin\gtags.exe'
     let g:mycscopebin='C:\Users\jan\Downloads\tags\glo662wb\bin\gtags-cscope.exe'
+
+    " TODO let g:myfzfdir='~/.fzf'
 
     let g:mytexviewer='C:\Program Files\SumatraPDF\SumatraPDF.exe'
 else
@@ -285,6 +293,10 @@ if !has('nvim')
     set cryptmethod=blowfish2  " most secure crypt in vim
 endif
 
+if isdirectory(expand(g:myfzfdir))
+    set runtimepath+=~/.fzf
+endif
+
 set history=2000  " lines of command history to keep
 set number relativenumber  " display line number and relative ones
 set ruler  " cursor position at bottom
@@ -443,8 +455,14 @@ let g:gutentags_ctags_executable = g:myctagsbin
 let g:gutentags_gtags_executable = g:mygtagsbin
 let g:gutentags_gtags_cscope_executable = g:mycscopebin
 
+" Files to ignore for tags.
+"   - julia: No universal-ctags support yet.
+let g:gutentags_exclude_filetypes = ['julia']
+
 " enable gtags module
 let g:gutentags_modules = ['ctags', 'gtags_cscope']
+
+let g:gutentags_add_default_project_roots = 1
 
 " config project root markers.
 let g:gutentags_project_root = ['.root']
@@ -772,6 +790,10 @@ packadd! vimtex
 " packadd! nerdtree
 " packadd! LanguageClient-neovim
 " packadd! ale
+
+if isdirectory(expand(g:myfzfdir))
+    packadd! fzf.vim
+endif
 
 let g:myvimrcloaded = 1
 

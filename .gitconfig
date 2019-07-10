@@ -20,7 +20,9 @@
 	dn = diff --name-status
 	ds = diff --stat
 	llog = log --date=local
+	p = pull
 	st = status
+	ru = remote update
 
 	unstage = reset HEAD --
 	last = log -1 HEAD

@@ -295,7 +295,6 @@ endif
 
 if isdirectory(expand(g:myfzfdir))
     set runtimepath+=~/.fzf
-    let g:loaded_ctrlp = 1
 endif
 
 set history=2000  " lines of command history to keep
@@ -509,10 +508,12 @@ let g:ale_maximum_file_size = 1000000  " do not lint files > 1 MB
 " fzf
 if isdirectory(expand(g:myfzfdir))
     if executable('ag')
-        nnoremap <c-p> :Ag<CR>
-    else
-        nnoremap <c-p> :Files<CR>
+        nnoremap <a-d> :Ag<CR>
     end
+    if executable('rg')
+        nnoremap <a-c> :Rg<CR>
+    end
+    nnoremap <a-f> :Files<CR>
 endif
 let g:fzf_tags_command = 'uctags -R'
 

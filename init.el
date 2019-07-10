@@ -7,11 +7,13 @@
 ;; You may delete these explanatory comments.
 (package-initialize)
 
+;; Add package lists
 (require 'package)
 (add-to-list 'package-archives '("gnu" . "https://elpa.gnu.org/packages/"))
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
 (add-to-list 'package-archives '("melpa-stable" . "https://stable.melpa.org/packages/"))
 
+;; Customized variables
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -34,6 +36,12 @@
  '(display-raw-bytes-as-hex t)
  '(display-time-24hr-format t)
  '(display-time-mode nil)
+ '(eshell-visual-options
+   (quote
+	(("git" "--help" "--paginate")
+	 ("emacs" "-nw" "--no-window-system")
+	 ("emacsclient" "-nw" "--no-window-system"))))
+ '(eshell-visual-subcommands (quote (("git" "log" "reflog" "diff" "show"))))
  '(frame-background-mode (quote light))
  '(global-hl-line-mode t)
  '(history-length 500)
@@ -65,20 +73,55 @@
  '(mode-line ((t (:background "#eee8d5" :foreground "#586e75" :inverse-video t :box nil))))
  '(whitespace-tab ((t (:background "#dc322f" :foreground "#eee8d5")))))
 
-
+;; Do complete to .bin files
 (setq completion-ignored-extensions (remove ".bin" completion-ignored-extensions))
 
+;; More Eshell visual commands
+(setq eshell-visual-commands
+      (append eshell-visual-commands '("vim" "vimdiff" "tmux" "joe" "nano"
+									   "cmus" "htop" "ncdu" "nethack" "crawl")))
+
+;; Use visible bell instead of tone
 (setq visible-bell 1)
 
+;; Change font
 (add-to-list 'default-frame-alist
              '(font . "DejaVu Sans Mono-11"))
 
+;; Load themes
 (let ((basedir "~/.emacs.d/themes/"))
   (dolist (f (directory-files basedir))
     (if (and (not (or (equal f ".") (equal f "..")))
              (file-directory-p (concat basedir f)))
         (add-to-list 'custom-theme-load-path (concat basedir f)))))
 
+;; Load Solarized
 (load-theme 'solarized t)
 
+;; Undisable commands
 (put 'scroll-left 'disabled nil)
+
+
+;; Custom commands
+(defun julia-repl ()
+  "Start a Julia REPL in a terminal emulator in the selected window."
+  (interactive)
+  (term (expand-file-name "~/local/bin/julia"))
+  )
+
+(defun julia-repl-split-right ()
+  "Start a Julia REPL in a window to the side of the selected window."
+  (interactive)
+  (split-window-right)
+  (windmove-right)
+  (julia-repl)
+  )
+
+(defun julia-repl-split-below ()
+  "Start a Julia REPL in a window to the side of the selected window."
+  (interactive)
+  (split-window-below)
+  (windmove-down)
+  (julia-repl)
+  )
+

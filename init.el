@@ -36,6 +36,9 @@
  '(display-raw-bytes-as-hex t)
  '(display-time-24hr-format t)
  '(display-time-mode nil)
+ '(eshell-visual-commands
+   (quote
+	("vi" "screen" "top" "less" "more" "lynx" "ncftp" "pine" "tin" "trn" "elm" "vim" "vimdiff" "tmux" "joe" "nano" "cmus" "htop" "ncdu" "mutt" "nethack" "crawl")))
  '(eshell-visual-options
    (quote
 	(("git" "--help" "--paginate")
@@ -77,9 +80,11 @@
 (setq completion-ignored-extensions (remove ".bin" completion-ignored-extensions))
 
 ;; More Eshell visual commands
-(setq eshell-visual-commands
-      (append eshell-visual-commands '("vim" "vimdiff" "tmux" "joe" "nano"
-									   "cmus" "htop" "ncdu" "nethack" "crawl")))
+;; TODO eshell-visual-commands is not defined before M-x eshell.
+;; Even (require 'eshell) does not change that.
+; (setq eshell-visual-commands
+;       (append eshell-visual-commands '("vim" "vimdiff" "tmux" "joe" "nano"
+;                                        "cmus" "htop" "ncdu" "nethack" "crawl")))
 
 ;; Use visible bell instead of tone
 (setq visible-bell 1)

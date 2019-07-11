@@ -7,26 +7,53 @@
 	rebase = true
 [core]
 	editor = vim
+	excludesfile = ~/.gitignore_global
 [alias]
 	a = add
 	ap = add -p
 	br = branch
+	cb = checkout -b
 	ci = commit
 	cm = commit -m
 	co = checkout
-	cb = checkout -b
+	cs = clone --depth 1
+	csb = clone -b master --single-branch --depth 1
 	d = diff
 	dc = diff --cached
 	dn = diff --name-status
 	ds = diff --stat
+	f = fetch
 	llog = log --date=local
+	m = merge
 	p = pull
+	pn = pull --no-rebase
+	s = status
+	sa = submodule add
+	si = submodule init
+	sm = submodule
+	sp = push --recurse-submodules=on-demand
 	st = status
+	su = submodule update --remote --merge
+	rb = rebase
+	ri = rebase -i
+	# Rebase onto $1 from $2 to $3.
+	#   $1: Fix or new branch.
+	#   $2: First commit that is rebased onto `$1`.
+	#   $3: Last commit that is rebased onto `$1`.
+	# Example:
+	#   git rebase --onto master-fix master~5 master
+	ro = rebase --onto
 	ru = remote update
 
-	unstage = reset HEAD --
 	last = log -1 HEAD
+	sroot = rev-parse --show-superproject-working-tree
+	root = rev-parse --show-toplevel
+	unstage = reset HEAD --
+	untrack = rm --cached
+
+	makeshallow = !git pull --depth 1 && git gc --prune=all
+	sd = !git diff && git submodule foreach 'git diff'
 	pr = !sh -c 'git fetch origin pull/$1/head:pr-$1' -
 	prc = !sh -c 'git fetch origin pull/$1/head:pr-$1 && git checkout pr-$1' -
-	prune-all = !git remote | xargs -n 1 git remote prune
+	pruneall = !git remote | xargs -n 1 git remote prune
 

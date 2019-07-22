@@ -4,14 +4,18 @@
 # Path to your oh-my-zsh installation.
   export ZSH="/home/jan/.oh-my-zsh"
 
-# Solarized theme in agnoster
-export SOLARIZED_THEME="dark"
+# Solarized theme (also in agnoster)
+export SOLARIZED_THEME="light"
 
 # Set name of the theme to load --- if set to "random", it will
 # load a random theme each time oh-my-zsh is loaded, in which case,
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/robbyrussell/oh-my-zsh/wiki/Themes
-ZSH_THEME="agnoster"
+if [ "x$INSIDE_EMACS" = x ]; then
+    ZSH_THEME="agnoster"
+else
+    ZSH_THEME=""
+fi
 
 bindkey -e
 
@@ -76,7 +80,13 @@ plugins=(
     wd
 )
 
-source $ZSH/oh-my-zsh.sh
+[ -f $ZSH/oh-my-zsh.sh ] && source $ZSH/oh-my-zsh.sh
+
+# Only change prompt if there already is one and we have no theme.
+if [ "x$ZSH_THEME" = x ] && [ "${PS1+set}" = set ] \
+        && [ -f ~/.zsh_prompt_nocolor ]; then
+    source ~/.zsh_prompt_nocolor
+fi
 
 # User configuration
 
@@ -116,7 +126,9 @@ if [ -f ~/.bash_aliases ]; then
     . ~/.bash_aliases
 fi
 
-xmodmap ~/.Xmodmap
+if [ -f ~/.Xmodmap ]; then
+    xmodmap ~/.Xmodmap
+fi
 
 stty -ixon
 
@@ -127,7 +139,7 @@ export CCACHE_DIR=/tmp/ccache
 
 # GNU Global
 export GTAGSCONF=/usr/local/share/gtags/gtags.conf
-export GTAGSLABEL=uctags
+export GTAGSLABEL=new-ctags
 export GTAGSFORCECPP=true
 
 # CUDA path
@@ -137,9 +149,10 @@ export LD_LIBRARY_PATH=/usr/local/cuda-10.1/lib64${LD_LIBRARY_PATH:+:${LD_LIBRAR
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/extras/CUPTI/lib64
 
 export EDITOR="vim"
-export VISUAL="gvim"
+export VISUAL="emacsclient -c -a '' -F \"'(fullscreen . maximized)\""
 
-# use "emulate sh -c '. file.sh'" when compatibility demands it
+# Use "emulate sh -c '. file.sh'" when compatibility demands it.
+
 
 # added by Anaconda3 2018.12 installer
 # >>> conda init >>>
@@ -158,6 +171,7 @@ else
 fi
 unset __conda_setup
 # <<< conda init <<<
+
 
 # FZF
 _gen_fzf_default_opts() {
@@ -193,6 +207,26 @@ _gen_fzf_default_opts() {
     fi
 }
 _gen_fzf_default_opts
-export FZF_DEFAULT_COMMANDS='ag --nocolor -g ""'
+
+# Choose best grep program
+if ! [ -x "$(command -v rg)" ]; then
+    export FZF_DEFAULT_COMMANDS='rg --files --hidden --follow --color=never --smartcase'
+elif ! [ -x "$(command -v ag)" ]; then
+    export FZF_DEFAULT_COMMANDS='ag -l --hidden --nocolor -g ""'
+elif ! [ -x "$(command -v ack)" ]; then
+    export FZF_DEFAULT_COMMANDS='ack -l --nocolor -g ""'
+fi
+
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+
+# Emacs TRAMP fix (keep this at the very end!)
+if [[ "$TERM" == "dumb" ]]; then
+    unsetopt zle
+    unsetopt prompt_cr
+    unsetopt prompt_subst
+    unfunction precmd
+    unfunction preexec
+    PS1='$ '
+fi
 

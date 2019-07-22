@@ -11,6 +11,7 @@
 [alias]
 	a = add
 	ap = add -p
+	b = branch
 	br = branch
 	cb = checkout -b
 	ci = commit
@@ -27,13 +28,6 @@
 	m = merge
 	p = pull
 	pn = pull --no-rebase
-	s = status
-	sa = submodule add
-	si = submodule init
-	sm = submodule
-	sp = push --recurse-submodules=on-demand
-	st = status
-	su = submodule update --remote --merge
 	rb = rebase
 	ri = rebase -i
 	# Rebase onto $1 from $2 to $3.
@@ -44,6 +38,14 @@
 	#   git rebase --onto master-fix master~5 master
 	ro = rebase --onto
 	ru = remote update
+	s = status
+	sa = submodule add
+	si = submodule init
+	sm = submodule
+	sp = push --recurse-submodules=on-demand
+	st = status
+	su = submodule update --remote --merge
+	t = tag
 
 	last = log -1 HEAD
 	sroot = rev-parse --show-superproject-working-tree

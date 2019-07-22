@@ -63,8 +63,22 @@
 "   - [vim-wordmotion](https://github.com/chaoren/vim-wordmotion)!
 "   - [Zenburn](https://github.com/jnurmine/Zenburn)
 "
+" [ctags](https://github.com/universal-ctags/ctags) and
+" [global](https://www.gnu.org/software/global/) are needed for the
+" plugins 'vim-gutentags' and 'gutentags_plus'.
 " [fzf](https://github.com/junegunn/fzf) is needed for the optional
-" plugin 'fzf.vim'
+" plugin 'fzf.vim'.
+"
+" Build Universal Ctags using:
+"    ./autogen.sh
+"    ./configure --program-prefix=u [--prefix=...]
+"    make
+"    [sudo] make install
+"
+" Build GNU Global using:
+"    ./configure --with-universal-ctags=<g:myctagsbin> [--prefix=...]
+"    make
+"    [sudo] make install
 
 if v:progname =~? "evim" || exists('g:myvimrcloaded')
     finish
@@ -84,27 +98,29 @@ silent! endwhile
 set encoding=utf-8
 set langmenu=en_US.UTF-8
 
-" per system config
+" Per system config
 if has("unix")
     language en_US.UTF-8
     let g:myvimhome='~/.vim/'
 
+    let g:myglobaldir='/usr/local/share/gtags'
+    let g:myfzfdir='~/.fzf'
+
     let g:myctagsbin='/usr/local/bin/uctags'
     let g:mygtagsbin='/usr/local/bin/gtags'
     let g:mycscopebin='/usr/local/bin/gtags-cscope'
-
-    let g:myfzfdir='~/.fzf'
 
     let g:mytexviewer='xdg-open'
 elseif has("win32")
     language en
     let g:myvimhome='~/vimfiles/'
 
-    let g:myctagsbin='C:\Users\jan\Downloads\tags\ctags-2018-11-27_a74b8474-x64\ctags.exe'
-    let g:mygtagsbin='C:\Users\jan\Downloads\tags\glo662wb\bin\gtags.exe'
-    let g:mycscopebin='C:\Users\jan\Downloads\tags\glo662wb\bin\gtags-cscope.exe'
-
+    let g:myglobaldir='C:\Users\jan\Downloads\tags\glo662wb'
     " TODO let g:myfzfdir='~/.fzf'
+
+    let g:myctagsbin='C:\Users\jan\Downloads\tags\ctags-2018-11-27_a74b8474-x64\ctags.exe'
+    let g:mygtagsbin=g:myglobaldir . '\bin\gtags.exe'
+    let g:mycscopebin=g:myglobaldir . '\bin\gtags-cscope.exe'
 
     let g:mytexviewer='C:\Program Files\SumatraPDF\SumatraPDF.exe'
 else
@@ -234,6 +250,14 @@ function! UpdatePlugins()
     endif
 endfunction
 
+if !exists(':ToggleBackground')
+    command ToggleBackground call ToggleBackground()
+endif
+
+if !exists(':PullSubgits')
+    command PullSubgits call PullSubgits()
+endif
+
 if !exists(':UpdatePlugins')
     command UpdatePlugins call UpdatePlugins()
 endif
@@ -293,8 +317,12 @@ if !has('nvim')
     set cryptmethod=blowfish2  " most secure crypt in vim
 endif
 
+if isdirectory(expand(g:myglobaldir))
+    set runtimepath+=g:myglobaldir
+endif
+
 if isdirectory(expand(g:myfzfdir))
-    set runtimepath+=~/.fzf
+    set runtimepath+=g:myfzfdir
 endif
 
 set history=2000  " lines of command history to keep
@@ -409,10 +437,31 @@ digraph (/ 8713    " ∉
 digraph /) 8716    " ∌
 digraph qe 8718    " ∎
 
-" ack.vim
-" Use ag if available
-if executable('ag')
+" Use best grep available; also configure ack.vim and ctrlp.vim.
+" Lines with 'grepprg' are commented out because that functionality is
+" available through plugins, meaning the familiar standard grep is
+" always available.
+" TODO Not sure if the grepformat is even necessary for rg and ag.
+if executable('rg')
+    " set grepprg=rg\ --vimgrep
+    " set grepformat=%f:%l:%c:%m
+    let g:ackprg = 'rg --vimgrep'
+    let g:ctrlp_user_command = 'rg --files --hidden --follow --color=never --smartcase %s'
+elseif executable('ag')
+    " set grepprg=ag\ --vimgrep
+    " set grepformat=%f:%l:%c:%m,%f:%l:%m
     let g:ackprg = 'ag --vimgrep'
+    let g:ctrlp_user_command = 'ag -l --hidden --nocolor -g "" %s'
+elseif executable('ack')
+    " set grepprg=ack\ --nogroup --nocolor --column
+    " set grepformat=%f:%l:%c:%m,%f:%l:%m
+    " ... or according to Drew Neil
+    " set grepformat=%f:%l:%c:%m
+    let g:ctrlp_user_command = 'ack -l --nocolor -g "" %s'
+elseif has('unix')
+    let g:ctrlp_user_command = 'find %s -type f'
+elseif has('win32')
+    let g:ctrlp_user_command = 'dir %s /-n /b /s /a-d'
 endif
 
 " Autoclose (plugin)
@@ -507,11 +556,11 @@ let g:ale_maximum_file_size = 1000000  " do not lint files > 1 MB
 
 " fzf
 if isdirectory(expand(g:myfzfdir))
-    if executable('ag')
-        nnoremap <a-d> :Ag<CR>
-    end
     if executable('rg')
-        nnoremap <a-c> :Rg<CR>
+        nnoremap <a-d> :Rg<CR>
+    end
+    if executable('ag')
+        nnoremap <a-c> :Ag<CR>
     end
     nnoremap <a-f> :Files<CR>
 endif

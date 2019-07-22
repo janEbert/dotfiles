@@ -96,6 +96,7 @@ silent! endwhile
 
 
 set encoding=utf-8
+scriptencoding utf-8
 set langmenu=en_US.UTF-8
 
 " Per system config
@@ -333,7 +334,11 @@ set showmode  " display current mode
 set wildmode=longest,list,full  " zsh like tab completion
 set wildmenu  " display completion matches in status line
 set visualbell  " do not ring
-set display=truncate  " show @@@ in the last line if truncated
+if v:version > 704
+    set display=truncate  " show @@@ in the last line if truncated
+else
+    set display=lastline
+endif
 set hidden  " work with hidden buffers
 set laststatus=2
 set shortmess-=c
@@ -345,7 +350,11 @@ set formatoptions+=jn
 set formatlistpat=^\\s*\\d\\+[\\]:.)}\\t]\\s*
 set nojoinspaces
 set linebreak
-set nolangremap
+if exists("nolangremap")
+    set nolangremap
+else
+    set langnoremap
+end
 " save global variables starting with uppercase but containing no
 " lowercase letters
 set viminfo+=!
@@ -726,7 +735,9 @@ nnoremap <silent> <F9> :call ToggleBackground()<CR>
 inoremap <silent> <F9> <C-O>:call ToggleBackground()<CR>
 vnoremap <silent> <F9> :<C-U>call ToggleBackground()<CR>gv
 cnoremap <F9> <C-F>qzqqwq"wd0"zCcall ToggleBackground()<CR>:<C-R>z<C-B><C-R>w
-tnoremap <silent> <F9> <C-W>:call ToggleBackground()<CR>
+if has("terminal")
+    tnoremap <silent> <F9> <C-W>:call ToggleBackground()<CR>
+endif
 
 " Section or function movement fix (from :h motions.txt)
 

@@ -185,6 +185,9 @@ export JULIA_NUM_THREADS=64
 # Use "emulate sh -c '. file.sh'" when compatibility demands it.
 
 
+[ -f ~/.local_zshrc ] && source ~/.local_zshrc
+
+
 # added by Anaconda3 2018.12 installer
 # >>> conda init >>>
 # !! Contents within this block are managed by 'conda init' !!

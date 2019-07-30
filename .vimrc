@@ -76,6 +76,7 @@
 "    [sudo] make install
 "
 " Build GNU Global using:
+"    [sh reconf.sh]  # If building from CVS.
 "    ./configure --with-universal-ctags=<g:myctagsbin> [--prefix=...]
 "    make
 "    [sudo] make install
@@ -455,7 +456,7 @@ if executable('rg')
     " set grepprg=rg\ --vimgrep
     " set grepformat=%f:%l:%c:%m
     let g:ackprg = 'rg --vimgrep'
-    let g:ctrlp_user_command = 'rg --files --hidden --follow --color=never --smartcase %s'
+    let g:ctrlp_user_command = 'rg --files --hidden --follow --color never --smart-case %s'
 elseif executable('ag')
     " set grepprg=ag\ --vimgrep
     " set grepformat=%f:%l:%c:%m,%f:%l:%m
@@ -846,9 +847,20 @@ if has("gui_running") || &t_Co > 2
     " highlight strings in C comments
     " let c_comment_strings=1
 
-    " colorscheme desert  " fallback
-    set background=light
-    exec 'colorscheme ' . g:mydefaultcolors
+    if $SOLARIZED_THEME == 'dark'
+        set background=dark
+    else
+        set background=light
+    endif
+
+    try
+        exec 'colorscheme ' . g:mydefaultcolors
+    catch
+        try
+            colorscheme desert  " fallback
+        catch
+        endtry
+    endtry
 
     set hlsearch  " highlight search matches
 endif

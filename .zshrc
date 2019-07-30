@@ -5,16 +5,24 @@
   export ZSH="/home/jan/.oh-my-zsh"
 
 # Solarized theme (also in agnoster)
-export SOLARIZED_THEME="light"
+# Set according to current Gnome Terminal background.
+gnome_term_profiles='/org/gnome/terminal/legacy/profiles:/'
+first_profile=$(dconf list $gnome_term_profiles | head -n 1)
+if [ $(dconf read "$gnome_term_profiles${first_profile}background-color") \
+        = "'rgb(0,43,54)'" ]; then
+    export SOLARIZED_THEME="dark"
+else
+    export SOLARIZED_THEME="light"
+fi
 
 # Set name of the theme to load --- if set to "random", it will
 # load a random theme each time oh-my-zsh is loaded, in which case,
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/robbyrussell/oh-my-zsh/wiki/Themes
 if [ "x$INSIDE_EMACS" = x ]; then
-    ZSH_THEME="agnoster"
+    export ZSH_THEME="agnoster"
 else
-    ZSH_THEME=""
+    export ZSH_THEME=""
 fi
 
 bindkey -e
@@ -135,14 +143,6 @@ stty -ixon
 
 export PATH="$HOME/local/bin:/usr/lib/ccache:$PATH"
 
-# CCache
-export CCACHE_DIR=/tmp/ccache
-
-# GNU Global
-export GTAGSCONF=/usr/local/share/gtags/gtags.conf
-export GTAGSLABEL=new-ctags
-export GTAGSFORCECPP=true
-
 # CUDA path
 export PATH=/usr/local/cuda-10.1/bin:/usr/local/cuda-10.1/NsightCompute-2019.1${PATH:+:${PATH}}
 export LD_LIBRARY_PATH=/usr/local/cuda-10.1/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
@@ -151,6 +151,36 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/extras/CUPTI/lib64
 
 export EDITOR="vim"
 export VISUAL="emacsclient -c -a '' -F \"'(fullscreen . maximized)\""
+
+# CCache
+export CCACHE_DIR=/tmp/ccache
+
+# CVS
+export CVSROOT="$HOME/.cvs_root"
+export CVSEDITOR=$EDITOR
+
+# GNU Global
+if [ -f ~/.globalrc ]; then
+    export GTAGSCONF="$HOME/.globalrc"
+    export GTAGSLABEL=uctags
+else
+    export GTAGSCONF=/usr/local/share/gtags/gtags.conf
+    export GTAGSLABEL=new-ctags
+fi
+if [ -f /usr/lib/GTAGS ]; then
+    export GTAGSLIBPATH=/usr/lib:/lib${GTAGSLIBPATH:+:${GTAGSLIBPATH}}
+    # Test with:
+    #     global strlen
+    #     global access
+fi
+# Files with .h suffix are treated as C++ source files.
+export GTAGSFORCECPP=false
+
+# Julia
+# Choose a high number so Julia automatically finds the maximum.
+export JULIA_NUM_THREADS=64
+# If Julia should automatically `]activate .` the current directory.
+# export JULIA_PROJECT=@.
 
 # Use "emulate sh -c '. file.sh'" when compatibility demands it.
 
@@ -211,7 +241,7 @@ _gen_fzf_default_opts
 
 # Choose best grep program
 if ! [ -x "$(command -v rg)" ]; then
-    export FZF_DEFAULT_COMMANDS='rg --files --hidden --follow --color=never --smartcase'
+    export FZF_DEFAULT_COMMANDS='rg --files --hidden --follow --color never --smart-case'
 elif ! [ -x "$(command -v ag)" ]; then
     export FZF_DEFAULT_COMMANDS='ag -l --hidden --nocolor -g ""'
 elif ! [ -x "$(command -v ack)" ]; then

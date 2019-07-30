@@ -8,7 +8,7 @@
 ;; Execute:
 ;;    emacsclient -c -a '' -F "'(fullscreen . maximized)"
 
-;; Put external plugins into "~/.emacs.d/lisp".
+;; Put external plugins into "~/.emacs.d/elisp".
 ;; Put themes into "~/.emacs.d/themes".
 ;;
 ;; External plugins to download:
@@ -27,13 +27,15 @@
 ;;    [sudo] make install
 ;;
 ;; Build GNU Global using:
+;;    [sh reconf.sh]  # If building from CVS.
 ;;    ./configure --with-universal-ctags=<ctagsbin> [--prefix=...]
 ;;    make
 ;;    [sudo] make install
 (defconst my-emacs-dir "~/.emacs.d")
-(defconst my-backup-dir (concat my-emacs-dir "/backups"))
-(defconst my-extended-package-dir (concat my-emacs-dir "/lisp"))
-(defconst my-themes-dir (concat my-emacs-dir "/themes"))
+(defconst my-backup-dir (expand-file-name "backups" my-emacs-dir))
+(defconst my-autosave-dir (expand-file-name "autosaves" my-emacs-dir))
+(defconst my-extended-package-dir (expand-file-name "elisp" my-emacs-dir))
+(defconst my-themes-dir (expand-file-name "themes" my-emacs-dir))
 
 (defvar my-default-theme 'solarized-light)
 
@@ -139,13 +141,13 @@
  '(menu-bar-mode nil)
  '(message-kill-buffer-on-exit t)
  '(message-signature nil)
- '(org-agenda-files (quote ("~/Uni/smw-levelgen/plan.org")))
+ '(org-agenda-files (quote ("~/Uni/SMWLevelGenerator/plan.org")))
  '(package-archive-priorities (quote (("gnu" . 5) ("melpa-stable" . 3) ("melpa" . 2))))
  '(package-check-signature t)
  '(package-menu-hide-low-priority t)
  '(package-selected-packages
    (quote
-	(jupyter use-package gotham-theme zenburn-theme toc-org flymake org tramp projectile ivy ggtags pdf-tools yasnippet solarized-theme rainbow-delimiters lsp-mode julia-mode helm gnu-elpa-keyring-update forge evil emms darkroom company)))
+	(expand-region jupyter use-package gotham-theme zenburn-theme toc-org flymake org tramp projectile ivy ggtags pdf-tools yasnippet solarized-theme rainbow-delimiters lsp-mode julia-mode helm gnu-elpa-keyring-update forge evil emms darkroom company)))
  '(prettify-symbols-unprettify-at-point (quote right-edge))
  '(read-buffer-completion-ignore-case t)
  '(read-file-name-completion-ignore-case t)
@@ -208,24 +210,19 @@
         (add-to-list 'custom-theme-load-path (concat basedir f)))))
 
 
-;; Load private configurations
-(load (concat my-emacs-dir "/.private_config") t)
-
 ;; Do complete .bin files
 (setq completion-ignored-extensions
 	  (remove ".bin" completion-ignored-extensions))
 
 (require 'eshell)
 ;; More Eshell visual commands
-;; TODO eshell-visual-commands is not defined before M-x eshell.
-;; Even (require 'eshell) does not change that.
-;; (maybe with eshell-mode-hook?)
-;; TODO end
-;; (setq eshell-visual-commands
-;; 	  (append eshell-visual-commands '("vim" "vimdiff" "tmux" "joe" "nano"
-;; 									   "mg" "cmus" "htop" "ncdu" "nethack"
-;; 									   "crawl" "jstar" "jmacs" "rjoe"
-;; 									   "jpico")))
+;; TODO does not work. maybe with eshell-mode-hook
+;; (with-eval-after-load "eshell"
+;;   (setq eshell-visual-commands
+;; 		(append eshell-visual-commands '("vim" "vimdiff" "tmux" "joe" "nano"
+;; 										 "mg" "cmus" "mpsyt" "htop" "ncdu"
+;; 										 "nethack" "crawl" "jstar" "jmacs"
+;; 										 "rjoe" "jpico"))))
 
 ;; Set backup directory
 (setq backup-directory-alist `(("." . ,my-backup-dir)))
@@ -254,12 +251,19 @@
              '(font . "DejaVu Sans Mono-11"))
 
 ;; TRAMP
+(require 'tramp)
 ;; Load Eshell extensions
-;; (add-to-list 'eshell-modules-list 'eshell-tramp) ; or em-tramp
+;; Maybe named "em-tramp"
+;; (with-eval-after-load "eshell" (add-to-list 'eshell-modules-list 'eshell-tramp))
+;; Change a value in 'tramp-methods
+;; (with-eval-after-load "tramp"
+;;   (setf (cadr (assq 'tramp-login-args (cdr (assoc "plink" tramp-methods))))
+;;          '(("-l" "%u") ("-P" "%p") ("-ssh") ("-t") ("%h") ("\"")
+;;            ("env 'TERM=dumb' 'PROMPT_COMMAND=' 'PS1=#$ '") ("/bin/sh") ("\""))))
 ;; Use X11 forwarding (-X)
-;; TODO check if this works correctly
-;;(add-to-list 'tramp-remote-process-environment
-;;			 (format "DISPLAY=%s" (getenv "DISPLAY")))
+;; TODO check if this works correctly (nope, not on multi hops)
+(add-to-list 'tramp-remote-process-environment
+			 (format "DISPLAY=localhost%s" (getenv "DISPLAY")))
 (defun remote-shell ()
   "Start a remote shell with the correct TERM environment variable."
   (interactive)
@@ -308,14 +312,30 @@
 (global-set-key (kbd "C-c n") 'org-footnote-action)
 (global-set-key (kbd "C-c l") 'org-store-link)
 (global-set-key (kbd "C-c a") 'org-agenda)
-(global-set-key (kbd "C-c b") 'org-iswitchb)
+(global-set-key (kbd "C-c b") 'org-switchb)
 (global-set-key (kbd "C-c c") 'org-capture)
 
 ;; Set frame background
-(setq frame-background-mode 'light)
+(if (eq (getenv "SOLARIZED_THEME") "dark")
+	(setq frame-background-mode 'dark)
+  (setq frame-background-mode 'light))
 
 ;; Load theme
 (load-theme my-default-theme t)
+
+;; Highlight TODOs
+;; TODO Find out how to automatically get comment strings. And use that instead
+;; of the hardcoded regex for _all_ occurrences.
+(defun highlight-todos ()
+  (font-lock-add-keywords nil
+									'(("\\<\\(TODO\\|FIXME\\)[Ss]?:? " 1
+									   font-lock-warning-face t))))
+
+(add-hook 'prog-mode-hook 'highlight-todos)
+(add-hook 'tex-mode-hook  'highlight-todos)
+
+;; Ripgrep
+;; rg --smart-case --color always -nH --null -e <PATTERN> [<PATH>]
 
 
 ;; Package config
@@ -370,7 +390,7 @@
   "Load the playlist emms-music in 'my-music-dir, go to a random track and
 stop playback."
   (interactive)
-  (emms-play-playlist (concat my-music-dir "/emms-music"))
+  (emms-play-playlist (expand-file-name "emms-music" my-music-dir))
   (emms-random)
   (emms-stop)
   (update-emms-faces))
@@ -399,6 +419,34 @@ stop playback."
 
 ;; Company
 (add-hook 'after-init-hook 'global-company-mode)
+;; Faster auto completion
+(setq company-minimum-prefix-length 2)
+(setq company-idle-delay 0.1)
+
+;; Usual completion keybindings
+;; (with-eval-after-load "company"
+;; 	 (define-key company-active-map (kbd "TAB")
+;; 	   'company-complete-common-or-cycle)
+;; 	 (define-key company-active-map (kbd "<tab>")
+;; 	   'company-complete-common-or-cycle)
+
+;; 	 (define-key company-active-map (kbd "S-TAB")
+;; 	   'company-select-previous)
+;; 	 (define-key company-active-map (kbd "<backtab>")
+;; 	   'company-select-previous))
+
+;; No need to accept completion with RET; use TAB and S-TAB to cycle.
+;; However, compatibility problem with YASnippet (resolved later).
+(company-tng-configure-default)
+
+;; Company quickhelp
+(company-quickhelp-mode)
+(setq company-quickhelp-delay 0.65)
+
+;; Company-lsp
+(require 'company-lsp)
+(push 'company-lsp company-backends)
+
 
 ;; Ivy
 ;; (ivy-mode 1)
@@ -429,16 +477,34 @@ stop playback."
 (setq helm-recentf-fuzzy-match t)
 (setq helm-lisp-fuzzy-completion t)
 ;;(helm-mode 1)
-;;(add-hook 'eshell-mode-hook
-;;		  (lambda ()
-;;			(eshell-cmpl-initialize)
-;;			(define-key eshell-mode-map [remap eshell-pcomplete]
-;;										'helm-esh-pcomplete)
-;;			(define-key eshell-mode-map (kbd "M-p") 'helm-esh-history)))
+;; (with-eval-after-load "eshell"
+;;   (add-hook 'eshell-mode-hook
+;; 			(lambda ()
+;; 			  (eshell-cmpl-initialize)
+;; 			  (define-key eshell-mode-map [remap eshell-pcomplete]
+;; 				'helm-esh-pcomplete)
+;; 			  (define-key eshell-mode-map (kbd "M-p") 'helm-esh-history))))
 
 ;; Projectile
 (projectile-mode 1)
 (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
+
+;; YASnippet
+;; (require 'yasnippet)
+;; (yas-global-mode 1)
+;; or (next two)
+;; (yas-reload-all)
+;; (add-hook 'prog-mode-hook #'yas-minor-mode)
+
+;; This resolves YASnippet problems with company-tng.
+;; (define-key yas-minor-mode-map (kbd "C-j") 'yas-expand)
+;; (define-key yas-keymap (kbd "C-j") 'yas-next-field-or-maybe-expand)
+;; (dolist (keymap (list yas-minor-mode-map yas-keymap))
+;;   (define-key keymap (kbd "TAB") nil)
+;;   (define-key keymap (kbd "<tab>") nil))
+
+(require 'expand-region)
+(global-set-key (kbd "C-=") 'er/expand-region)
 
 ;; PDF-Tools
 (pdf-tools-install)
@@ -456,7 +522,7 @@ stop playback."
 (org-babel-do-load-languages
  'org-babel-load-languages
  '((emacs-lisp . t)
-   ;;(julia . t)
+   ;;(julia . t) TODO need upstream fix
    (python . t)
    (jupyter . t)))
 
@@ -466,19 +532,19 @@ stop playback."
 (add-hook 'julia-mode-hook (lambda ()
 							 (setq-local whitespace-line-column 92)))
 
-;; ESS Julia
+;; TODO ESS Julia maybe?
 
-;; YASnippet
-;; (require 'yasnippet)
-;; (yas-global-mode 1)
-;; or (next two)
-;; (yas-reload-all)
-;; (add-hook 'prog-mode-hook #'yas-minor-mode)
+;; lsp-julia
+(require 'lsp-julia)
 
 ;; lsp-mode TODO maybe eglot?
 (require 'lsp-mode)
 ;; (add-hook 'prog-mode-hook #'lsp)
-;; (add-hook 'julia-mode-hook #'lsp) ; or maybe #'lsp-mode
+(add-hook 'julia-mode-hook #'lsp) ; Repository says #'lsp-mode but seems wrong
+
+
+;; Load private configurations
+(load (expand-file-name ".private_config.el" my-emacs-dir) t)
 
 
 ;; Custom commands
@@ -486,7 +552,7 @@ stop playback."
 (defun find-init-file ()
   "Find init.el in 'my-emacs-dir."
   (interactive)
-  (find-file (concat my-emacs-dir "/init.el")))
+  (find-file (expand-file-name "init.el" my-emacs-dir)))
 
 (defun quit-other-window ()
   "Quit the other (next) window while staying in the selected window."
@@ -539,10 +605,10 @@ on if a Solarized variant is currently active."
   (if (eq indent-tabs-mode nil)
 	  (progn
 		(setq indent-tabs-mode t)
-		(tabify))
+		(tabify (point-min) (point-max)))
 	(progn
 	  (setq indent-tabs-mode nil)
-	  (untabify))))
+	  (untabify (point-min) (point-max)))))
 
 
 (defun julia-repl ()
@@ -592,6 +658,7 @@ on if a Solarized variant is currently active."
 (define-key my-window-map (kbd "l") 'windmove-left)
 (define-key my-window-map (kbd "r") 'windmove-right)
 (define-key my-window-map (kbd "s") 'speedbar)
+(define-key my-window-map (kbd "o") 'window-swap-states)
 
 ;; Swap literal and regex isearch
 ;; (we then don't need (search-default-mode t))
@@ -604,6 +671,9 @@ on if a Solarized variant is currently active."
 ;; Swap literal and regex query-replace
 (global-set-key (kbd "M-%") 'query-replace-regexp)
 (global-set-key (kbd "C-M-%") 'query-replace)
+
+;; Remap 'transpose-sexps to M-S-t to avoid the Terminal shortcut.
+(global-set-key (kbd "M-T") 'transpose-sexps)
 
 ;; Close help without switching buffer (C-c q)
 (define-key mode-specific-map (kbd "q") 'quit-other-window)

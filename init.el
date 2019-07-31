@@ -8,7 +8,7 @@
 ;; Execute:
 ;;    emacsclient -c -a '' -F "'(fullscreen . maximized)"
 
-;; Put external plugins into "~/.emacs.d/elisp".
+;; Put external plugins into "~/.emacs.d/lisp".
 ;; Put themes into "~/.emacs.d/themes".
 ;;
 ;; External plugins to download:
@@ -31,10 +31,11 @@
 ;;    ./configure --with-universal-ctags=<ctagsbin> [--prefix=...]
 ;;    make
 ;;    [sudo] make install
+
 (defconst my-emacs-dir "~/.emacs.d")
 (defconst my-backup-dir (expand-file-name "backups" my-emacs-dir))
 (defconst my-autosave-dir (expand-file-name "autosaves" my-emacs-dir))
-(defconst my-extended-package-dir (expand-file-name "elisp" my-emacs-dir))
+(defconst my-extended-package-dir (expand-file-name "lisp" my-emacs-dir))
 (defconst my-themes-dir (expand-file-name "themes" my-emacs-dir))
 
 (defvar my-default-theme 'solarized-light)
@@ -141,9 +142,9 @@
  '(menu-bar-mode nil)
  '(message-kill-buffer-on-exit t)
  '(message-signature nil)
+ '(mouse-wheel-progressive-speed nil)
  '(org-agenda-files (quote ("~/Uni/SMWLevelGenerator/plan.org")))
  '(package-archive-priorities (quote (("gnu" . 5) ("melpa-stable" . 3) ("melpa" . 2))))
- '(package-check-signature t)
  '(package-menu-hide-low-priority t)
  '(package-selected-packages
    (quote
@@ -170,7 +171,6 @@
  '(show-paren-when-point-in-periphery t)
  '(show-paren-when-point-inside-paren t)
  '(show-trailing-whitespace t)
- '(tab-always-indent (quote complete))
  '(tab-width 4)
  '(time-stamp-time-zone t)
  '(tool-bar-mode nil)
@@ -191,6 +191,8 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
+
+(setq package-check-signature t)
 
 ;; For external plugins in 'my-extended-package-dir
 (let ((default-directory my-extended-package-dir))
@@ -238,6 +240,10 @@
 
 ;; Subword
 (subword-mode 1)
+
+;; Use tab for completion if line is already indented.
+;; Activate if it is dangerous (to go alone (without 'company)).
+;; (setq tab-always-indent 'complete)
 
 
 ;; Ido
@@ -306,8 +312,7 @@
 
 (add-hook 'org-babel-after-execute-hook 'org-display-inline-images)
 (add-hook 'org-mode-hook 'org-display-inline-images)
-(add-hook 'message-mode-hook 'turn-on-orgtbl)
-(add-hook 'message-mode-hook 'turn-on-orgstruct)
+(add-hook 'message-mode-hook 'orgtbl-mode)
 
 (global-set-key (kbd "C-c n") 'org-footnote-action)
 (global-set-key (kbd "C-c l") 'org-store-link)
@@ -316,12 +321,15 @@
 (global-set-key (kbd "C-c c") 'org-capture)
 
 ;; Set frame background
-(if (eq (getenv "SOLARIZED_THEME") "dark")
-	(setq frame-background-mode 'dark)
-  (setq frame-background-mode 'light))
+(if (not (eq (getenv "SOLARIZED_THEME") ""))
+	(if (eq (getenv "SOLARIZED_THEME") "dark")
+		(progn (setq frame-background-mode 'dark)
+			   (load-theme 'solarized-dark t))
+	  (progn (setq frame-background-mode 'light)
+			 (load-theme 'solarized-light t)))
+  ;; Load theme
+  (load-theme my-default-theme t))
 
-;; Load theme
-(load-theme my-default-theme t)
 
 ;; Highlight TODOs
 ;; TODO Find out how to automatically get comment strings. And use that instead
@@ -632,6 +640,9 @@ on if a Solarized variant is currently active."
 
 
 ;; Key bindings
+
+;; Do not untabify before backspacing
+(global-set-key (kbd "DEL") 'backward-delete-char)
 
 ;; Find file at point (C-c f)
 (define-key mode-specific-map (kbd "f") 'find-file-at-point)

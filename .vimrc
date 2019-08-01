@@ -3,7 +3,7 @@
 " Setup:
 "   symlink ~/.vimrc (or ~/_vimrc, see below) to this file
 "   :call mkdir(expand(g:myvimhome . "colors"), "p", 0700)
-"   :call mkdir(expand(g:myvimhome . g:plugindir), "p", 0700)
+"   :call mkdir(expand(g:myvimhome . g:myplugindir), "p", 0700)
 "   :call mkdir(expand(g:myvimhome . "sessions"), "p", 0700)
 "   :call mkdir(expand(g:myvimhome . "tags"), "p", 0700)
 "   :call mkdir(expand(g:myvimhome . "tmp"), "p", 0700)
@@ -133,6 +133,8 @@ let g:myplugindir = 'pack/'
 let g:mydefaultcolors = 'solarized'
 
 let g:myhexfiles = "*.bin,*.smc,*.map,*.ent,*.ent2,*.exits,*.bg,*.sp"
+
+let g:mypluginsexist = isdirectory(expand(g:myvimhome . g:myplugindir))
 
 " We do not need defaults
 let skip_defaults_vim = 1
@@ -362,9 +364,33 @@ set viminfo+=!
 set diffopt+=vertical  " split diffs vertically
 set pastetoggle=<F2>
 
+" Find whether Gutentags exists
+let g:mygutentagsfound = 0
+if g:mypluginsexist
+    let outer_folders = split(globpath(g:myvimhome . g:myplugindir, '*'), '\n')
+    for outer in outer_folders
+        let folders = split(globpath(outer, '*'), '\n')
+        for path in folders
+            if isdirectory(path . '/vim-gutentags')
+                let g:mygutentagsfound = 1
+                break
+            endif
+        endfor
+        if g:mygutentagsfound == 1
+            break
+        endif
+    endfor
+    unlet folders
+    unlet outer_folders
+endif
+
 " left side: file path, file type-related stuff, buffer number
 " right side: [textwidth, linenumber] line, col %buffer location
-set statusline=%<%f\ %h%m%r%w%y\ %n\ %=%{gutentags#statusline()}\ [%{&textwidth?&textwidth.',':''}%L]\ %-14.(%l,%c%V%)\ %P
+if g:mygutentagsfound == 1
+    set statusline=%<%f\ %h%m%r%w%y\ %n\ %=%{gutentags#statusline()}\ [%{&textwidth?&textwidth.',':''}%L]\ %-14.(%l,%c%V%)\ %P
+else
+    set statusline=%<%f\ %h%m%r%w%y\ %n\ %=[%{&textwidth?&textwidth.',':''}%L]\ %-14.(%l,%c%V%)\ %P
+endif
 
 set fileformat=unix  " no CRLF, only LF
 
@@ -642,6 +668,7 @@ if !has('gui_running') && !has('nvim')
         exec "map \e" . c . " <A-" . c . ">"
         exec "map! \e" . c . " <A-" . c . ">"
     endfor
+    unlet c
 endif
 
 " Don't use Ex mode, use Q for formatting
@@ -883,14 +910,16 @@ endif
 
 " bundle plugins
 " --------------
-" packadd! ultisnips
-packadd! vim-snippets
-packadd! VimCompletesMe
-packadd! vimtex
-" packadd! vim-autoclose
-" packadd! nerdtree
-" packadd! LanguageClient-neovim
-" packadd! ale
+if g:mypluginsexist
+    " packadd! ultisnips
+    packadd! vim-snippets
+    packadd! VimCompletesMe
+    packadd! vimtex
+    " packadd! vim-autoclose
+    " packadd! nerdtree
+    " packadd! LanguageClient-neovim
+    " packadd! ale
+endif
 
 if isdirectory(expand(g:myfzfdir))
     packadd! fzf.vim

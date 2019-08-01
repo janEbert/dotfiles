@@ -6,11 +6,15 @@
 
 # Solarized theme (also in agnoster)
 # Set according to current Gnome Terminal background.
-gnome_term_profiles='/org/gnome/terminal/legacy/profiles:/'
-first_profile=$(dconf list $gnome_term_profiles | head -n 1)
-if [ $(dconf read "$gnome_term_profiles${first_profile}background-color") \
-        = "'rgb(0,43,54)'" ]; then
-    export SOLARIZED_THEME="dark"
+if [ -x "$(command -v dconf)" ]; then
+    gnome_term_profiles='/org/gnome/terminal/legacy/profiles:/'
+    first_profile=$(dconf list $gnome_term_profiles | head -n 1)
+    if [ $(dconf read "$gnome_term_profiles${first_profile}background-color") \
+            = "'rgb(0,43,54)'" ]; then
+        export SOLARIZED_THEME="dark"
+    else
+        export SOLARIZED_THEME="light"
+    fi
 else
     export SOLARIZED_THEME="light"
 fi
@@ -19,7 +23,7 @@ fi
 # load a random theme each time oh-my-zsh is loaded, in which case,
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/robbyrussell/oh-my-zsh/wiki/Themes
-if [ "x$INSIDE_EMACS" = x ]; then
+if [ "x$INSIDE_EMACS" = x ] && [ -f $ZSH ]; then
     export ZSH_THEME="agnoster"
 else
     export ZSH_THEME=""

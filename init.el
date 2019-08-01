@@ -133,6 +133,7 @@
  '(hs-isearch-open t)
  '(ido-enable-flex-matching t)
  '(ido-everywhere nil nil nil "Maybe enable? Keey an eye out for when this is useful.")
+ '(image-animate-loop t)
  '(indicate-buffer-boundaries (quote right))
  '(isearch-allow-scroll nil nil nil "Maybe change this.")
  '(kept-new-versions 6)
@@ -143,6 +144,7 @@
  '(message-kill-buffer-on-exit t)
  '(message-signature nil)
  '(mouse-wheel-progressive-speed nil)
+ '(mouse-yank-at-point t)
  '(org-agenda-files (quote ("~/Uni/SMWLevelGenerator/plan.org")))
  '(package-archive-priorities (quote (("gnu" . 5) ("melpa-stable" . 3) ("melpa" . 2))))
  '(package-menu-hide-low-priority t)
@@ -178,6 +180,7 @@
  '(tramp-shell-prompt-pattern
    "\\(?:^\\|\\)[^]#$%>
 ]*#?[]#$%>] *\\(\\[[0-9;]*[a-zA-Z] *\\)*")
+ '(uniquify-buffer-name-style (quote forward) nil (uniquify))
  '(url-cookie-confirmation t)
  '(vc-follow-symlinks t)
  '(vc-make-backup-files t)
@@ -321,8 +324,8 @@
 (global-set-key (kbd "C-c c") 'org-capture)
 
 ;; Set frame background
-(if (not (eq (getenv "SOLARIZED_THEME") ""))
-	(if (eq (getenv "SOLARIZED_THEME") "dark")
+(if (not (equal (getenv "SOLARIZED_THEME") ""))
+	(if (equal (getenv "SOLARIZED_THEME") "dark")
 		(progn (setq frame-background-mode 'dark)
 			   (load-theme 'solarized-dark t))
 	  (progn (setq frame-background-mode 'light)
@@ -336,7 +339,7 @@
 ;; of the hardcoded regex for _all_ occurrences.
 (defun highlight-todos ()
   (font-lock-add-keywords nil
-									'(("\\<\\(TODO\\|FIXME\\)[Ss]?:? " 1
+									'(("\\<\\(TODO\\|FIXME\\)[Ss]?:?\\>" 1
 									   font-lock-warning-face t))))
 
 (add-hook 'prog-mode-hook 'highlight-todos)
@@ -602,8 +605,8 @@ stop playback."
 on if a Solarized variant is currently active."
   (interactive)
   (if (or
-	   (equal (car custom-enabled-themes) 'solarized-light)
-	   (equal (car custom-enabled-themes) 'solarized-dark))
+	   (eq (car custom-enabled-themes) 'solarized-light)
+	   (eq (car custom-enabled-themes) 'solarized-dark))
 	  (toggle-solarized)
 	(toggle-background)))
 

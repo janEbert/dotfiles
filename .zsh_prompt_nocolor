@@ -252,4 +252,4 @@ if ! [ -f $ZSH ]; then
     }
 fi
 
-PROMPT='## $(build_prompt) '
+PROMPT='### $(build_prompt) '

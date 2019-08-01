@@ -232,7 +232,7 @@ build_prompt() {
   prompt_end
 }
 
-if ! [ -f $ZSH ]; then
+if ! [ -f $ZSH/oh-my-zsh.sh ]; then
     setopt PROMPT_SUBST
     function parse_git_dirty() {
         local STATUS

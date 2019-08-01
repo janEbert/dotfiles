@@ -23,7 +23,7 @@ fi
 # load a random theme each time oh-my-zsh is loaded, in which case,
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/robbyrussell/oh-my-zsh/wiki/Themes
-if [ "x$INSIDE_EMACS" = x ] && [ -f $ZSH ]; then
+if [ "x$INSIDE_EMACS" = x ] && [ -f $ZSH/oh-my-zsh.sh ]; then
     export ZSH_THEME="agnoster"
 else
     export ZSH_THEME=""

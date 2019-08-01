@@ -200,7 +200,6 @@ export JULIA_NUM_THREADS=64
 __conda_setup="$(CONDA_REPORT_ERRORS=false '/home/jan/anaconda3/bin/conda' shell.bash hook 2> /dev/null)"
 if [ $? -eq 0 ]; then
     \eval "$__conda_setup"
-    conda deactivate
 else
     if [ -f "/home/jan/anaconda3/etc/profile.d/conda.sh" ]; then
         . "/home/jan/anaconda3/etc/profile.d/conda.sh"

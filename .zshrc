@@ -2,7 +2,7 @@
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
 
 # Path to your oh-my-zsh installation.
-  export ZSH="/home/jan/.oh-my-zsh"
+  export ZSH="$HOME/.oh-my-zsh"
 
 # Solarized theme (also in agnoster)
 # Set according to current Gnome Terminal background.
@@ -191,7 +191,7 @@ export JULIA_NUM_THREADS=64
 # Use "emulate sh -c '. file.sh'" when compatibility demands it.
 
 
-[ -f ~/.local_zshrc ] && source ~/.local_zshrc
+[ -f ~/.zshrc_local ] && source ~/.zshrc_local
 
 
 # added by Anaconda3 2018.12 installer

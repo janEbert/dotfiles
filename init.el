@@ -366,6 +366,9 @@
 						  (cons 'ggtags-try-complete-tag
 								hippie-expand-try-functions-list)))))
 
+;; Dumb Jump
+(dumb-jump-mode)
+
 ;; Magit
 (require 'magit)
 (global-set-key (kbd "C-x g") 'magit-status)

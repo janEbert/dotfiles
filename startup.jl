@@ -1,3 +1,5 @@
+using Statistics
+
 if Sys.isunix()
     ENV["JULIA_EDITOR"] = "vim"
 elseif Sys.iswindows()

@@ -150,7 +150,7 @@
  '(package-menu-hide-low-priority t)
  '(package-selected-packages
    (quote
-	(expand-region jupyter use-package gotham-theme zenburn-theme toc-org flymake org tramp projectile ivy ggtags pdf-tools yasnippet solarized-theme rainbow-delimiters lsp-mode julia-mode helm gnu-elpa-keyring-update forge evil emms darkroom company)))
+	(company-lsp company-quickhelp dumb-jump expand-region jupyter use-package gotham-theme zenburn-theme toc-org flymake org tramp projectile ivy ggtags pdf-tools yasnippet solarized-theme rainbow-delimiters lsp-mode julia-mode helm gnu-elpa-keyring-update forge evil emms darkroom company)))
  '(prettify-symbols-unprettify-at-point (quote right-edge))
  '(read-buffer-completion-ignore-case t)
  '(read-file-name-completion-ignore-case t)
@@ -241,7 +241,10 @@
 ;; Use flyspell for strings and comments by default
 (add-hook 'prog-mode-hook 'flyspell-prog-mode)
 
-;; Subword
+;; Deactivate scroll bars
+(add-hook 'after-init-hook '(lambda () (scroll-bar-mode 0)))
+
+;; Subword (word motions in CamelCase words)
 (subword-mode 1)
 
 ;; Use tab for completion if line is already indented.
@@ -339,7 +342,7 @@
 ;; of the hardcoded regex for _all_ occurrences.
 (defun highlight-todos ()
   (font-lock-add-keywords nil
-									'(("\\<\\(TODO\\|FIXME\\)[Ss]?:?\\>" 1
+									'(("\\<\\(TODO\\|FIXME\\)[Ss]?\\>" 1
 									   font-lock-warning-face t))))
 
 (add-hook 'prog-mode-hook 'highlight-todos)
@@ -470,6 +473,7 @@ stop playback."
 (global-set-key (kbd "M-x") 'counsel-M-x)
 (global-set-key (kbd "C-x C-f") 'counsel-find-file)
 (global-set-key (kbd "C-x b") 'ivy-switch-buffer)
+(global-set-key (kbd "C-x 4 b") 'ivy-switch-buffer-other-window)
 (global-set-key (kbd "<f1> f") 'counsel-describe-function)
 (global-set-key (kbd "<f1> v") 'counsel-describe-variable)
 (global-set-key (kbd "<f1> l") 'counsel-find-library)
@@ -554,7 +558,7 @@ stop playback."
 ;; lsp-mode TODO maybe eglot?
 (require 'lsp-mode)
 ;; (add-hook 'prog-mode-hook #'lsp)
-(add-hook 'julia-mode-hook #'lsp) ; Repository says #'lsp-mode but seems wrong
+;; (add-hook 'julia-mode-hook #'lsp) ; Repository says #'lsp-mode but seems wrong
 
 
 ;; Load private configurations

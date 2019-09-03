@@ -150,7 +150,7 @@
  '(package-menu-hide-low-priority t)
  '(package-selected-packages
    (quote
-	(company-lsp company-quickhelp dumb-jump expand-region jupyter use-package gotham-theme zenburn-theme toc-org flymake org tramp projectile ivy ggtags pdf-tools yasnippet solarized-theme rainbow-delimiters lsp-mode julia-mode helm gnu-elpa-keyring-update forge evil emms darkroom company)))
+	(zotxt company-lsp company-quickhelp dumb-jump expand-region jupyter use-package gotham-theme zenburn-theme toc-org flymake org tramp projectile ivy ggtags pdf-tools yasnippet solarized-theme rainbow-delimiters lsp-mode julia-mode helm gnu-elpa-keyring-update forge evil emms darkroom company)))
  '(prettify-symbols-unprettify-at-point (quote right-edge))
  '(read-buffer-completion-ignore-case t)
  '(read-file-name-completion-ignore-case t)
@@ -242,7 +242,7 @@
 (add-hook 'prog-mode-hook 'flyspell-prog-mode)
 
 ;; Deactivate scroll bars
-(add-hook 'after-init-hook '(lambda () (scroll-bar-mode 0)))
+(add-hook 'emacs-startup-hook '(lambda () (scroll-bar-mode 0)))
 
 ;; Subword (word motions in CamelCase words)
 (subword-mode 1)
@@ -342,14 +342,16 @@
 ;; of the hardcoded regex for _all_ occurrences.
 (defun highlight-todos ()
   (font-lock-add-keywords nil
-									'(("\\<\\(TODO\\|FIXME\\)[Ss]?\\>" 1
-									   font-lock-warning-face t))))
+						  '(("\\<\\(TODO\\|FIXME\\)[Ss]?:?\\>" 1
+							 font-lock-warning-face t))))
 
 (add-hook 'prog-mode-hook 'highlight-todos)
 (add-hook 'tex-mode-hook  'highlight-todos)
 
 ;; Ripgrep
-;; rg --smart-case --color always -nH --null -e <PATTERN> [<PATH>]
+(if (executable-find "rg")
+	(setq grep-command
+		  "rg --color always -nH --null --no-heading --smart-case -e "))
 
 
 ;; Package config

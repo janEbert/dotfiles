@@ -348,16 +348,10 @@
 ;; load-theme "fixes"
 ;; Correctly switch themes by first `disable-theme`ing
 ;; the current one, then `load-theme`ing the other.
-;; (defadvice load-theme (before theme-dont-propagate activate)
-;;   (mapc #'disable-theme custom-enabled-themes))
 (advice-add 'load-theme :before
-			(lambda () (mapc #'disable-theme custom-enabled-themes)))
+			(lambda (&rest args) (mapc #'disable-theme custom-enabled-themes))
+			'((name . "theme-dont-propagate")))
 
-;; (defadvice load-theme (around restore-scroll-bar-mode activate)
-;;   (let ((current-scroll-bar-mode (get-scroll-bar-mode)))
-;; 	(progn
-;; 	  ad-do-it
-;; 	  (set-scroll-bar-mode current-scroll-bar-mode))))
 (defun load-theme--restore-scroll-bar-mode (orig-fun &rest args)
   "Restore `scroll-bar-mode' after theme switch."
   (let ((current-scroll-bar-mode (get-scroll-bar-mode)))

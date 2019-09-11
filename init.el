@@ -434,7 +434,7 @@
 ;; Magit
 (require 'magit)
 (global-set-key (kbd "C-x g") 'magit-status)
-(global-set-key (kbd "C-x M-g") 'magit-dispatch)
+(global-set-key (kbd "C-x M-g") 'magit-dispatch-popup)
 (define-key magit-file-mode-map (kbd "C-c g") 'magit-file-dispatch)
 
 ;; EMMS

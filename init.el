@@ -1,4 +1,4 @@
-;; -*- mode: elisp -*-
+;; -*- mode: emacs-lisp -*-
 
 ;; Build with:
 ;;    ./autogen.sh
@@ -54,10 +54,10 @@
 
 ;; Restore (better) GC defaults afterwards
 (add-hook 'after-init-hook ;; or 'emacs-startup-hook
-		  '(lambda ()
-			 (setq gc-cons-threshold 16777216
-				   gc-cons-percentage 0.1
-				   file-name-handler-alist my-tmp-file-name-handler-alist)))
+		  (lambda ()
+			(setq gc-cons-threshold 16777216
+				  gc-cons-percentage 0.1
+				  file-name-handler-alist my-tmp-file-name-handler-alist)))
 
 ;; Windows performance improvements (?)
 (if (eq system-type 'windows-nt)
@@ -127,6 +127,7 @@
 	 ("emacsclient" "-nw" "--no-window-system"))))
  '(eshell-visual-subcommands (quote (("git" "log" "reflog" "diff" "show"))))
  '(global-hl-line-mode t)
+ '(global-subword-mode t)
  '(global-whitespace-mode t)
  '(grep-scroll-output t)
  '(history-length 500)
@@ -150,7 +151,7 @@
  '(package-menu-hide-low-priority t)
  '(package-selected-packages
    (quote
-	(zotxt company-lsp company-quickhelp dumb-jump expand-region jupyter use-package gotham-theme zenburn-theme toc-org flymake org tramp projectile ivy ggtags pdf-tools yasnippet solarized-theme rainbow-delimiters lsp-mode julia-mode helm gnu-elpa-keyring-update forge evil emms darkroom company)))
+	(evil-collection evil-commentary evil-lion evil-magit evil-matchit evil-snipe evil-surround evil-visualstar counsel-spotify landmark auctex zotxt company-lsp company-quickhelp dumb-jump expand-region jupyter use-package gotham-theme zenburn-theme toc-org flymake org tramp projectile ivy ggtags pdf-tools yasnippet solarized-theme rainbow-delimiters lsp-mode julia-mode helm gnu-elpa-keyring-update forge evil emms darkroom company)))
  '(prettify-symbols-unprettify-at-point (quote right-edge))
  '(read-buffer-completion-ignore-case t)
  '(read-file-name-completion-ignore-case t)
@@ -173,6 +174,7 @@
  '(show-paren-when-point-in-periphery t)
  '(show-paren-when-point-inside-paren t)
  '(show-trailing-whitespace t)
+ '(size-indication-mode t)
  '(tab-width 4)
  '(time-stamp-time-zone t)
  '(tool-bar-mode nil)
@@ -197,7 +199,7 @@
 
 (setq package-check-signature t)
 
-;; For external plugins in 'my-extended-package-dir
+;; For external plugins in `my-extended-package-dir'
 (let ((default-directory my-extended-package-dir))
   (setq load-path
 		(append
@@ -207,7 +209,7 @@
 			(normal-top-level-add-subdirs-to-load-path)))
 		 load-path)))
 
-;; Load themes in 'my-themes-dir
+;; Load themes in `my-themes-dir'
 (let ((basedir my-themes-dir))
   (dolist (f (directory-files basedir))
     (if (and (not (or (equal f ".") (equal f "..")))
@@ -242,14 +244,21 @@
 (add-hook 'prog-mode-hook 'flyspell-prog-mode)
 
 ;; Deactivate scroll bars
-(add-hook 'emacs-startup-hook '(lambda () (scroll-bar-mode 0)))
+(add-hook 'emacs-startup-hook (lambda () (scroll-bar-mode 0)))
 
-;; Subword (word motions in CamelCase words)
-(subword-mode 1)
+;; Smooth (mouse) scrolling
+(require 'pixel-scroll)
+(pixel-scroll-mode 1)
+
+;; Vim-like autoscroll
+(setq scroll-conservatively 1)
 
 ;; Use tab for completion if line is already indented.
-;; Activate if it is dangerous (to go alone (without 'company)).
+;; Activate if it is dangerous (to go alone (without `company')).
 ;; (setq tab-always-indent 'complete)
+
+;; Autoclose blocks in LaTeX mode
+(add-hook 'latex-mode 'latex-electric-env-pair-mode)
 
 
 ;; Ido
@@ -267,7 +276,7 @@
 ;; Load Eshell extensions
 ;; Maybe named "em-tramp"
 ;; (with-eval-after-load "eshell" (add-to-list 'eshell-modules-list 'eshell-tramp))
-;; Change a value in 'tramp-methods
+;; Change a value in `tramp-methods'
 ;; (with-eval-after-load "tramp"
 ;;   (setf (cadr (assq 'tramp-login-args (cdr (assoc "plink" tramp-methods))))
 ;;          '(("-l" "%u") ("-P" "%p") ("-ssh") ("-t") ("%h") ("\"")
@@ -323,7 +332,7 @@
 (global-set-key (kbd "C-c n") 'org-footnote-action)
 (global-set-key (kbd "C-c l") 'org-store-link)
 (global-set-key (kbd "C-c a") 'org-agenda)
-(global-set-key (kbd "C-c b") 'org-switchb)
+(global-set-key (kbd "C-c o") 'org-switchb)
 (global-set-key (kbd "C-c c") 'org-capture)
 
 ;; Set frame background
@@ -336,13 +345,33 @@
   ;; Load theme
   (load-theme my-default-theme t))
 
+;; load-theme "fixes"
+;; Correctly switch themes by first `disable-theme`ing
+;; the current one, then `load-theme`ing the other.
+;; (defadvice load-theme (before theme-dont-propagate activate)
+;;   (mapc #'disable-theme custom-enabled-themes))
+(advice-add 'load-theme :before
+			(lambda () (mapc #'disable-theme custom-enabled-themes)))
+
+;; (defadvice load-theme (around restore-scroll-bar-mode activate)
+;;   (let ((current-scroll-bar-mode (get-scroll-bar-mode)))
+;; 	(progn
+;; 	  ad-do-it
+;; 	  (set-scroll-bar-mode current-scroll-bar-mode))))
+(defun load-theme--restore-scroll-bar-mode (orig-fun &rest args)
+  "Restore `scroll-bar-mode' after theme switch."
+  (let ((current-scroll-bar-mode (get-scroll-bar-mode)))
+	(progn
+	  (apply orig-fun args)
+	  (set-scroll-bar-mode current-scroll-bar-mode))))
+(advice-add 'load-theme :around #'load-theme--restore-scroll-bar-mode)
 
 ;; Highlight TODOs
 ;; TODO Find out how to automatically get comment strings. And use that instead
 ;; of the hardcoded regex for _all_ occurrences.
 (defun highlight-todos ()
   (font-lock-add-keywords nil
-						  '(("\\<\\(TODO\\|FIXME\\)[Ss]?:?\\>" 1
+						  '(("\\<\\(\\(?:TODO\\|FIXME\\)[Ss]?\\>:?\\)" 1
 							 font-lock-warning-face t))))
 
 (add-hook 'prog-mode-hook 'highlight-todos)
@@ -360,16 +389,50 @@
 (add-to-list 'load-path my-gtags-dir)
 (autoload 'gtags-mode "gtags" "" t)
 
-(add-hook 'prog-mode-hook '(lambda () (gtags-mode 1)))
+(add-hook 'prog-mode-hook (lambda () (gtags-mode 1)))
 
 ;; Ggtags
 (add-hook 'c-mode-common-hook
 		  (lambda ()
 			(when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
-			  (progn (ggtags-mode 1))
-			  (setq-local hippie-expand-try-functions-list
-						  (cons 'ggtags-try-complete-tag
-								hippie-expand-try-functions-list)))))
+			  (progn
+				(ggtags-mode 1)
+				(setq-local hippie-expand-try-functions-list
+							(cons 'ggtags-try-complete-tag
+								  hippie-expand-try-functions-list))))))
+
+;; AUCTeX
+(setq TeX-auto-save t)
+(setq TeX-parse-self t)
+(setq-default TeX-master nil)
+(setq TeX-source-correlate-method 'synctex)
+(setq TeX-electric-sub-and-superscript t)
+(setq TeX-electric-math '("$" . "$"))
+(setq LaTeX-electric-left-right-brace t)
+;; TODO necessary? (setq TeX-newline-function 'newline-and-indent)
+(add-hook 'TeX-mode-hook (lambda () (prettify-symbols-mode 1)))
+(add-hook 'LaTeX-mode-hook 'TeX-source-correlate-mode 1)
+(add-hook 'LaTeX-mode-hook 'LaTeX-math-mode)
+(add-hook 'LaTeX-mode-hook (lambda () (electric-pair-mode 0)))
+;; Use PDF Tools
+(add-hook 'TeX-mode-hook
+		  (lambda () (setf (nth 1
+								(assq 'output-pdf TeX-view-program-selection))
+						   "PDF Tools")))
+;; If PDF-Tools are used:
+(add-hook 'TeX-after-compilation-finished-functions
+		  'TeX-revert-document-buffer)
+;; TODO LuaLaTeX available instead of pdflatex?
+;; TODO TeX-file-line-error useful?
+
+;; Use below lines if LaTeX 3 deprecates $...$ for inline equations.
+;; (add-hook 'plain-TeX-mode-hook
+;;      	  (lambda () (set (make-variable-buffer-local 'TeX-electric-math)
+;; 						  (cons "$" "$"))))
+;; ;; Press $ to insert "\(\)" with point in between in LaTeX mode.
+;; (add-hook 'LaTeX-mode-hook
+;;      	  (lambda () (set (make-variable-buffer-local 'TeX-electric-math)
+;; 						  (cons "\\(" "\\)"))))
 
 ;; Dumb Jump
 (dumb-jump-mode)
@@ -432,9 +495,72 @@ stop playback."
 (define-key my-emms-map (kbd "+") 'emms-volume-raise)
 (define-key my-emms-map (kbd "-") 'emms-volume-lower)
 
+
 ;; Evil mode
-;;(require 'evil)
-;; (evil-mode 1)
+(setq evil-want-Y-yank-to-eol t)
+(setq evil-want-change-word-to-end nil)
+
+(setq evil-vsplit-window-right t)
+(setq evil-shift-round nil)
+(setq evil-shift-width 4)
+
+;; Required for Evil Collection
+;; (setq evil-want-keybinding nil)
+
+(require 'evil)
+(evil-mode 1)
+
+;; Setup Evil Collection (also uncomment above to use)
+;; (when (require 'evil-collection nil t)
+;;   (evil-collection-init))
+;; evil-magit
+;; (require 'evil-magit)
+
+;; Evil Surround
+(global-evil-surround-mode 1)
+;; evil-commentary
+(evil-commentary-mode 1)
+;; evil-lion
+(evil-lion-mode)
+;; evil-matchit
+(require 'evil-matchit)
+(global-evil-matchit-mode 1)
+;; evil-visualstar
+(global-evil-visualstar-mode 1)
+
+;; Emacs state by default (must be added to head of list)
+(add-to-list 'evil-buffer-regexps '("." . emacs))
+
+;; C-S-d to delete-forward-char in insert mode
+(define-key evil-insert-state-map (kbd "C-S-d") 'evil-delete-char)
+;; C-l to exit from insert to normal state
+(define-key evil-insert-state-map (kbd "C-l") 'evil-normal-state)
+;; C-S-d in normal state to scroll up
+(define-key evil-normal-state-map (kbd "C-S-d") 'evil-scroll-up)
+
+;; C-l in normal state to remove highlighting
+(define-key evil-normal-state-map (kbd "C-l") 'evil-ex-nohighlight)
+
+;; Toggle global Evil mode with C-c v (also disable undo-tree-mode).
+;; Does not disable evil-magit.
+;; TODO what about evil minor modes?
+(define-key mode-specific-map (kbd "v")
+  (lambda () (progn (evil-mode undo-tree-mode))))
+
+;; Evil-snipe
+(require 'evil-snipe)
+(evil-snipe-mode 1)
+
+(setq evil-snipe-smart-case nil)
+
+(setq evil-snipe-scope 'visible)
+(setq evil-snipe-repeat-scope 'visible)
+(setq evil-snipe-spillover-scope 'buffer)
+
+;; Use C-s to substitute (as "s" is taken by evil-snipe)
+(define-key evil-normal-state-map (kbd "C-s") 'evil-substitute)
+(define-key evil-normal-state-map (kbd "C-S-s") 'evil-change-whole-line)
+
 
 ;; Company
 (add-hook 'after-init-hook 'global-company-mode)
@@ -476,13 +602,17 @@ stop playback."
 (global-set-key (kbd "C-x C-f") 'counsel-find-file)
 (global-set-key (kbd "C-x b") 'ivy-switch-buffer)
 (global-set-key (kbd "C-x 4 b") 'ivy-switch-buffer-other-window)
+(global-set-key (kbd "C-x d") 'counsel-dired)
+(global-set-key (kbd "C-c j") 'counsel-semantic-or-imenu)
+(global-set-key (kbd "C-c b") 'counsel-ibuffer)
+(global-set-key (kbd "C-x r b") 'counsel-bookmark)
 (global-set-key (kbd "<f1> f") 'counsel-describe-function)
 (global-set-key (kbd "<f1> v") 'counsel-describe-variable)
 (global-set-key (kbd "<f1> l") 'counsel-find-library)
 (global-set-key (kbd "<f2> i") 'counsel-info-lookup-symbol)
 (global-set-key (kbd "<f2> u") 'counsel-unicode-char)
 
-(global-set-key (kbd "C-S-o") 'counsel-rhythmbox)
+(define-key my-emms-map (kbd "o") 'counsel-rhythmbox)
 (global-set-key (kbd "C-c C-r") 'ivy-resume)
 
 ;; Helm
@@ -695,7 +825,11 @@ on if a Solarized variant is currently active."
 (global-set-key (kbd "M-%") 'query-replace-regexp)
 (global-set-key (kbd "C-M-%") 'query-replace)
 
-;; Remap 'transpose-sexps to M-S-t to avoid the Terminal shortcut.
+;; imenu and ibuffer keybindings (commented out due to Ivy)
+;; (global-set-key (kbd "C-c j") 'imenu)
+;; (global-set-key (kbd "C-c b") 'ibuffer)
+
+;; Remap `transpose-sexps' to M-S-t to avoid the Terminal shortcut.
 (global-set-key (kbd "M-T") 'transpose-sexps)
 
 ;; Close help without switching buffer (C-c q)

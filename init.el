@@ -39,6 +39,10 @@
 (defconst my-themes-dir (expand-file-name "themes" my-emacs-dir))
 
 (defvar my-default-theme 'solarized-light)
+(defvar my-graphic-light-theme 'solarized-light)
+(defvar my-graphic-dark-theme 'solarized-dark)
+(defvar my-terminal-light-theme 'leuven)
+(defvar my-terminal-dark-theme 'misterioso)
 
 (defconst my-gtags-dir "/usr/local/share/gtags")
 (defconst my-julia-bin "~/local/bin/julia")
@@ -151,7 +155,7 @@
  '(package-menu-hide-low-priority t)
  '(package-selected-packages
    (quote
-	(evil-collection evil-commentary evil-lion evil-magit evil-matchit evil-snipe evil-surround evil-visualstar counsel-spotify landmark auctex zotxt company-lsp company-quickhelp dumb-jump expand-region jupyter use-package gotham-theme zenburn-theme toc-org flymake org tramp projectile ivy ggtags pdf-tools yasnippet solarized-theme rainbow-delimiters lsp-mode julia-mode helm gnu-elpa-keyring-update forge evil emms darkroom company)))
+	(yasnippet-snippets texfrag eglot undo-propose julia-repl ess form-feed nim-mode evil-collection evil-commentary evil-lion evil-magit evil-matchit evil-snipe evil-surround evil-visualstar counsel-spotify landmark auctex zotxt company-lsp company-quickhelp dumb-jump expand-region jupyter use-package gotham-theme zenburn-theme toc-org flymake org tramp projectile ivy ggtags pdf-tools yasnippet solarized-theme rainbow-delimiters lsp-mode julia-mode helm gnu-elpa-keyring-update forge evil emms darkroom company)))
  '(prettify-symbols-unprettify-at-point (quote right-edge))
  '(read-buffer-completion-ignore-case t)
  '(read-file-name-completion-ignore-case t)
@@ -217,6 +221,8 @@
         (add-to-list 'custom-theme-load-path (concat basedir f)))))
 
 
+(define-prefix-command 'my-extended-map)
+
 ;; Do complete .bin files
 (setq completion-ignored-extensions
 	  (remove ".bin" completion-ignored-extensions))
@@ -237,7 +243,9 @@
 ;; Use visible bell instead of tone
 (setq visible-bell t)
 
-;; Start maximized
+;; Start maximized (does not work with Emacsclient)
+;; Can use `default-frame-alist', however, then _every_ new frame is maximized;
+;; this works with Emacsclient.
 (add-to-list 'initial-frame-alist '(fullscreen . maximized))
 
 ;; Use flyspell for strings and comments by default
@@ -260,16 +268,32 @@
 ;; Autoclose blocks in LaTeX mode
 (add-hook 'latex-mode 'latex-electric-env-pair-mode)
 
+;; Disable whitespace in Term mode
+(add-hook 'term-mode-hook (lambda () (whitespace-mode 0)))
+
+
+;; Dired
+(add-hook 'dired-after-readin-hook (lambda () (whitespace-mode 0)))
 
 ;; Ido
-;; (ido-mode 1)
+(ido-mode 1)
 (add-hook 'ido-make-buffer-list-hook 'ido-summary-buffers-to-end)
+
+;; Ediff
+(setq ediff-window-setup-function 'ediff-setup-windows-plain)
+(setq ediff-split-window-function 'split-window-horizontally)
 
 ;; Use EDE everywhere
 ;; (global-ede-mode t) (conflicts with org-mode binding)
 ;; Change font
 (add-to-list 'default-frame-alist
              '(font . "DejaVu Sans Mono-11"))
+
+;; RefTeX
+(require 'reftex)
+(add-hook 'latex-mode-hook 'turn-on-reftex)
+(add-hook 'reftex-select-bib-mode-hook (lambda () (whitespace-mode 0)))
+(add-to-list 'reftex-include-file-commands "includeonly")
 
 ;; TRAMP
 (require 'tramp)
@@ -329,11 +353,14 @@
 (add-hook 'org-mode-hook 'org-display-inline-images)
 (add-hook 'message-mode-hook 'orgtbl-mode)
 
-(global-set-key (kbd "C-c n") 'org-footnote-action)
-(global-set-key (kbd "C-c l") 'org-store-link)
-(global-set-key (kbd "C-c a") 'org-agenda)
-(global-set-key (kbd "C-c o") 'org-switchb)
-(global-set-key (kbd "C-c c") 'org-capture)
+(define-prefix-command 'my-org-map)
+(define-key mode-specific-map (kbd "o") 'my-org-map)
+(define-key my-org-map (kbd "n") 'org-footnote-action)
+(define-key my-org-map (kbd "l") 'org-store-link)
+(define-key my-org-map (kbd "a") 'org-agenda)
+(define-key my-org-map (kbd "o") 'org-switchb)
+(define-key my-org-map (kbd "c") 'org-capture)
+
 
 ;; Set frame background
 (if (not (equal (getenv "SOLARIZED_THEME") ""))
@@ -344,6 +371,13 @@
 			 (load-theme 'solarized-light t)))
   ;; Load theme
   (load-theme my-default-theme t))
+
+(if (daemonp)
+	(add-hook 'after-make-frame-functions
+			  (lambda (frame)
+				(select-frame frame)
+				(if (not (display-graphic-p frame))
+					(load-theme leuven t)))))
 
 ;; load-theme "fixes"
 ;; Correctly switch themes by first `disable-theme`ing
@@ -360,10 +394,11 @@
 	  (set-scroll-bar-mode current-scroll-bar-mode))))
 (advice-add 'load-theme :around #'load-theme--restore-scroll-bar-mode)
 
-;; Highlight TODOs
+
 ;; TODO Find out how to automatically get comment strings. And use that instead
 ;; of the hardcoded regex for _all_ occurrences.
 (defun highlight-todos ()
+  "Highlight TODO-related keywords."
   (font-lock-add-keywords nil
 						  '(("\\<\\(\\(?:TODO\\|FIXME\\)[Ss]?\\>:?\\)" 1
 							 font-lock-warning-face t))))
@@ -405,9 +440,11 @@
 (setq LaTeX-electric-left-right-brace t)
 ;; TODO necessary? (setq TeX-newline-function 'newline-and-indent)
 (add-hook 'TeX-mode-hook (lambda () (prettify-symbols-mode 1)))
-(add-hook 'LaTeX-mode-hook 'TeX-source-correlate-mode 1)
+(add-hook 'LaTeX-mode-hook 'TeX-source-correlate-mode)
 (add-hook 'LaTeX-mode-hook 'LaTeX-math-mode)
 (add-hook 'LaTeX-mode-hook (lambda () (electric-pair-mode 0)))
+(setq reftex-plug-into-AUCTeX t)
+
 ;; Use PDF Tools
 (add-hook 'TeX-mode-hook
 		  (lambda () (setf (nth 1
@@ -428,13 +465,19 @@
 ;;      	  (lambda () (set (make-variable-buffer-local 'TeX-electric-math)
 ;; 						  (cons "\\(" "\\)"))))
 
+;; AUCTeX mode hooks
+(add-hook 'TeX-mode-hook  'highlight-todos)
+(add-hook 'LaTeX-mode-hook 'turn-on-reftex)
+
 ;; Dumb Jump
 (dumb-jump-mode)
 
 ;; Magit
 (require 'magit)
-(global-set-key (kbd "C-x g") 'magit-status)
-(global-set-key (kbd "C-x M-g") 'magit-dispatch-popup)
+(define-prefix-command 'my-magit-map)
+(define-key mode-specific-map (kbd "g") 'my-magit-map)
+(define-key my-magit-map (kbd "g")   'magit-status)
+(define-key my-magit-map (kbd "G") 'magit-dispatch-popup)
 (define-key magit-file-mode-map (kbd "C-c g") 'magit-file-dispatch)
 
 ;; EMMS
@@ -490,7 +533,11 @@ stop playback."
 (define-key my-emms-map (kbd "-") 'emms-volume-lower)
 
 
+;; undo-propose
+(define-key mode-specific-map (kbd "u") 'undo-propose)
+
 ;; Evil mode
+(setq evil-flash-delay 20)
 (setq evil-want-Y-yank-to-eol t)
 (setq evil-want-change-word-to-end nil)
 
@@ -498,11 +545,16 @@ stop playback."
 (setq evil-shift-round nil)
 (setq evil-shift-width 4)
 
+(setq evil-search-module 'evil-search)
+
 ;; Required for Evil Collection
 ;; (setq evil-want-keybinding nil)
 
 (require 'evil)
 (evil-mode 1)
+
+;; Disable undo-tree-mode to prevent bugs
+(global-undo-tree-mode 0)
 
 ;; Setup Evil Collection (also uncomment above to use)
 ;; (when (require 'evil-collection nil t)
@@ -510,6 +562,7 @@ stop playback."
 ;; evil-magit
 ;; (require 'evil-magit)
 
+;; Other Evil packages
 ;; Evil Surround
 (global-evil-surround-mode 1)
 ;; evil-commentary
@@ -523,23 +576,56 @@ stop playback."
 (global-evil-visualstar-mode 1)
 
 ;; Emacs state by default (must be added to head of list)
-(add-to-list 'evil-buffer-regexps '("." . emacs))
+;; (add-to-list 'evil-buffer-regexps '("." . emacs))
+(setq evil-default-state 'emacs)
+;; Except in these modes
+(evil-set-initial-state 'prog-mode 'normal)
+(evil-set-initial-state 'text-mode 'normal)
+(evil-set-initial-state 'tex-mode  'normal)
+;; But not in these inherited modes
+(evil-set-initial-state 'org-mode  'emacs)
 
 ;; C-S-d to delete-forward-char in insert mode
 (define-key evil-insert-state-map (kbd "C-S-d") 'evil-delete-char)
-;; C-l to exit from insert to normal state
-(define-key evil-insert-state-map (kbd "C-l") 'evil-normal-state)
+;; C-l to exit from any state to normal state
+(define-key evil-insert-state-map   (kbd "C-l") 'evil-normal-state)
+(define-key evil-operator-state-map (kbd "C-l") 'evil-normal-state)
+(define-key evil-replace-state-map  (kbd "C-l") 'evil-normal-state)
+(define-key evil-visual-state-map   (kbd "C-l") 'evil-normal-state)
+;; Here we do not necessarily go back to normal state but that's fine.
+(define-key evil-ex-completion-map  (kbd "C-l") 'abort-recursive-edit)
 ;; C-S-d in normal state to scroll up
 (define-key evil-normal-state-map (kbd "C-S-d") 'evil-scroll-up)
+
+;; Ex state (minibufer) mappings
+;; C-b moves one char backward
+(define-key evil-ex-completion-map (kbd "C-b") 'backward-char)
+;; C-a moves to start of line
+(define-key evil-ex-completion-map (kbd "C-a") 'move-beginning-of-line)
+;; C-d deletes char forward
+(define-key evil-ex-completion-map (kbd "C-d") 'delete-char)
+;; C-k deletes line forward
+(define-key evil-ex-completion-map (kbd "C-k") 'evil-delete-line)
+(define-key evil-ex-completion-map (kbd "C-S-k") 'evil-insert-digraph)
 
 ;; C-l in normal state to remove highlighting
 (define-key evil-normal-state-map (kbd "C-l") 'evil-ex-nohighlight)
 
-;; Toggle global Evil mode with C-c v (also disable undo-tree-mode).
+;; C-r invokes undo-propose (since we do not use undo-tree)
+(define-key evil-normal-state-map (kbd "C-r") 'undo-propose)
+
+;; Toggle global Evil mode with C-c v (also toggle undo-tree-mode).
 ;; Does not disable evil-magit.
 ;; TODO what about evil minor modes?
-(define-key mode-specific-map (kbd "v")
-  (lambda () (progn (evil-mode undo-tree-mode))))
+(defun toggle-global-evil ()
+  "Toggle global Evil mode. Also toggle undo-tree-mode."
+  (interactive)
+  (if (eq evil-mode t)
+	  (progn (evil-mode 0)
+			 (undo-tree-mode 0))
+	(progn (evil-mode 1)
+		   (undo-tree-mode 1))))
+(define-key mode-specific-map (kbd "v") 'toggle-global-evil)
 
 ;; Evil-snipe
 (require 'evil-snipe)
@@ -562,6 +648,12 @@ stop playback."
 (setq company-minimum-prefix-length 2)
 (setq company-idle-delay 0.1)
 
+(setq company-dabbrev-downcase nil)
+
+(setq company-selection-wrap-around t)
+;; Autocomplete with C-c c
+(define-key mode-specific-map (kbd "c") 'company-complete)
+
 ;; Usual completion keybindings
 ;; (with-eval-after-load "company"
 ;; 	 (define-key company-active-map (kbd "TAB")
@@ -581,6 +673,7 @@ stop playback."
 ;; Company quickhelp
 (company-quickhelp-mode)
 (setq company-quickhelp-delay 0.65)
+(define-key company-active-map (kbd "M-h") #'company-quickhelp-manual-begin)
 
 ;; Company-lsp
 (require 'company-lsp)
@@ -591,23 +684,23 @@ stop playback."
 ;; (ivy-mode 1)
 (setq ivy-use-virtual-buffers t)
 (setq ivy-count-format "(%d/%d) ")
-(global-set-key (kbd "C-s") 'swiper)
-(global-set-key (kbd "M-x") 'counsel-M-x)
-(global-set-key (kbd "C-x C-f") 'counsel-find-file)
-(global-set-key (kbd "C-x b") 'ivy-switch-buffer)
-(global-set-key (kbd "C-x 4 b") 'ivy-switch-buffer-other-window)
-(global-set-key (kbd "C-x d") 'counsel-dired)
-(global-set-key (kbd "C-c j") 'counsel-semantic-or-imenu)
-(global-set-key (kbd "C-c b") 'counsel-ibuffer)
-(global-set-key (kbd "C-x r b") 'counsel-bookmark)
-(global-set-key (kbd "<f1> f") 'counsel-describe-function)
-(global-set-key (kbd "<f1> v") 'counsel-describe-variable)
-(global-set-key (kbd "<f1> l") 'counsel-find-library)
-(global-set-key (kbd "<f2> i") 'counsel-info-lookup-symbol)
-(global-set-key (kbd "<f2> u") 'counsel-unicode-char)
 
-(define-key my-emms-map (kbd "o") 'counsel-rhythmbox)
-(global-set-key (kbd "C-c C-r") 'ivy-resume)
+(global-set-key (kbd "C-s")	'swiper)
+(global-set-key (kbd "M-x")	'counsel-M-x)
+(global-set-key (kbd "C-x C-f") 'counsel-find-file)
+(global-set-key (kbd "C-x b")	'ivy-switch-buffer)
+(global-set-key (kbd "C-x 4 b") 'ivy-switch-buffer-other-window)
+(global-set-key (kbd "C-x d")	'counsel-dired)
+(global-set-key (kbd "C-x r b") 'counsel-bookmark)
+(global-set-key (kbd "<f1> f")	'counsel-describe-function)
+(global-set-key (kbd "<f1> v")	'counsel-describe-variable)
+(global-set-key (kbd "<f1> l")	'counsel-find-library)
+(global-set-key (kbd "<f2> i")	'counsel-info-lookup-symbol)
+(global-set-key (kbd "<f2> u")	'counsel-unicode-char)
+
+(define-key mode-specific-map (kbd "j") 'counsel-semantic-or-imenu)
+(define-key mode-specific-map (kbd "r") 'ivy-resume)
+(define-key my-emms-map	  (kbd "o") 'counsel-rhythmbox)
 
 ;; Helm
 (require 'helm-config)
@@ -631,24 +724,25 @@ stop playback."
 
 ;; Projectile
 (projectile-mode 1)
+;; (define-key mode-specific-map (kbd "p") 'projectile-command-map)
 (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
 
 ;; YASnippet
-;; (require 'yasnippet)
-;; (yas-global-mode 1)
+(require 'yasnippet)
+(yas-global-mode 1)
 ;; or (next two)
 ;; (yas-reload-all)
 ;; (add-hook 'prog-mode-hook #'yas-minor-mode)
 
 ;; This resolves YASnippet problems with company-tng.
-;; (define-key yas-minor-mode-map (kbd "C-j") 'yas-expand)
-;; (define-key yas-keymap (kbd "C-j") 'yas-next-field-or-maybe-expand)
-;; (dolist (keymap (list yas-minor-mode-map yas-keymap))
-;;   (define-key keymap (kbd "TAB") nil)
-;;   (define-key keymap (kbd "<tab>") nil))
+(define-key yas-minor-mode-map (kbd "C-j") 'yas-expand)
+(define-key yas-keymap (kbd "C-j") 'yas-next-field-or-maybe-expand)
+(dolist (keymap (list yas-minor-mode-map yas-keymap))
+  (define-key keymap (kbd "TAB") nil)
+  (define-key keymap (kbd "<tab>") nil))
 
 (require 'expand-region)
-(global-set-key (kbd "C-=") 'er/expand-region)
+(define-key mode-specific-map (kbd "x") 'er/expand-region)
 
 ;; PDF-Tools
 (pdf-tools-install)
@@ -670,21 +764,58 @@ stop playback."
    (python . t)
    (jupyter . t)))
 
+;; form-feed (display  as horizontal line)
+(setq form-feed-line-width 72)
+(add-hook 'Info-mode-hook 'form-feed-mode)
+(add-hook 'help-mode-hook 'form-feed-mode)
+(add-hook 'text-mode-hook 'form-feed-mode)
+(add-hook 'prog-mode-hook 'form-feed-mode)
+
+;; TeXfrag
+;; TODO fix PreviewLaTeX in AuCTeX
+;; (texfrag-global-mode)
+;; (add-hook 'eww-mode-hook 'texfrag-mode)
+
 
 ;; Julia mode
 (setq julia-program my-julia-bin)
 (add-hook 'julia-mode-hook (lambda ()
 							 (setq-local whitespace-line-column 92)))
 
-;; TODO ESS Julia maybe?
+;; ESS
+;; Deactivate automatic loading of `ess-julia-mode'
+(setq auto-mode-alist
+	  (delete (rassoc 'ess-julia-mode auto-mode-alist) auto-mode-alist))
+(setq inferior-julia-program my-julia-bin)
+(setq inferior-julia-args "--color=yes")
+
+;; julia-repl
+(add-hook 'julia-mode-hook 'julia-repl-mode)
+(setq julia-repl-executable-records
+	  '((default "julia")
+		(new "julian")))
 
 ;; lsp-julia
+(setq lsp-julia-default-environment "~/.julia/environments/v1.2")
+;; If we don't want to use the included Language Server:
+;; (setq lsp-julia-package-dir nil)
 (require 'lsp-julia)
+
 
 ;; lsp-mode TODO maybe eglot?
 (require 'lsp-mode)
-;; (add-hook 'prog-mode-hook #'lsp)
-;; (add-hook 'julia-mode-hook #'lsp) ; Repository says #'lsp-mode but seems wrong
+(add-hook 'prog-mode-hook #'lsp)
+(add-hook 'julia-mode-hook #'lsp-mode)
+(add-hook 'julia-mode-hook #'lsp)
+
+
+;; Eglot
+;; Use company-capf backend whenever `M-x eglot' connects
+(add-hook 'eglot-connect-hook
+		  (lambda ()
+			(setq-local company-backends
+						(cons 'company-capf
+							  (remove 'company-capf company-backends)))))
 
 
 ;; Load private configurations
@@ -694,9 +825,60 @@ stop playback."
 ;; Custom commands
 
 (defun find-init-file ()
-  "Find init.el in 'my-emacs-dir."
+  "Find init.el in `my-emacs-dir'."
   (interactive)
   (find-file (expand-file-name "init.el" my-emacs-dir)))
+
+(defun query-kill-emacs ()
+  "Query whether to `kill-emacs' and if yes, `save-some-buffers' and kill."
+  (interactive)
+  (if (y-or-n-p "Kill Emacs server?")
+	  (progn (save-some-buffers)
+			 (kill-emacs))))
+
+(defun insert-arbitrary-pair (beginning ending)
+  (if (region-active-p)
+	  (let ((beg (region-beginning)))
+		(save-excursion
+		  (goto-char (region-end))
+		  (insert ending)
+		  (goto-char beg)
+		  (insert beginning)))
+	(insert beginning)
+	(save-excursion
+	  (insert ending))))
+
+(defun insert-char-pair (char)
+  (interactive "cSurrounding character: ")
+  (insert-arbitrary-pair char char))
+
+(defun insert-same-pair (text)
+  (interactive "sSurrounding text: ")
+  (insert-arbitrary-pair text text))
+
+(defun insert-differing-pair (beginning ending)
+  (interactive "sBeginning text: \nsEnding text: ")
+  (insert-arbitrary-pair beginning ending))
+
+(defun insert-reversed-pair (text)
+  (interactive "sUnreversed beginning: ")
+  (insert-arbitrary-pair text (reverse text)))
+
+(defun insert-tag-pair (tag)
+  (interactive "sTag: ")
+  (insert-arbitrary-pair (concat "<" tag ">") (concat "</" tag ">")))
+
+(defun delete-around (arg)
+  (interactive "p")
+  (if (region-active-p)
+	  (let ((beg (region-beginning)))
+		(save-excursion
+		  (goto-char (region-end))
+		  (delete-char arg)
+		  (goto-char beg)
+		  (delete-backward-char arg)))
+	(delete-backward-char arg)
+	(delete-char arg)))
 
 (defun quit-other-window ()
   "Quit the other (next) window while staying in the selected window."
@@ -706,7 +888,7 @@ stop playback."
   (select-window (previous-window)))
 
 (defun update-frame-background-mode ()
-  "Update 'frame-background-mode for all frames."
+  "Update `frame-background-mode' for all frames."
   (mapc 'frame-set-background-mode (frame-list)))
 
 (defun toggle-background ()
@@ -716,7 +898,7 @@ stop playback."
 	  (setq frame-background-mode 'light)
 	(setq frame-background-mode 'dark))
   (update-frame-background-mode)
-  (load-theme my-default-theme t)
+  (load-theme (car custom-enabled-themes) t)
   (update-emms-faces))
 
 (defun toggle-solarized ()
@@ -744,7 +926,7 @@ on if a Solarized variant is currently active."
 	(toggle-background)))
 
 (defun toggle-indent-tabs-mode ()
-  "Toggle 'indent-tabs-mode."
+  "Toggle `indent-tabs-mode'."
   (interactive)
   (if (eq indent-tabs-mode nil)
 	  (progn
@@ -755,24 +937,24 @@ on if a Solarized variant is currently active."
 	  (untabify (point-min) (point-max)))))
 
 
-(defun julia-repl ()
+(defun my-julia-repl ()
   "Start a Julia REPL in a terminal emulator in the selected window."
   (interactive)
   (term (expand-file-name my-julia-bin)))
 
-(defun julia-repl-split-right ()
+(defun my-julia-repl-split-right ()
   "Start a Julia REPL in a window to the side of the selected window."
   (interactive)
   (split-window-right)
   (windmove-right)
-  (julia-repl))
+  (my-julia-repl))
 
-(defun julia-repl-split-below ()
+(defun my-julia-repl-split-below ()
   "Start a Julia REPL in a window to the side of the selected window."
   (interactive)
   (split-window-below)
   (windmove-down)
-  (julia-repl))
+  (my-julia-repl))
 
 
 ;; Key bindings
@@ -783,15 +965,30 @@ on if a Solarized variant is currently active."
 ;; Find file at point (C-c f)
 (define-key mode-specific-map (kbd "f") 'find-file-at-point)
 
-;; Indent using tabs or spaces (C-c i)
-(define-key mode-specific-map (kbd "i") 'toggle-indent-tabs-mode)
-
 ;; Better expanding
 (global-set-key (kbd "M-/") 'hippie-expand)
 
 ;; Like dt or df in Vim
 (global-set-key (kbd "M-z") 'zap-up-to-char)
-(global-set-key (kbd "C-M-z") 'zap-to-char)
+(define-key mode-specific-map (kbd "z") 'zap-to-char)
+
+;; Swap literal and regex isearch
+;; (we then don't need (search-default-mode t))
+;; Following line commented out due to Ivy/Helm:
+;; (global-set-key (kbd "C-s") 'isearch-forward-regexp)
+(global-set-key (kbd "C-r")   'isearch-backward-regexp)
+(global-set-key (kbd "C-M-s") 'isearch-forward)
+(global-set-key (kbd "C-M-r") 'isearch-backward)
+
+;; Swap literal and regex query-replace
+(global-set-key (kbd "M-%")   'query-replace-regexp)
+(global-set-key (kbd "C-M-%") 'query-replace)
+
+;; Extended custom commands (C-c x)
+(define-key mode-specific-map (kbd "x") 'my-extended-map)
+;; Indent using tabs or spaces (C-c x i)
+(define-key my-extended-map (kbd "i") 'toggle-indent-tabs-mode)
+
 
 ;; Don't use arrow keys for window/buffer management (C-c w)
 (define-prefix-command 'my-window-map)
@@ -804,30 +1001,40 @@ on if a Solarized variant is currently active."
 (define-key my-window-map (kbd "d") 'windmove-down)
 (define-key my-window-map (kbd "l") 'windmove-left)
 (define-key my-window-map (kbd "r") 'windmove-right)
+
 (define-key my-window-map (kbd "s") 'speedbar)
 (define-key my-window-map (kbd "o") 'window-swap-states)
+(define-key my-window-map (kbd "w") 'toggle-frame-fullscreen)
+(define-key my-window-map (kbd "m") 'toggle-frame-maximized)
+(define-key my-window-map (kbd "c") 'switch-to-completions)
+(define-key my-window-map (kbd "q") 'quit-other-window)
+(define-key my-window-map (kbd "R") 'redraw-display)
 
-;; Swap literal and regex isearch
-;; (we then don't need (search-default-mode t))
-;; Following line commented out due to Ivy/Helm:
-;; (global-set-key (kbd "C-s") 'isearch-forward-regexp)
-(global-set-key (kbd "C-r") 'isearch-backward-regexp)
-(global-set-key (kbd "C-M-s") 'isearch-forward)
-(global-set-key (kbd "C-M-r") 'isearch-backward)
-
-;; Swap literal and regex query-replace
-(global-set-key (kbd "M-%") 'query-replace-regexp)
-(global-set-key (kbd "C-M-%") 'query-replace)
-
-;; imenu and ibuffer keybindings (commented out due to Ivy)
-;; (global-set-key (kbd "C-c j") 'imenu)
-;; (global-set-key (kbd "C-c b") 'ibuffer)
+;; imenu and ibuffer keybindings
+;; (imenu commented out due to Ivy; ibuffer is better standalone)
+;; (define-key mode-specific-map (kbd "j") 'imenu)
+(define-key mode-specific-map (kbd "b") 'ibuffer)
 
 ;; Remap `transpose-sexps' to M-S-t to avoid the Terminal shortcut.
 (global-set-key (kbd "M-T") 'transpose-sexps)
+;; Remap `kill-whole-line' to M-S-k to avoid Terminal misinterpretation.
+(global-set-key (kbd "M-K") 'kill-whole-line)
 
-;; Close help without switching buffer (C-c q)
-(define-key mode-specific-map (kbd "q") 'quit-other-window)
+;; Query whether to kill Emacs server (C-c k)
+(define-key mode-specific-map (kbd "k") 'query-kill-emacs)
+
+;; Surround point or region (C-c s)
+(define-key mode-specific-map (kbd "s") 'insert-char-pair)
+
+;; Insert other pairs around point or region (C-c a)
+(define-prefix-command 'my-pairs-map)
+(define-key mode-specific-map (kbd "a") 'my-pairs-map)
+(define-key my-pairs-map (kbd "a") 'insert-same-pair)
+(define-key my-pairs-map (kbd "s") 'insert-same-pair)
+(define-key my-pairs-map (kbd "p") 'insert-differing-pair)
+(define-key my-pairs-map (kbd "r") 'insert-reversed-pair)
+(define-key my-pairs-map (kbd "t") 'insert-tag-pair)
+(define-key my-pairs-map (kbd "d") 'delete-around)
 
 ;; Toggle Solarized or background brightness
 (global-set-key (kbd "<f9>") 'toggle-solarized-or-background)
@@ -840,4 +1047,6 @@ on if a Solarized variant is currently active."
 (put 'scroll-left 'disabled nil)
 (put 'downcase-region 'disabled nil)
 (put 'upcase-region 'disabled nil)
+(put 'set-goal-column 'disabled nil)
 
+(put 'narrow-to-region 'disabled nil)

@@ -59,3 +59,5 @@
 	prc = !sh -c 'git fetch origin pull/$1/head:pr-$1 && git checkout pr-$1' -
 	pruneall = !git remote | xargs -n 1 git remote prune
 
+[color]
+	ui = auto

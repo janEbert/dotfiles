@@ -145,7 +145,7 @@ fi
 
 stty -ixon
 
-export PATH="$HOME/local/bin:/usr/lib/ccache:$PATH"
+export PATH="$HOME/.nimble/bin:$HOME/local/bin:/usr/lib/ccache:$PATH"
 
 [ -f ~/.emacs.d/bin/doom ] && export PATH="$HOME/.emacs.d/bin:$PATH"
 
@@ -164,6 +164,9 @@ export CCACHE_DIR=/tmp/ccache
 # CVS
 export CVSROOT="$HOME/.cvs_root"
 export CVSEDITOR=$EDITOR
+
+# Android stuff
+# export PATH="$PATH:$HOME/Downloads/android-platform-tools"
 
 # GNU Global
 if [ -f ~/.globalrc ]; then
@@ -194,22 +197,20 @@ export JULIA_NUM_THREADS=64
 [ -f ~/.zshrc_local ] && source ~/.zshrc_local
 
 
-# added by Anaconda3 2018.12 installer
-# >>> conda init >>>
+# >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$(CONDA_REPORT_ERRORS=false '/home/jan/anaconda3/bin/conda' shell.bash hook 2> /dev/null)"
+__conda_setup="$('/home/jan/anaconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
 if [ $? -eq 0 ]; then
-    \eval "$__conda_setup"
+    eval "$__conda_setup"
 else
     if [ -f "/home/jan/anaconda3/etc/profile.d/conda.sh" ]; then
         . "/home/jan/anaconda3/etc/profile.d/conda.sh"
-        CONDA_CHANGEPS1=false conda activate base
     else
-        \export PATH="/home/jan/anaconda3/bin:$PATH"
+        export PATH="/home/jan/anaconda3/bin:$PATH"
     fi
 fi
 unset __conda_setup
-# <<< conda init <<<
+# <<< conda initialize <<<
 
 
 # FZF
@@ -260,12 +261,16 @@ fi
 
 
 # Emacs TRAMP fix (keep this at the very end!)
-if [[ "$TERM" == "dumb" ]]; then
+if [[ "$TERM" == "dumb" ]] && [[ ${INSIDE_EMACS/*,/} == "tramp" ]]; then
     unsetopt zle
     unsetopt prompt_cr
     unsetopt prompt_subst
-    unfunction precmd
-    unfunction preexec
+    if whence -w precmd > /dev/null; then
+        unfunction precmd
+    fi
+    if whence -w preexec > /dev/null; then
+        unfunction preexec
+    fi
     PS1='$ '
 fi
 

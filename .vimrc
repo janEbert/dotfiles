@@ -679,8 +679,13 @@ inoremap <C-C> <Esc>
 " Swap the behaviour so we can still use Esc like CTRL-C
 inoremap <Esc> <C-C>
 
+" CTRL-L switches to normal mode
+inoremap <C-L> <Esc>
+
 " Cancel replace with CTRL-C without inserting the CTRL-C literal.
-nnoremap r<C-C> <C-C>
+nnoremap r<C-C> <Esc>
+" Same for CTRL-L
+nnoremap r<C-L> <Esc>
 
 " CTRL-U in insert mode deletes a lot. Use CTRL-G u to first break undo,
 " so that you can undo CTRL-U after inserting a line break.

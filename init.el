@@ -155,7 +155,7 @@
  '(package-menu-hide-low-priority t)
  '(package-selected-packages
    (quote
-	(yasnippet-snippets texfrag eglot undo-propose julia-repl ess form-feed nim-mode evil-collection evil-commentary evil-lion evil-magit evil-matchit evil-snipe evil-surround evil-visualstar counsel-spotify landmark auctex zotxt company-lsp company-quickhelp dumb-jump expand-region jupyter use-package gotham-theme zenburn-theme toc-org flymake org tramp projectile ivy ggtags pdf-tools yasnippet solarized-theme rainbow-delimiters lsp-mode julia-mode helm gnu-elpa-keyring-update forge evil emms darkroom company)))
+	(lua-mode python nov ein rust-mode slime yasnippet-snippets texfrag eglot undo-propose julia-repl ess form-feed nim-mode evil-collection evil-commentary evil-lion evil-magit evil-matchit evil-snipe evil-surround evil-visualstar counsel-spotify landmark auctex zotxt company-lsp company-quickhelp dumb-jump expand-region jupyter use-package gotham-theme zenburn-theme toc-org flymake org tramp projectile ivy ggtags pdf-tools yasnippet solarized-theme rainbow-delimiters lsp-mode julia-mode helm gnu-elpa-keyring-update forge evil emms darkroom company)))
  '(prettify-symbols-unprettify-at-point (quote right-edge))
  '(read-buffer-completion-ignore-case t)
  '(read-file-name-completion-ignore-case t)
@@ -267,6 +267,8 @@
 
 ;; Autoclose blocks in LaTeX mode
 (add-hook 'latex-mode 'latex-electric-env-pair-mode)
+;; Auto-fill in TeX mode
+(add-hook 'tex-mode 'auto-fill-mode)
 
 ;; Disable whitespace in Term mode
 (add-hook 'term-mode-hook (lambda () (whitespace-mode 0)))
@@ -442,7 +444,8 @@
 (add-hook 'TeX-mode-hook (lambda () (prettify-symbols-mode 1)))
 (add-hook 'LaTeX-mode-hook 'TeX-source-correlate-mode)
 (add-hook 'LaTeX-mode-hook 'LaTeX-math-mode)
-(add-hook 'LaTeX-mode-hook (lambda () (electric-pair-mode 0)))
+(add-hook 'LaTeX-mode-hook #'flymake-mode)
+(add-hook 'LaTeX-mode-hook (lambda () (electric-pair-local-mode 0)))
 (setq reftex-plug-into-AUCTeX t)
 
 ;; Use PDF Tools
@@ -764,6 +767,9 @@ stop playback."
    (python . t)
    (jupyter . t)))
 
+;; Emacs IPython Notebook
+(setq ein:polymode t)
+
 ;; form-feed (display  as horizontal line)
 (setq form-feed-line-width 72)
 (add-hook 'Info-mode-hook 'form-feed-mode)
@@ -790,7 +796,8 @@ stop playback."
 (setq inferior-julia-args "--color=yes")
 
 ;; julia-repl
-(add-hook 'julia-mode-hook 'julia-repl-mode)
+(add-hook 'julia-mode-hook
+		  (lambda () (if (buffer-file-name) ('julia-repl-mode))))
 (setq julia-repl-executable-records
 	  '((default "julia")
 		(new "julian")))
@@ -1048,5 +1055,5 @@ on if a Solarized variant is currently active."
 (put 'downcase-region 'disabled nil)
 (put 'upcase-region 'disabled nil)
 (put 'set-goal-column 'disabled nil)
-
 (put 'narrow-to-region 'disabled nil)
+

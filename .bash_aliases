@@ -6,14 +6,16 @@ tbg() {
     fi
 
     # Gnome Terminal
-    gnome_term_profiles='/org/gnome/terminal/legacy/profiles:/'
-    first_profile=$(dconf list $gnome_term_profiles | head -n 1)
-    if [[ "$SOLARIZED_THEME" = "dark" ]]; then
-        dconf write "$gnome_term_profiles${first_profile}background-color" "'rgb(0,43,54)'"
-        dconf write "$gnome_term_profiles${first_profile}foreground-color" "'rgb(131,148,150)'"
-    else
-        dconf write "$gnome_term_profiles${first_profile}background-color" "'rgb(253,246,227)'"
-        dconf write "$gnome_term_profiles${first_profile}foreground-color" "'rgb(101,123,131)'"
+    if [ -x "$(command -v dconf)" ]; then
+        gnome_term_profiles='/org/gnome/terminal/legacy/profiles:/'
+        first_profile=$(dconf list $gnome_term_profiles | head -n 1)
+        if [[ "$SOLARIZED_THEME" = "dark" ]]; then
+            dconf write "$gnome_term_profiles${first_profile}background-color" "'rgb(0,43,54)'"
+            dconf write "$gnome_term_profiles${first_profile}foreground-color" "'rgb(131,148,150)'"
+        else
+            dconf write "$gnome_term_profiles${first_profile}background-color" "'rgb(253,246,227)'"
+            dconf write "$gnome_term_profiles${first_profile}foreground-color" "'rgb(101,123,131)'"
+        fi
     fi
 
     if [ "x$ZSH_THEME" != x ]; then

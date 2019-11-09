@@ -222,6 +222,8 @@
 
 
 (define-prefix-command 'my-extended-map)
+;; Extended custom commands (C-c x)
+(define-key mode-specific-map (kbd "x") 'my-extended-map)
 
 ;; Do complete .bin files
 (setq completion-ignored-extensions
@@ -266,9 +268,9 @@
 ;; (setq tab-always-indent 'complete)
 
 ;; Autoclose blocks in LaTeX mode
-(add-hook 'latex-mode 'latex-electric-env-pair-mode)
+(add-hook 'latex-mode-hook 'latex-electric-env-pair-mode)
 ;; Auto-fill in TeX mode
-(add-hook 'tex-mode 'auto-fill-mode)
+(add-hook 'tex-mode-hook 'auto-fill-mode)
 
 ;; Disable whitespace in Term mode
 (add-hook 'term-mode-hook (lambda () (whitespace-mode 0)))
@@ -469,8 +471,10 @@
 ;; 						  (cons "\\(" "\\)"))))
 
 ;; AUCTeX mode hooks
-(add-hook 'TeX-mode-hook  'highlight-todos)
+(add-hook 'TeX-mode-hook   'highlight-todos)
+(add-hook 'TeX-mode-hook   'auto-fill-mode)
 (add-hook 'LaTeX-mode-hook 'turn-on-reftex)
+(add-hook 'LaTeX-mode-hook 'latex-electric-env-pair-mode)
 
 ;; Dumb Jump
 (dumb-jump-mode)
@@ -745,7 +749,7 @@ stop playback."
   (define-key keymap (kbd "<tab>") nil))
 
 (require 'expand-region)
-(define-key mode-specific-map (kbd "x") 'er/expand-region)
+(define-key my-extended-map (kbd "x") 'er/expand-region)
 
 ;; PDF-Tools
 (pdf-tools-install)
@@ -797,7 +801,7 @@ stop playback."
 
 ;; julia-repl
 (add-hook 'julia-mode-hook
-		  (lambda () (if (buffer-file-name) ('julia-repl-mode))))
+		  (lambda () (if (buffer-file-name) (julia-repl-mode))))
 (setq julia-repl-executable-records
 	  '((default "julia")
 		(new "julian")))
@@ -991,8 +995,6 @@ on if a Solarized variant is currently active."
 (global-set-key (kbd "M-%")   'query-replace-regexp)
 (global-set-key (kbd "C-M-%") 'query-replace)
 
-;; Extended custom commands (C-c x)
-(define-key mode-specific-map (kbd "x") 'my-extended-map)
 ;; Indent using tabs or spaces (C-c x i)
 (define-key my-extended-map (kbd "i") 'toggle-indent-tabs-mode)
 

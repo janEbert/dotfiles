@@ -221,12 +221,10 @@
 (setq completion-ignored-extensions
 	  (remove ".bin" completion-ignored-extensions))
 
-(require 'em-term)
 ;; More Eshell visual commands
-(with-eval-after-load "eshell"
-  (prog
+(with-eval-after-load "em-term"
   (setq eshell-visual-commands
-  		(append eshell-visual-commands
+		(append eshell-visual-commands
 				'("vim" "vimdiff" "nvim" "tmux" "joe" "nano" "mg" "cmus" "mpsyt"
 				  "htop" "ncdu" "nethack" "crawl" "jstar" "jmacs" "rjoe" "jpico"
 				  "zile" "zemacs" "zi")))
@@ -237,7 +235,7 @@
 				  ("emacsclient" "-nw" "--no-window-system"))))
   (setq eshell-visual-subcommands
 		(append eshell-visual-subcommands
-				'(("git" "log" "reflog" "diff" "show"))))))
+				'(("git" "log" "reflog" "diff" "show")))))
 
 ;; Set backup directory
 (setq backup-directory-alist `(("." . ,my-backup-dir)))
@@ -257,9 +255,8 @@
 (add-hook 'emacs-startup-hook (lambda () (scroll-bar-mode 0)))
 
 ;; Smooth (mouse) scrolling
-;; (require 'pixel-scroll)
-(with-eval-after-load "pixel-scroll"
-  (pixel-scroll-mode 1))
+(require 'pixel-scroll)
+(pixel-scroll-mode 1)
 
 ;; Vim-like autoscroll
 (setq scroll-conservatively 1)
@@ -295,10 +292,13 @@
              '(font . "DejaVu Sans Mono-11"))
 
 ;; RefTeX
-(require 'reftex)
+;; (require 'reftex)
+(autoload 'turn-on-reftex "reftex")
 (add-hook 'latex-mode-hook 'turn-on-reftex)
-(add-hook 'reftex-select-bib-mode-hook (lambda () (whitespace-mode 0)))
-(add-to-list 'reftex-include-file-commands "includeonly")
+
+(with-eval-after-load "reftex"
+  (add-hook 'reftex-select-bib-mode-hook (lambda () (whitespace-mode 0)))
+  (add-to-list 'reftex-include-file-commands "includeonly"))
 
 ;; TRAMP
 (require 'tramp)
@@ -491,7 +491,7 @@
 (require 'magit)
 (define-prefix-command 'my-magit-map)
 (define-key mode-specific-map (kbd "g") 'my-magit-map)
-(define-key my-magit-map (kbd "g")   'magit-status)
+(define-key my-magit-map (kbd "g") 'magit-status)
 (define-key my-magit-map (kbd "G") 'magit-dispatch-popup)
 (define-key magit-file-mode-map (kbd "C-c g") 'magit-file-dispatch)
 
@@ -520,7 +520,7 @@
 						:foreground local-default-background))
 
 ;; Start EMMS right away
-(defun init-emmms ()
+(defun init-emms ()
   "Load the playlist emms-music in 'my-music-dir, go to a random track and
 stop playback."
   (interactive)
@@ -529,7 +529,7 @@ stop playback."
   (emms-stop)
   (update-emms-faces))
 
-(update-emms-faces)
+(add-hook 'after-init-hook 'init-emms)
 
 ;; EMMS key bindings (C-c m)
 (define-prefix-command 'my-emms-map)
@@ -543,7 +543,7 @@ stop playback."
 (define-key my-emms-map (kbd "b") 'emms-seek-backward)
 (define-key my-emms-map (kbd "f") 'emms-seek-forward)
 (define-key my-emms-map (kbd "l") 'emms)
-(define-key my-emms-map (kbd "i") 'init-emmms)
+(define-key my-emms-map (kbd "i") 'init-emms)
 (define-key my-emms-map (kbd "+") 'emms-volume-raise)
 (define-key my-emms-map (kbd "-") 'emms-volume-lower)
 
@@ -792,7 +792,8 @@ the context."
   (define-key keymap (kbd "TAB") nil)
   (define-key keymap (kbd "<tab>") nil))
 
-(require 'expand-region)
+;; (require 'expand-region)
+(autoload 'er/expand-region "expand-region")
 (define-key my-extended-map (kbd "x") 'er/expand-region)
 
 ;; PDF-Tools
@@ -832,10 +833,11 @@ the context."
 
 
 ;; Julia mode
+;; (require 'julia-mode)
+(autoload 'julia-mode-hook "julia-mode")
 (setq julia-program my-julia-bin)
 (add-hook 'julia-mode-hook (lambda ()
 							 (setq-local whitespace-line-column 92)))
-(require 'julia-mode)
 
 ;; ess
 ;; deactivate automatic loading of `ess-julia-mode'
@@ -859,12 +861,12 @@ the context."
 
 
 ;; Rust mode
-(require 'rust-mode)
+;; (require 'rust-mode)
+(autoload 'rust-mode-hook "rust-mode")
 (add-hook 'rust-mode-hook
-          (lambda () (setq indent-tabs-mode nil)))
+		  (lambda () (setq indent-tabs-mode nil)))
 ;; Run rustfmt on save
 ;; (setq rust-format-on-save t)
-
 
 ;; lsp-mode
 ;; (require 'lsp-mode)
@@ -1046,6 +1048,13 @@ on if a Solarized variant is currently active."
 	  (setq indent-tabs-mode nil)
 	  (untabify (point-min) (point-max)))))
 
+(defun toggle-pixel-scroll-mode ()
+  "Toggle `pixel-scroll-mode'."
+  (interactive)
+  (if (eq pixel-scroll-mode nil)
+	  (pixel-scroll-mode 1)
+	(pixel-scroll-mode 0)))
+
 
 (defun my-julia-repl ()
   "Start a Julia REPL in a terminal emulator in the selected window."
@@ -1096,6 +1105,9 @@ on if a Solarized variant is currently active."
 
 ;; Indent using tabs or spaces (C-c x i)
 (define-key my-extended-map (kbd "i") 'toggle-indent-tabs-mode)
+
+;; Toggle pixel-scrolling (C-c x p)
+(define-key my-extended-map (kbd "p") 'toggle-pixel-scroll-mode)
 
 ;; Compile (C-c x c)
 (define-key my-extended-map (kbd "c") 'compile)

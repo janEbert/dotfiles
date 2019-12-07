@@ -521,7 +521,8 @@
 
 ;; Start EMMS right away
 (defun init-emmms ()
-  "Load the playlist emms-music in 'my-music-dir, go to a random track and stop playback."
+  "Load the playlist emms-music in 'my-music-dir, go to a random track and
+stop playback."
   (interactive)
   (emms-play-playlist (expand-file-name "emms-music" my-music-dir))
   (emms-random)
@@ -1025,7 +1026,8 @@ given `ending' after, but reversed ('[a' -> 'a[')."
   (update-emms-faces))
 
 (defun toggle-solarized-or-background ()
-  "Toggle either Solarized light and dark or the background brightness depending on if a Solarized variant is currently active."
+  "Toggle either Solarized light and dark or the background brightness depending
+on if a Solarized variant is currently active."
   (interactive)
   (if (or
 	   (eq (car custom-enabled-themes) 'solarized-light)

@@ -10,6 +10,7 @@
 
 ;; Put external plugins into "~/.emacs.d/lisp".
 ;; Put themes into "~/.emacs.d/themes".
+;; Put etags configurations into "~/.emacs.d/etags".
 ;;
 ;; External plugins to download:
 ;;   - [lsp-julia](https://github.com/non-Jedi/lsp-julia) (optional)

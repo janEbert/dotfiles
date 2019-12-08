@@ -7,12 +7,12 @@
 "   :call mkdir(expand(g:myvimhome . "sessions"), "p", 0700)
 "   :call mkdir(expand(g:myvimhome . "tags"), "p", 0700)
 "   :call mkdir(expand(g:myvimhome . "tmp"), "p", 0700)
-"   and download desired plugins (below) to <g:plugindir>/*/{start,opt}/
+"   and download desired plugins (below) to <g:myplugindir>/*/{start,opt}/
 "
 " On Windows at `~/_vimrc`, on Unix at `~/.vimrc`.
 " Directories in `g:myvimhome`:
 "   colors: usercolors
-"   <g:plugindir>: path to the plugin dirs is `./*/{start,opt}/`
+"   <g:myplugindir>: path to the plugin dirs is `./*/{start,opt}/`
 "   sessions: saved sessions
 "   tags: global tags files
 "   tmp: backups, undofiles, ...

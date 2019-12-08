@@ -198,6 +198,10 @@ export JULIA_NUM_THREADS=64
 # If Julia should automatically `]activate .` the current directory.
 # export JULIA_PROJECT=@.
 
+# Rust
+export PATH="$HOME/.cargo/bin:$PATH"
+
+
 # Use "emulate sh -c '. file.sh'" when compatibility demands it.
 
 

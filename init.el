@@ -148,7 +148,7 @@
  '(package-menu-hide-low-priority t)
  '(package-selected-packages
    (quote
-	(realgud dap-mode cobol-mode csharp-mode fsharp-mode go-mode num3-mode php-mode sed-mode smalltalk-mode stan-mode swift-mode zig-mode elixir-mode erlang clojure-mode cmake-mode haskell-snippets caml sml-mode haskell-mode lsp-julia nasm-mode yaml-mode ada-mode chess csv-mode json-mode vterm lua-mode python nov ein rust-mode slime yasnippet-snippets texfrag eglot undo-propose julia-repl ess form-feed nim-mode evil-collection evil-commentary evil-lion evil-magit evil-matchit evil-snipe evil-surround evil-visualstar counsel-spotify landmark auctex zotxt company-lsp company-quickhelp dumb-jump expand-region jupyter use-package gotham-theme zenburn-theme toc-org flymake org tramp projectile ivy ggtags pdf-tools yasnippet solarized-theme rainbow-delimiters lsp-mode julia-mode helm gnu-elpa-keyring-update forge evil emms darkroom company)))
+	(dired-du dired-git-info purescript-mode js2-mode magit markdown-mode typescript-mode realgud dap-mode cobol-mode csharp-mode fsharp-mode go-mode num3-mode php-mode sed-mode smalltalk-mode stan-mode swift-mode zig-mode elixir-mode erlang clojure-mode cmake-mode haskell-snippets caml sml-mode haskell-mode lsp-julia nasm-mode yaml-mode ada-mode chess csv-mode json-mode vterm lua-mode python nov ein rust-mode slime yasnippet-snippets texfrag eglot undo-propose julia-repl ess form-feed nim-mode evil-collection evil-commentary evil-lion evil-magit evil-matchit evil-snipe evil-surround evil-visualstar counsel-spotify landmark auctex zotxt company-lsp company-quickhelp dumb-jump expand-region jupyter use-package gotham-theme zenburn-theme toc-org flymake org tramp projectile ivy ggtags pdf-tools yasnippet solarized-theme rainbow-delimiters lsp-mode julia-mode helm gnu-elpa-keyring-update forge evil emms darkroom company)))
  '(prettify-symbols-unprettify-at-point (quote right-edge))
  '(read-buffer-completion-ignore-case t)
  '(read-file-name-completion-ignore-case t)
@@ -213,6 +213,18 @@
              (file-directory-p (concat basedir f)))
         (add-to-list 'custom-theme-load-path (concat basedir f)))))
 
+(defun toggle-show-whitespace ()
+  "Toggle showing whitespace in the current buffer."
+  (interactive)
+  (if (or show-trailing-whitespace global-whitespace-mode whitespace-mode)
+	  (progn
+		(setq-local show-trailing-whitespace nil)
+		(whitespace-mode 0))
+	(progn
+	  (setq-local show-trailing-whitespace t)
+	  (if (not global-whitespace-mode)
+		  (whitespace-mode 1)))))
+
 
 (define-prefix-command 'my-extended-map)
 ;; Extended custom commands (C-c x)
@@ -256,8 +268,8 @@
 (add-hook 'emacs-startup-hook (lambda () (scroll-bar-mode 0)))
 
 ;; Smooth (mouse) scrolling
-(require 'pixel-scroll)
-(pixel-scroll-mode 1)
+(if (require 'pixel-scroll nil t)
+	(pixel-scroll-mode 1))
 
 ;; Vim-like autoscroll
 (setq scroll-conservatively 1)
@@ -272,11 +284,11 @@
 (add-hook 'tex-mode-hook 'auto-fill-mode)
 
 ;; Disable whitespace in Term mode
-(add-hook 'term-mode-hook (lambda () (whitespace-mode 0)))
+(add-hook 'term-mode-hook 'toggle-show-whitespace)
 
 
 ;; Dired
-(add-hook 'dired-after-readin-hook (lambda () (whitespace-mode 0)))
+(add-hook 'dired-after-readin-hook 'toggle-show-whitespace)
 
 ;; Ido
 (ido-mode 1)
@@ -298,35 +310,37 @@
 (add-hook 'latex-mode-hook 'turn-on-reftex)
 
 (with-eval-after-load "reftex"
-  (add-hook 'reftex-select-bib-mode-hook (lambda () (whitespace-mode 0)))
+  (add-hook 'reftex-select-bib-mode-hook 'toggle-show-whitespace)
   (add-to-list 'reftex-include-file-commands "includeonly"))
 
 ;; TRAMP
-(require 'tramp)
-;; Load Eshell extensions
-;; Maybe named "em-tramp"
-(with-eval-after-load "eshell"
-  (add-to-list 'eshell-modules-list 'eshell-tramp))
-;; Change a value in `tramp-methods'
-;; (with-eval-after-load "tramp"
-;;   (setf (cadr (assq 'tramp-login-args (cdr (assoc "plink" tramp-methods))))
-;;          '(("-l" "%u") ("-P" "%p") ("-ssh") ("-t") ("%h") ("\"")
-;;            ("env 'TERM=dumb' 'PROMPT_COMMAND=' 'PS1=#$ '") ("/bin/sh") ("\""))))
-;; Use X11 forwarding (-X)
-;; TODO check if this works correctly (nope, not on multi hops)
-(add-to-list 'tramp-remote-process-environment
-			 (format "DISPLAY=localhost%s" (getenv "DISPLAY")))
-(defun remote-shell ()
-  "Start a remote shell with the correct TERM environment variable."
-  (interactive)
-  (let ((process-environment (cons "TERM=xterm-256color" process-environment)))
-	(shell)))
+(if (require 'tramp nil t)
+	(progn
+	  ;; Load Eshell extensions
+	  ;; Maybe named "em-tramp"
+	  (with-eval-after-load "em-term"
+		(add-to-list 'eshell-modules-list 'eshell-tramp))
+	  ;; Change a value in `tramp-methods'
+	  ;; (with-eval-after-load "tramp"
+	  ;;   (setf (cadr (assq 'tramp-login-args (cdr (assoc "plink" tramp-methods))))
+	  ;;          '(("-l" "%u") ("-P" "%p") ("-ssh") ("-t") ("%h") ("\"")
+	  ;;            ("env 'TERM=dumb' 'PROMPT_COMMAND=' 'PS1=#$ '") ("/bin/sh") ("\""))))
+	  ;; Use X11 forwarding (-X)
+	  ;; TODO check if this works correctly (nope, not on multi hops)
+	  (add-to-list 'tramp-remote-process-environment
+				   (format "DISPLAY=localhost%s" (getenv "DISPLAY")))
+	  (defun remote-shell ()
+		"Start a remote shell with the correct TERM environment variable."
+		(interactive)
+		(let ((process-environment (cons "TERM=xterm-256color" process-environment)))
+		  (shell)))))
 
 ;; Flymake
-(require 'flymake)
-(add-hook 'prog-mode-hook #'flymake-mode)
-(define-key flymake-mode-map (kbd "M-n") 'flymake-goto-next-error)
-(define-key flymake-mode-map (kbd "M-p") 'flymake-goto-prev-error)
+(if (require 'flymake nil t)
+	(progn
+	  (add-hook 'prog-mode-hook #'flymake-mode)
+	  (define-key flymake-mode-map (kbd "M-n") 'flymake-goto-next-error)
+	  (define-key flymake-mode-map (kbd "M-p") 'flymake-goto-prev-error)))
 
 ;; Org
 (setq org-directory "~/.emacs.d/org")
@@ -359,20 +373,20 @@
 ;; (setq ob-async-no-async-languages-alist
 ;; 	  '("jupyter-python" "jupyter-julia"))
 
-(require 'org-install)
-(require 'org-habit)
+(if (and (require 'org-install nil t)
+		 (require 'org-habit nil t))
+	(progn
+	  (add-hook 'org-babel-after-execute-hook 'org-display-inline-images)
+	  (add-hook 'org-mode-hook 'org-display-inline-images)
+	  (add-hook 'message-mode-hook 'orgtbl-mode)
 
-(add-hook 'org-babel-after-execute-hook 'org-display-inline-images)
-(add-hook 'org-mode-hook 'org-display-inline-images)
-(add-hook 'message-mode-hook 'orgtbl-mode)
-
-(define-prefix-command 'my-org-map)
-(define-key mode-specific-map (kbd "o") 'my-org-map)
-(define-key my-org-map (kbd "n") 'org-footnote-action)
-(define-key my-org-map (kbd "l") 'org-store-link)
-(define-key my-org-map (kbd "a") 'org-agenda)
-(define-key my-org-map (kbd "o") 'org-switchb)
-(define-key my-org-map (kbd "c") 'org-capture)
+	  (define-prefix-command 'my-org-map)
+	  (define-key mode-specific-map (kbd "o") 'my-org-map)
+	  (define-key my-org-map (kbd "n") 'org-footnote-action)
+	  (define-key my-org-map (kbd "l") 'org-store-link)
+	  (define-key my-org-map (kbd "a") 'org-agenda)
+	  (define-key my-org-map (kbd "o") 'org-switchb)
+	  (define-key my-org-map (kbd "c") 'org-capture)))
 
 
 ;; Set frame background
@@ -489,68 +503,74 @@
 (dumb-jump-mode)
 
 ;; Magit
-(require 'magit)
-(define-prefix-command 'my-magit-map)
-(define-key mode-specific-map (kbd "g") 'my-magit-map)
-(define-key my-magit-map (kbd "g") 'magit-status)
-(define-key my-magit-map (kbd "G") 'magit-dispatch-popup)
-(define-key magit-file-mode-map (kbd "C-c g") 'magit-file-dispatch)
+(if (require 'magit nil t)
+	(progn
+	  (define-prefix-command 'my-magit-map)
+	  (define-key mode-specific-map (kbd "g") 'my-magit-map)
+	  (define-key my-magit-map (kbd "g") 'magit-status)
+	  (define-key my-magit-map (kbd "G") 'magit-dispatch-popup)
+	  (define-key magit-file-mode-map (kbd "C-c g") 'magit-file-dispatch)))
 
 ;; EMMS
-(require 'emms-setup)
-(emms-all)
-(emms-default-players)
-(setq emms-source-file-default-directory my-music-dir)
-(setq emms-stream-info-backend 'vlc)
+(if (require 'emms-setup nil t)
+	(progn
+	  (emms-all)
+	  (emms-default-players)
+	  (setq emms-source-file-default-directory my-music-dir)
+	  (setq emms-stream-info-backend 'vlc)
 
-(setq emms-random-playlist t)
-(setq emms-repeat-playlist t)
+	  (setq emms-random-playlist t)
+	  (setq emms-repeat-playlist t)
 
-(if (eq system-type 'gnu/linux)
-	(setq emms-source-file-directory-tree-function
-		  'emms-source-file-directory-tree-find))
+	  (if (eq system-type 'gnu/linux)
+		  (setq emms-source-file-directory-tree-function
+				'emms-source-file-directory-tree-find))
 
-(defun update-emms-faces ()
-  "Change EMMS faces to be consistent with the rest of Emacs."
-  (setq local-default-foreground (face-attribute 'default :foreground))
-  (setq local-default-background (face-attribute 'default :background))
-	(set-face-attribute 'emms-playlist-track-face nil
-						:foreground local-default-foreground)
-	(set-face-attribute 'emms-playlist-selected-face nil
-						:background local-default-foreground
-						:foreground local-default-background))
+	  (defun update-emms-faces ()
+		"Change EMMS faces to be consistent with the rest of Emacs."
+		(setq local-default-foreground (face-attribute 'default :foreground))
+		(setq local-default-background (face-attribute 'default :background))
+		(set-face-attribute 'emms-playlist-track-face nil
+							:foreground local-default-foreground)
+		(set-face-attribute 'emms-playlist-selected-face nil
+							:background local-default-foreground
+							:foreground local-default-background))
 
-;; Start EMMS right away
-(defun init-emms ()
-  "Load the playlist emms-music in 'my-music-dir, go to a random track and
+	  ;; Start EMMS right away
+	  (defun init-emms ()
+		"Load the playlist emms-music in 'my-music-dir, go to a random track and
 stop playback."
-  (interactive)
-  (emms-play-playlist (expand-file-name "emms-music" my-music-dir))
-  (emms-random)
-  (emms-stop)
-  (update-emms-faces))
+		(interactive)
+		(emms-play-playlist (expand-file-name "emms-music" my-music-dir))
+		(emms-random)
+		(emms-stop)
+		(update-emms-faces))
 
-(add-hook 'after-init-hook 'init-emms)
+	  (add-hook 'after-init-hook 'init-emms)
 
-;; EMMS key bindings (C-c m)
-(define-prefix-command 'my-emms-map)
-(define-key mode-specific-map (kbd "m") 'my-emms-map)
-(define-key my-emms-map (kbd "SPC") 'emms-pause)
-(define-key my-emms-map (kbd "s") 'emms-stop)
-(define-key my-emms-map (kbd "p") 'emms-previous)
-(define-key my-emms-map (kbd "n") 'emms-next)
-(define-key my-emms-map (kbd "r") 'emms-random)
-(define-key my-emms-map (kbd "m") 'emms-shuffle)
-(define-key my-emms-map (kbd "b") 'emms-seek-backward)
-(define-key my-emms-map (kbd "f") 'emms-seek-forward)
-(define-key my-emms-map (kbd "l") 'emms)
-(define-key my-emms-map (kbd "i") 'init-emms)
-(define-key my-emms-map (kbd "+") 'emms-volume-raise)
-(define-key my-emms-map (kbd "-") 'emms-volume-lower)
+	  ;; EMMS key bindings (C-c m)
+	  (define-prefix-command 'my-emms-map)
+	  (define-key mode-specific-map (kbd "m") 'my-emms-map)
+	  (define-key my-emms-map (kbd "SPC") 'emms-pause)
+	  (define-key my-emms-map (kbd "s") 'emms-stop)
+	  (define-key my-emms-map (kbd "p") 'emms-previous)
+	  (define-key my-emms-map (kbd "n") 'emms-next)
+	  (define-key my-emms-map (kbd "r") 'emms-random)
+	  (define-key my-emms-map (kbd "m") 'emms-shuffle)
+	  (define-key my-emms-map (kbd "b") 'emms-seek-backward)
+	  (define-key my-emms-map (kbd "f") 'emms-seek-forward)
+	  (define-key my-emms-map (kbd "l") 'emms)
+	  (define-key my-emms-map (kbd "i") 'init-emms)
+	  (define-key my-emms-map (kbd "+") 'emms-volume-raise)
+	  (define-key my-emms-map (kbd "-") 'emms-volume-lower)))
 
 
 ;; undo-propose
 (define-key mode-specific-map (kbd "u") 'undo-propose)
+
+;; dired-git-info
+(with-eval-after-load 'dired
+  (define-key dired-mode-map ")" 'dired-git-info-mode))
 
 ;; Evil mode
 (setq evil-flash-delay 20)
@@ -566,132 +586,134 @@ stop playback."
 ;; Required for Evil Collection
 ;; (setq evil-want-keybinding nil)
 
-(require 'evil)
-(evil-mode 1)
+(if (require 'evil nil t)
+	(progn
+	  (evil-mode 1)
 
-;; Disable undo-tree-mode to prevent bugs
-(global-undo-tree-mode 0)
+	  ;; Disable undo-tree-mode to prevent bugs
+	  (global-undo-tree-mode 0)
 
-;; Setup Evil Collection (also uncomment above to use)
-;; (when (require 'evil-collection nil t)
-;;   (evil-collection-init))
-;; evil-magit
-;; (require 'evil-magit)
+	  ;; Setup Evil Collection (also uncomment above to use)
+	  ;; (when (require 'evil-collection nil t)
+	  ;;   (evil-collection-init))
+	  ;; evil-magit
+	  ;; (require 'evil-magit)
 
-;; Other Evil packages
-;; Evil Surround
-(global-evil-surround-mode 1)
-;; evil-commentary
-(evil-commentary-mode 1)
-;; evil-lion
-(evil-lion-mode)
-;; evil-matchit
-(require 'evil-matchit)
-(global-evil-matchit-mode 1)
-;; evil-visualstar
-(global-evil-visualstar-mode 1)
+	  ;; Other Evil packages
+	  ;; Evil Surround
+	  (global-evil-surround-mode 1)
+	  ;; evil-commentary
+	  (evil-commentary-mode 1)
+	  ;; evil-lion
+	  (evil-lion-mode)
+	  ;; evil-matchit
+	  (if (require 'evil-matchit nil t)
+		  (global-evil-matchit-mode 1))
+	  ;; evil-visualstar
+	  (global-evil-visualstar-mode 1)
 
-;; Emacs state by default (must be added to head of list)
-;; (add-to-list 'evil-buffer-regexps '("." . emacs))
-(setq evil-default-state 'emacs)
-;; Except in these modes
-(evil-set-initial-state 'prog-mode 'normal)
-(evil-set-initial-state 'text-mode 'normal)
-(evil-set-initial-state 'tex-mode  'normal)
-;; But also not in these (possibly inherited) modes
-(evil-set-initial-state 'help-mode   'emacs)
-(evil-set-initial-state 'Info-mode   'emacs)
-(evil-set-initial-state 'comint-mode 'emacs)
-(evil-set-initial-state 'shell-mode  'emacs)
-(evil-set-initial-state 'term-mode   'emacs)
-(evil-set-initial-state 'org-mode    'emacs)
+	  ;; Emacs state by default (must be added to head of list)
+	  ;; (add-to-list 'evil-buffer-regexps '("." . emacs))
+	  (setq evil-default-state 'emacs)
+	  ;; Except in these modes
+	  (evil-set-initial-state 'prog-mode 'normal)
+	  (evil-set-initial-state 'text-mode 'normal)
+	  (evil-set-initial-state 'tex-mode  'normal)
+	  ;; But also not in these (possibly inherited) modes
+	  (evil-set-initial-state 'help-mode   'emacs)
+	  (evil-set-initial-state 'Info-mode   'emacs)
+	  (evil-set-initial-state 'comint-mode 'emacs)
+	  (evil-set-initial-state 'shell-mode  'emacs)
+	  (evil-set-initial-state 'term-mode   'emacs)
+	  (evil-set-initial-state 'org-mode    'emacs)
 
-;; Evil mappings
+	  ;; Evil mappings
 
-;; C-S-d to delete-forward-char in insert mode
-(define-key evil-insert-state-map (kbd "C-S-d") 'evil-delete-char)
+	  ;; C-S-d to delete-forward-char in insert mode
+	  (define-key evil-insert-state-map (kbd "C-S-d") 'evil-delete-char)
 
-;; C-l to exit from any state to normal state
-(define-key evil-insert-state-map   (kbd "C-l") 'evil-normal-state)
-(define-key evil-operator-state-map (kbd "C-l") 'evil-normal-state)
-(define-key evil-replace-state-map  (kbd "C-l") 'evil-normal-state)
-(define-key evil-visual-state-map   (kbd "C-l") 'evil-normal-state)
-;; Here we do not necessarily go back to normal state but that's fine.
-(define-key evil-ex-completion-map  (kbd "C-l") 'abort-recursive-edit)
+	  ;; C-l to exit from any state to normal state
+	  (define-key evil-insert-state-map   (kbd "C-l") 'evil-normal-state)
+	  (define-key evil-operator-state-map (kbd "C-l") 'evil-normal-state)
+	  (define-key evil-replace-state-map  (kbd "C-l") 'evil-normal-state)
+	  (define-key evil-visual-state-map   (kbd "C-l") 'evil-normal-state)
+	  ;; Here we do not necessarily go back to normal state but that's fine.
+	  (define-key evil-ex-completion-map  (kbd "C-l") 'abort-recursive-edit)
 
-;; C-S-d in normal or motion state to scroll up (C-S-u fails in Ubuntu)
-(define-key evil-normal-state-map (kbd "C-S-d") 'evil-scroll-up)
-(define-key evil-motion-state-map (kbd "C-S-d") 'evil-scroll-up)
+	  ;; C-S-d in normal or motion state to scroll up (C-S-u fails in Ubuntu)
+	  (define-key evil-normal-state-map (kbd "C-S-d") 'evil-scroll-up)
+	  (define-key evil-motion-state-map (kbd "C-S-d") 'evil-scroll-up)
 
-;; Ex state (minibufer) mappings
-;; C-b moves one char backward
-(define-key evil-ex-completion-map (kbd "C-b") 'backward-char)
-;; C-a moves to start of line
-(define-key evil-ex-completion-map (kbd "C-a") 'move-beginning-of-line)
-;; C-d deletes char forward
-(define-key evil-ex-completion-map (kbd "C-d") 'delete-char)
-;; C-k deletes line forward
-(define-key evil-ex-completion-map (kbd "C-k") 'evil-delete-line)
-(define-key evil-ex-completion-map (kbd "C-S-k") 'evil-insert-digraph)
+	  ;; Ex state (minibufer) mappings
+	  ;; C-b moves one char backward
+	  (define-key evil-ex-completion-map (kbd "C-b") 'backward-char)
+	  ;; C-a moves to start of line
+	  (define-key evil-ex-completion-map (kbd "C-a") 'move-beginning-of-line)
+	  ;; C-d deletes char forward
+	  (define-key evil-ex-completion-map (kbd "C-d") 'delete-char)
+	  ;; C-k deletes line forward
+	  (define-key evil-ex-completion-map (kbd "C-k") 'evil-delete-line)
+	  (define-key evil-ex-completion-map (kbd "C-S-k") 'evil-insert-digraph)
 
-;; C-l in normal state to remove highlighting
-(define-key evil-normal-state-map (kbd "C-l") 'evil-ex-nohighlight)
+	  ;; C-l in normal state to remove highlighting
+	  (define-key evil-normal-state-map (kbd "C-l") 'evil-ex-nohighlight)
 
-(defun my-maybe-evil-repeat-pop ()
-  "Execute `evil-repeat-pop' or `flyspell-auto-correct-word' depending on
+	  (defun my-maybe-evil-repeat-pop ()
+		"Execute `evil-repeat-pop' or `flyspell-auto-correct-word' depending on
 the context."
-  (interactive)
-  (condition-case err
-	  (evil-repeat-pop)
-	(user-error (if flyspell-mode
-					(flyspell-auto-correct-word)
-				  (signal (car err) (cdr err))))))
+		(interactive)
+		(condition-case err
+			(evil-repeat-pop)
+		  (user-error (if flyspell-mode
+						  (flyspell-auto-correct-word)
+						(signal (car err) (cdr err))))))
 
-(defun my-maybe-evil-repeat-pop-next ()
-  "Execute `evil-repeat-pop-next' or `xref-find-definitions' depending on
+	  (defun my-maybe-evil-repeat-pop-next ()
+		"Execute `evil-repeat-pop-next' or `xref-find-definitions' depending on
 the context."
-  (interactive)
-  (condition-case nil
-	  (evil-repeat-pop-next)
-	(user-error (xref-find-definitions))))
+		(interactive)
+		(condition-case nil
+			(evil-repeat-pop-next)
+		  (user-error (xref-find-definitions))))
 
-;; C-. executes `flyspell-auto-correct-word' if no prior repetition can
-;; be popped (only if `flyspell-mode' is enabled).
-(define-key evil-normal-state-map (kbd "C-.") 'my-maybe-evil-repeat-pop)
-;; M-. executes `xref-find-definitions' if no prior repetition can be popped.
-(define-key evil-normal-state-map (kbd "M-.") 'my-maybe-evil-repeat-pop-next)
+	  ;; C-. executes `flyspell-auto-correct-word' if no prior repetition can
+	  ;; be popped (only if `flyspell-mode' is enabled).
+	  (define-key evil-normal-state-map (kbd "C-.") 'my-maybe-evil-repeat-pop)
+	  ;; M-. executes `xref-find-definitions' if no prior repetition can be popped.
+	  (define-key evil-normal-state-map (kbd "M-.") 'my-maybe-evil-repeat-pop-next)
 
-;; C-r invokes undo-propose (since we do not use undo-tree)
-(define-key evil-normal-state-map (kbd "C-r") 'undo-propose)
+	  ;; C-r invokes undo-propose (since we do not use undo-tree)
+	  (define-key evil-normal-state-map (kbd "C-r") 'undo-propose)
 
 
-;; TODO this is most likely unnecessary
-;; ;; Toggle global Evil mode with C-c x v (also toggle undo-tree-mode).
-;; ;; Does not disable evil-magit.
-;; ;; TODO what about evil minor modes?
-;; (defun toggle-global-evil ()
-;;   "Toggle global Evil mode. Also toggle undo-tree-mode."
-;;   (interactive)
-;;   (if (eq evil-mode t)
-;; 	  (progn (evil-mode 0)
-;; 			 (global-undo-tree-mode 0))
-;; 	(progn (evil-mode 1)
-;; 		   (global-undo-tree-mode 0))))
-;; (define-key my-extended-map (kbd "v") 'toggle-global-evil)
+	  ;; TODO this is most likely unnecessary
+	  ;; ;; Toggle global Evil mode with C-c x v (also toggle undo-tree-mode).
+	  ;; ;; Does not disable evil-magit.
+	  ;; ;; TODO what about evil minor modes?
+	  ;; (defun toggle-global-evil ()
+	  ;;   "Toggle global Evil mode. Also toggle undo-tree-mode."
+	  ;;   (interactive)
+	  ;;   (if (eq evil-mode t)
+	  ;; 	  (progn (evil-mode 0)
+	  ;; 			 (global-undo-tree-mode 0))
+	  ;; 	(progn (evil-mode 1)
+	  ;; 		   (global-undo-tree-mode 0))))
+	  ;; (define-key my-extended-map (kbd "v") 'toggle-global-evil)
 
-;; Evil-snipe
-(require 'evil-snipe)
-(evil-snipe-mode 1)
+	  ;; Evil-snipe
+	  (if (require 'evil-snipe nil t)
+		  (progn
+			(evil-snipe-mode 1)
 
-(setq evil-snipe-smart-case nil)
+			(setq evil-snipe-smart-case nil)
 
-(setq evil-snipe-scope 'visible)
-(setq evil-snipe-repeat-scope 'visible)
-(setq evil-snipe-spillover-scope 'buffer)
+			(setq evil-snipe-scope 'visible)
+			(setq evil-snipe-repeat-scope 'visible)
+			(setq evil-snipe-spillover-scope 'buffer)))
 
-;; Use C-s to substitute (as "s" is taken by evil-snipe)
-(define-key evil-normal-state-map (kbd "C-s") 'evil-substitute)
-(define-key evil-normal-state-map (kbd "C-S-s") 'evil-change-whole-line)
+	  ;; Use C-s to substitute (as "s" is taken by evil-snipe)
+	  (define-key evil-normal-state-map (kbd "C-s") 'evil-substitute)
+	  (define-key evil-normal-state-map (kbd "C-S-s") 'evil-change-whole-line)))
 
 
 ;; Company
@@ -728,8 +750,8 @@ the context."
 (define-key company-active-map (kbd "M-h") #'company-quickhelp-manual-begin)
 
 ;; Company-lsp
-;; (require 'company-lsp)
-;; (push 'company-lsp company-backends)
+;; (if (require 'company-lsp nil t)
+;; 	(push 'company-lsp company-backends))
 
 
 ;; Ivy
@@ -755,24 +777,26 @@ the context."
 (define-key my-emms-map	  (kbd "o") 'counsel-rhythmbox)
 
 ;; Helm
-(require 'helm-config)
-;;(global-set-key (kbd "M-x") #'helm-M-x)
-;;(global-set-key (kbd "C-x C-f") #'helm-find-files)
-;;(global-set-key (kbd "C-x C-b") #'helm-mini) ; or helm-buffers-list
-;;(global-set-key (kbd "C-x r b") #'helm-filtered-bookmarks)
-;;(global-set-key (kbd "C-s") #'helm-swoop) ; external package
-;;(global-set-key (kbd "M-s o") #'helm-occur)
-(setq helm-buffers-fuzzy-matching t)
-(setq helm-recentf-fuzzy-match t)
-(setq helm-lisp-fuzzy-completion t)
-;;(helm-mode 1)
-(with-eval-after-load "eshell"
-  (add-hook 'eshell-mode-hook
-			(lambda ()
-			  (eshell-cmpl-initialize)
-			  (define-key eshell-mode-map [remap eshell-pcomplete]
-				'helm-esh-pcomplete)
-			  (define-key eshell-mode-map (kbd "M-p") 'helm-esh-history))))
+(if (require 'helm-config nil t)
+	(progn
+	  ;;(global-set-key (kbd "M-x") #'helm-M-x)
+	  ;;(global-set-key (kbd "C-x C-f") #'helm-find-files)
+	  ;;(global-set-key (kbd "C-x C-b") #'helm-mini) ; or helm-buffers-list
+	  ;;(global-set-key (kbd "C-x r b") #'helm-filtered-bookmarks)
+	  ;;(global-set-key (kbd "C-s") #'helm-swoop) ; external package
+	  ;;(global-set-key (kbd "M-s o") #'helm-occur)
+	  (setq helm-buffers-fuzzy-matching t)
+	  (setq helm-recentf-fuzzy-match t)
+	  (setq helm-lisp-fuzzy-completion t)
+	  ;;(helm-mode 1)
+	  (with-eval-after-load "eshell"
+		(add-hook
+		 'eshell-mode-hook
+		 (lambda ()
+		   (eshell-cmpl-initialize)
+		   (define-key eshell-mode-map [remap eshell-pcomplete]
+			 'helm-esh-pcomplete)
+		   (define-key eshell-mode-map (kbd "M-p") 'helm-esh-history))))))
 
 ;; Projectile
 (projectile-mode 1)
@@ -780,18 +804,19 @@ the context."
 (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
 
 ;; YASnippet
-(require 'yasnippet)
-(yas-global-mode 1)
-;; or (next two)
-;; (yas-reload-all)
-;; (add-hook 'prog-mode-hook #'yas-minor-mode)
+(if (require 'yasnippet nil t)
+	(progn
+	  (yas-global-mode 1)
+	  ;; or (next two)
+	  ;; (yas-reload-all)
+	  ;; (add-hook 'prog-mode-hook #'yas-minor-mode)
 
-;; This resolves YASnippet problems with company-tng.
-(define-key yas-minor-mode-map (kbd "C-j") 'yas-expand)
-(define-key yas-keymap (kbd "C-j") 'yas-next-field-or-maybe-expand)
-(dolist (keymap (list yas-minor-mode-map yas-keymap))
-  (define-key keymap (kbd "TAB") nil)
-  (define-key keymap (kbd "<tab>") nil))
+	  ;; This resolves YASnippet problems with company-tng.
+	  (define-key yas-minor-mode-map (kbd "C-j") 'yas-expand)
+	  (define-key yas-keymap (kbd "C-j") 'yas-next-field-or-maybe-expand)
+	  (dolist (keymap (list yas-minor-mode-map yas-keymap))
+		(define-key keymap (kbd "TAB") nil)
+		(define-key keymap (kbd "<tab>") nil))))
 
 ;; (require 'expand-region)
 (autoload 'er/expand-region "expand-region")
@@ -800,6 +825,10 @@ the context."
 ;; PDF-Tools
 (pdf-tools-install)
 ;; or (pdf-loader-install)
+
+;; Emacs libvterm
+;; Disable whitespace in VTerm mode
+(add-hook 'vterm-mode-hook 'toggle-show-whitespace)
 
 ;; toc-org
 (if (require 'toc-org nil t)
@@ -858,7 +887,7 @@ the context."
 ;; (setq lsp-julia-default-environment my-julia-default-environment)
 ;; ;; If we don't want to use the included Language Server:
 ;; (setq lsp-julia-package-dir nil)
-;; (require 'lsp-julia)
+;; (require 'lsp-julia nil t)
 
 
 ;; Rust mode
@@ -870,10 +899,11 @@ the context."
 ;; (setq rust-format-on-save t)
 
 ;; lsp-mode
-;; (require 'lsp-mode)
-;; (add-hook 'prog-mode-hook #'lsp)
-;; (add-hook 'julia-mode-hook #'lsp-mode)
-;; (add-hook 'julia-mode-hook #'lsp)
+;; (if (require 'lsp-mode nil t)
+;; 	(progn
+;; 	  (add-hook 'prog-mode-hook #'lsp)
+;; 	  (add-hook 'julia-mode-hook #'lsp-mode)
+;; 	  (add-hook 'julia-mode-hook #'lsp)))
 
 
 ;; Eglot
@@ -884,42 +914,46 @@ the context."
 ;; 			(setq-local company-backends
 ;; 						(cons 'company-capf
 ;; 							  (remove 'company-capf company-backends)))))
-(require 'eglot)
+(if (require 'eglot nil t)
 
-(add-hook 'rust-mode-hook 'eglot-ensure)
+	(progn
+	  (add-hook 'rust-mode-hook   'eglot-ensure)
+	  (add-hook 'python-mode-hook 'eglot-ensure)
 
-(add-to-list 'eglot-server-programs '((c++-mode c-mode) "clangd"))
-(add-hook 'c-mode-hook 'eglot-ensure)
-(add-hook 'c++-mode-hook 'eglot-ensure)
+	  (add-to-list 'eglot-server-programs '((c++-mode c-mode) "clangd"))
+	  (add-hook 'c-mode-hook 'eglot-ensure)
+	  (add-hook 'c++-mode-hook 'eglot-ensure)
 
-(defun my-julia-get-project-root (dir)
-  "Get the Julia project root directory of the given `dir'."
-  (expand-file-name (if dir (or (locate-dominating-file dir "Project.toml")
-								(locate-dominating-file dir "JuliaProject.toml")
-								my-julia-default-environment)
-					  my-julia-default-environment)))
+	  (defun my-julia-get-project-root (dir)
+		"Get the Julia project root directory of the given `dir'."
+		(expand-file-name (if dir
+							  (or (locate-dominating-file dir "Project.toml")
+								  (locate-dominating-file
+								   dir "JuliaProject.toml")
+								  my-julia-default-environment)
+							my-julia-default-environment)))
 
-(defun my-julia-lsp-command (arg)
-  "Command to start the Julia language server. `arg' is ignored."
-  (let ((project-root-dir (my-julia-get-project-root (buffer-file-name))))
-	`("julia" "--startup-file=no" "--history-file=no"
-	  ,(concat "--project=" project-root-dir)
-	  ,(concat "-e using LanguageServer; "
-			   "using LanguageServer.SymbolServer; "
-			   "server = LanguageServerInstance("
-			   "stdin, stdout, false, \""
-			   project-root-dir
-			   "\"); "
-			   "run(server)"))))
+	  (defun my-julia-lsp-command (arg)
+		"Command to start the Julia language server. `arg' is ignored."
+		(let ((project-root-dir (my-julia-get-project-root (buffer-file-name))))
+		  `("julia" "--startup-file=no" "--history-file=no"
+			,(concat "--project=" project-root-dir)
+			,(concat "-e using LanguageServer; "
+					 "using LanguageServer.SymbolServer; "
+					 "server = LanguageServerInstance("
+					 "stdin, stdout, false, \""
+					 project-root-dir
+					 "\"); "
+					 "run(server)"))))
 
-(add-to-list
- 'eglot-server-programs
- '(julia-mode . my-julia-lsp-command))
+	  (add-to-list
+	   'eglot-server-programs
+	   '(julia-mode . my-julia-lsp-command))
 
-(add-hook 'julia-mode-hook 'eglot-ensure)
-;; Wait longer due to slow compilation
-(add-hook 'julia-mode-hook
-		  (lambda () (setq-local eglot-connect-timeout 90)))
+	  (add-hook 'julia-mode-hook 'eglot-ensure)
+	  ;; Wait longer due to slow compilation
+	  (add-hook 'julia-mode-hook
+				(lambda () (setq-local eglot-connect-timeout 90)))))
 
 
 ;; Load private configurations

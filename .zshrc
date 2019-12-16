@@ -25,7 +25,8 @@ fi
 # load a random theme each time oh-my-zsh is loaded, in which case,
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/robbyrussell/oh-my-zsh/wiki/Themes
-if [ "x$INSIDE_EMACS" = x ] && [ -f $ZSH/oh-my-zsh.sh ]; then
+if ([ "x$INSIDE_EMACS" = x ] || [ "$INSIDE_EMACS" = vterm ]) \
+        && [ -f $ZSH/oh-my-zsh.sh ]; then
     export ZSH_THEME="agnoster"
 else
     export ZSH_THEME=""
@@ -157,10 +158,10 @@ fi
 
 
 # CUDA path
-export PATH=/usr/local/cuda-10.1/bin:/usr/local/cuda-10.1/NsightCompute-2019.1${PATH:+:${PATH}}
-export LD_LIBRARY_PATH=/usr/local/cuda-10.1/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+# export PATH=/usr/local/cuda-10.1/bin:/usr/local/cuda-10.1/NsightCompute-2019.1${PATH:+:${PATH}}
+# export LD_LIBRARY_PATH=/usr/local/cuda-10.1/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
 # For TensorFlow GPU
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/extras/CUPTI/lib64
+# export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/extras/CUPTI/lib64
 
 export EDITOR="vim"
 export VISUAL="emacsclient -c -a '' -F \"'(fullscreen . maximized)\""

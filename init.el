@@ -541,7 +541,8 @@ theme variant."
 (add-hook 'LaTeX-mode-hook 'latex-electric-env-pair-mode)
 
 ;; Dumb Jump
-(dumb-jump-mode)
+(if (functionp 'dumb-jump-mode)
+	(dumb-jump-mode))
 
 ;; Magit
 (if (require 'magit nil t)
@@ -761,37 +762,42 @@ the context."
 
 
 ;; Company
-(add-hook 'after-init-hook 'global-company-mode)
-;; Faster auto completion
-(setq company-minimum-prefix-length 2)
-(setq company-idle-delay 0.1)
+(if (functionp 'global-company-mode)
+	(progn
+	  (add-hook 'after-init-hook 'global-company-mode)
+	  ;; Faster auto completion
+	  (setq company-minimum-prefix-length 2)
+	  (setq company-idle-delay 0.1)
 
-(setq company-dabbrev-downcase nil)
+	  (setq company-dabbrev-downcase nil)
 
-(setq company-selection-wrap-around t)
-;; Autocomplete with C-c c
-(define-key mode-specific-map (kbd "c") 'company-complete)
+	  (setq company-selection-wrap-around t)
+	  ;; Autocomplete with C-c c
+	  (define-key mode-specific-map (kbd "c") 'company-complete)
 
-;; Usual completion keybindings
-;; (with-eval-after-load "company"
-;; 	 (define-key company-active-map (kbd "TAB")
-;; 	   'company-complete-common-or-cycle)
-;; 	 (define-key company-active-map (kbd "<tab>")
-;; 	   'company-complete-common-or-cycle)
+	  ;; Usual completion keybindings
+	  ;; (with-eval-after-load "company"
+	  ;; 	 (define-key company-active-map (kbd "TAB")
+	  ;; 	   'company-complete-common-or-cycle)
+	  ;; 	 (define-key company-active-map (kbd "<tab>")
+	  ;; 	   'company-complete-common-or-cycle)
 
-;; 	 (define-key company-active-map (kbd "S-TAB")
-;; 	   'company-select-previous)
-;; 	 (define-key company-active-map (kbd "<backtab>")
-;; 	   'company-select-previous))
+	  ;; 	 (define-key company-active-map (kbd "S-TAB")
+	  ;; 	   'company-select-previous)
+	  ;; 	 (define-key company-active-map (kbd "<backtab>")
+	  ;; 	   'company-select-previous))
 
-;; No need to accept completion with RET; use TAB and S-TAB to cycle.
-;; However, compatibility problem with YASnippet (resolved later).
-(company-tng-configure-default)
+	  ;; No need to accept completion with RET; use TAB and S-TAB to cycle.
+	  ;; However, compatibility problem with YASnippet (resolved later).
+	  (company-tng-configure-default)))
 
 ;; Company quickhelp
-(company-quickhelp-mode)
-(setq company-quickhelp-delay 0.65)
-(define-key company-active-map (kbd "M-h") #'company-quickhelp-manual-begin)
+(if (functionp 'company-quickhelp-mode)
+	(progn
+	  (company-quickhelp-mode)
+	  (setq company-quickhelp-delay 0.65)
+	  (define-key company-active-map
+		(kbd "M-h") #'company-quickhelp-manual-begin)))
 
 ;; Company-lsp
 ;; (if (require 'company-lsp nil t)
@@ -800,25 +806,27 @@ the context."
 
 ;; Ivy
 ;; (ivy-mode 1)
-(setq ivy-use-virtual-buffers t)
-(setq ivy-count-format "(%d/%d) ")
+(if (functionp 'ivy-mode)
+	(progn
+	  (setq ivy-use-virtual-buffers t)
+	  (setq ivy-count-format "(%d/%d) ")
 
-(global-set-key (kbd "C-s")	'swiper)
-(global-set-key (kbd "M-x")	'counsel-M-x)
-(global-set-key (kbd "C-x C-f") 'counsel-find-file)
-(global-set-key (kbd "C-x b")	'ivy-switch-buffer)
-(global-set-key (kbd "C-x 4 b") 'ivy-switch-buffer-other-window)
-(global-set-key (kbd "C-x d")	'counsel-dired)
-(global-set-key (kbd "C-x r b") 'counsel-bookmark)
-(global-set-key (kbd "<f1> f")	'counsel-describe-function)
-(global-set-key (kbd "<f1> v")	'counsel-describe-variable)
-(global-set-key (kbd "<f1> l")	'counsel-find-library)
-(global-set-key (kbd "<f2> i")	'counsel-info-lookup-symbol)
-(global-set-key (kbd "<f2> u")	'counsel-unicode-char)
+	  (global-set-key (kbd "C-s")	'swiper)
+	  (global-set-key (kbd "M-x")	'counsel-M-x)
+	  (global-set-key (kbd "C-x C-f") 'counsel-find-file)
+	  (global-set-key (kbd "C-x b")	'ivy-switch-buffer)
+	  (global-set-key (kbd "C-x 4 b") 'ivy-switch-buffer-other-window)
+	  (global-set-key (kbd "C-x d")	'counsel-dired)
+	  (global-set-key (kbd "C-x r b") 'counsel-bookmark)
+	  (global-set-key (kbd "<f1> f")	'counsel-describe-function)
+	  (global-set-key (kbd "<f1> v")	'counsel-describe-variable)
+	  (global-set-key (kbd "<f1> l")	'counsel-find-library)
+	  (global-set-key (kbd "<f2> i")	'counsel-info-lookup-symbol)
+	  (global-set-key (kbd "<f2> u")	'counsel-unicode-char)
 
-(define-key mode-specific-map (kbd "j") 'counsel-semantic-or-imenu)
-(define-key mode-specific-map (kbd "r") 'ivy-resume)
-(define-key my-emms-map	  (kbd "o") 'counsel-rhythmbox)
+	  (define-key mode-specific-map (kbd "j") 'counsel-semantic-or-imenu)
+	  (define-key mode-specific-map (kbd "r") 'ivy-resume)
+	  (define-key my-emms-map	  (kbd "o") 'counsel-rhythmbox)))
 
 ;; Helm
 (if (require 'helm-config nil t)
@@ -843,9 +851,11 @@ the context."
 		   (define-key eshell-mode-map (kbd "M-p") 'helm-esh-history))))))
 
 ;; Projectile
-(projectile-mode 1)
-;; (define-key mode-specific-map (kbd "p") 'projectile-command-map)
-(define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
+(if (functionp 'projectile-mode)
+	(progn
+	  (projectile-mode 1)
+	  ;; (define-key mode-specific-map (kbd "p") 'projectile-command-map)
+	  (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)))
 
 ;; YASnippet
 (if (require 'yasnippet nil t)
@@ -867,12 +877,15 @@ the context."
 (define-key my-extended-map (kbd "x") 'er/expand-region)
 
 ;; PDF-Tools
-(pdf-tools-install)
-;; or (pdf-loader-install)
+(if (functionp 'pdf-tools-install)
+	(pdf-tools-install)
+  ;; or (pdf-loader-install)
+  )
 
 ;; Emacs libvterm
-;; Disable whitespace in VTerm mode
-(add-hook 'vterm-mode-hook 'toggle-show-whitespace)
+(if (functionp 'vterm-mode)
+	;; Disable whitespace in VTerm mode
+	(add-hook 'vterm-mode-hook 'toggle-show-whitespace))
 
 ;; toc-org
 (if (require 'toc-org nil t)
@@ -894,11 +907,13 @@ the context."
 (setq ein:polymode t)
 
 ;; form-feed (display  as horizontal line)
-(setq form-feed-line-width 72)
-(add-hook 'Info-mode-hook 'form-feed-mode)
-(add-hook 'help-mode-hook 'form-feed-mode)
-(add-hook 'text-mode-hook 'form-feed-mode)
-(add-hook 'prog-mode-hook 'form-feed-mode)
+(if (functionp 'form-feed-mode)
+	(progn
+	  (setq form-feed-line-width 72)
+	  (add-hook 'Info-mode-hook 'form-feed-mode)
+	  (add-hook 'help-mode-hook 'form-feed-mode)
+	  (add-hook 'text-mode-hook 'form-feed-mode)
+	  (add-hook 'prog-mode-hook 'form-feed-mode)))
 
 ;; TeXfrag
 ;; TODO fix PreviewLaTeX in AuCTeX

@@ -1157,7 +1157,7 @@ on if a Solarized variant is currently active."
 	  (setq indent-tabs-mode nil)
 	  (untabify (point-min) (point-max)))))
 
-(if (functionp pixel-scroll-mode)
+(if (functionp 'pixel-scroll-mode)
 	(defun toggle-pixel-scroll-mode ()
 	  "Toggle `pixel-scroll-mode'."
 	  (interactive)

@@ -39,11 +39,16 @@
 (defconst my-extended-package-dir (expand-file-name "lisp" my-emacs-dir))
 (defconst my-themes-dir (expand-file-name "themes" my-emacs-dir))
 
-(defvar my-default-theme 'solarized-light)
 (defvar my-graphic-light-theme 'solarized-light)
 (defvar my-graphic-dark-theme 'solarized-dark)
+(defvar my-graphic-default-theme my-graphic-light-theme)
 (defvar my-terminal-light-theme 'leuven)
 (defvar my-terminal-dark-theme 'misterioso)
+(defvar my-terminal-default-theme my-terminal-light-theme)
+;; We assume these to be included in Emacs.
+(defvar my-fallback-light-theme 'leuven)
+(defvar my-fallback-dark-theme 'misterioso)
+(defvar my-fallback-default-theme my-fallback-light-theme)
 
 (defconst my-gtags-dir "/usr/local/share/gtags")
 (defconst my-julia-bin "~/local/bin/julia")
@@ -340,7 +345,15 @@
 	(progn
 	  (add-hook 'prog-mode-hook #'flymake-mode)
 	  (define-key flymake-mode-map (kbd "M-n") 'flymake-goto-next-error)
-	  (define-key flymake-mode-map (kbd "M-p") 'flymake-goto-prev-error)))
+	  (define-key flymake-mode-map (kbd "M-p") 'flymake-goto-prev-error)
+
+	  (defun toggle-flymake-mode ()
+		"Toggle Flymake mode."
+		(interactive)
+		(if (eq flymake-mode nil)
+			(flymake-mode 1)
+		  (flymake-mode 0)))
+	  (define-key my-extended-map (kbd "f") 'toggle-flymake-mode)))
 
 ;; Org
 (setq org-directory "~/.emacs.d/org")
@@ -389,23 +402,6 @@
 	  (define-key my-org-map (kbd "c") 'org-capture)))
 
 
-;; Set frame background
-(if (not (equal (getenv "SOLARIZED_THEME") ""))
-	(if (equal (getenv "SOLARIZED_THEME") "dark")
-		(progn (setq frame-background-mode 'dark)
-			   (load-theme 'solarized-dark t))
-	  (progn (setq frame-background-mode 'light)
-			 (load-theme 'solarized-light t)))
-  ;; Load theme
-  (load-theme my-default-theme t))
-
-(if (daemonp)
-	(add-hook 'after-make-frame-functions
-			  (lambda (frame)
-				(select-frame frame)
-				(if (not (display-graphic-p frame))
-					(load-theme leuven t)))))
-
 ;; load-theme "fixes"
 ;; Correctly switch themes by first `disable-theme`ing
 ;; the current one, then `load-theme`ing the other.
@@ -420,6 +416,51 @@
 	  (apply orig-fun args)
 	  (set-scroll-bar-mode current-scroll-bar-mode))))
 (advice-add 'load-theme :around #'load-theme--restore-scroll-bar-mode)
+
+(defun safe-load-theme (theme default-theme)
+  "Load the given theme but if it is not available, load the given default."
+  (condition-case nil
+	  (load-theme theme t)
+	(error (load-theme default-theme t))))
+
+(defun update-frame-background-mode ()
+  "Update `frame-background-mode' for all frames."
+  (mapc 'frame-set-background-mode (frame-list)))
+
+(defun load-theme-getenv (light-theme dark-theme default-theme
+									  envvar dark-pattern)
+  "Load either the given light, dark, or default theme depending on if the given
+environment variable is equal to the given pattern which activates the dark
+theme variant."
+  ;; Set frame background and fix defaults if not available.
+  (if (not (equal (getenv envvar) ""))
+	  (if (equal (getenv envvar) dark-pattern)
+		  (progn (setq frame-background-mode 'dark)
+				 (update-frame-background-mode)
+				 (safe-load-theme dark-theme my-fallback-dark-theme))
+		(progn (setq frame-background-mode 'light)
+			   (update-frame-background-mode)
+			   (safe-load-theme light-theme my-fallback-light-theme)))
+	;; Load theme
+	(safe-load-theme default-theme my-fallback-default-theme)))
+
+(load-theme-getenv my-graphic-light-theme
+				   my-graphic-dark-theme
+				   my-graphic-default-theme
+				   "SOLARIZED_THEME"
+				   "dark")
+
+(if (daemonp)
+	(add-hook 'after-make-frame-functions
+			  (lambda (frame)
+				(select-frame frame)
+				(if (not (display-graphic-p frame))
+					(load-theme-getenv
+					 my-terminal-light-theme
+					 my-terminal-dark-theme
+					 my-terminal-default-theme
+					 "SOLARIZED_THEME"
+					 "dark")))))
 
 
 ;; TODO Find out how to automatically get comment strings. And use that instead
@@ -562,7 +603,10 @@ stop playback."
 	  (define-key my-emms-map (kbd "l") 'emms)
 	  (define-key my-emms-map (kbd "i") 'init-emms)
 	  (define-key my-emms-map (kbd "+") 'emms-volume-raise)
-	  (define-key my-emms-map (kbd "-") 'emms-volume-lower)))
+	  (define-key my-emms-map (kbd "-") 'emms-volume-lower))
+  (defun update-emms-faces ()
+	"No op." ;; TODO remove when hook is added
+	()))
 
 
 ;; undo-propose
@@ -1034,10 +1078,6 @@ given `ending' after, but reversed ('[a' -> 'a[')."
   (quit-window nil)
   (select-window (previous-window)))
 
-(defun update-frame-background-mode ()
-  "Update `frame-background-mode' for all frames."
-  (mapc 'frame-set-background-mode (frame-list)))
-
 (defun toggle-background ()
   "Toggle background brightness and reload theme."
   (interactive)
@@ -1048,28 +1088,38 @@ given `ending' after, but reversed ('[a' -> 'a[')."
   (load-theme (car custom-enabled-themes) t)
   (update-emms-faces))
 
-(defun toggle-solarized ()
-  "Toggle Solarized light and dark."
+(defun toggle-theme-brightness ()
+  "Toggle light and dark theme depending on the current window system."
   (interactive)
-  (if (eq frame-background-mode 'dark)
+  (let ((light-theme (if (not window-system)
+						 'my-terminal-light-theme
+					   my-graphic-light-theme))
+		(dark-theme (if (not window-system)
+						'my-terminal-dark-theme
+					  my-graphic-dark-theme)))
+	(if (eq frame-background-mode 'dark)
+		(progn
+		  (setq frame-background-mode 'light)
+		  (update-frame-background-mode)
+		  (safe-load-theme light-theme my-fallback-light-theme))
 	  (progn
-		(setq frame-background-mode 'light)
+		(setq frame-background-mode 'dark)
 		(update-frame-background-mode)
-		(load-theme 'solarized-light t))
-	(progn
-	  (setq frame-background-mode 'dark)
-	  (update-frame-background-mode)
-	  (load-theme 'solarized-dark t)))
-  (update-emms-faces))
+		(safe-load-theme dark-theme my-fallback-dark-theme)))
+	(update-emms-faces)))
 
-(defun toggle-solarized-or-background ()
+(defun toggle-theme-brightness-or-background ()
   "Toggle either Solarized light and dark or the background brightness depending
 on if a Solarized variant is currently active."
   (interactive)
   (if (or
-	   (eq (car custom-enabled-themes) 'solarized-light)
-	   (eq (car custom-enabled-themes) 'solarized-dark))
-	  (toggle-solarized)
+	   (eq (car custom-enabled-themes) my-graphic-light-theme)
+	   (eq (car custom-enabled-themes) my-graphic-dark-theme)
+	   (eq (car custom-enabled-themes) my-terminal-light-theme)
+	   (eq (car custom-enabled-themes) my-terminal-dark-theme)
+	   (eq (car custom-enabled-themes) my-fallback-light-theme)
+	   (eq (car custom-enabled-themes) my-fallback-dark-theme))
+	  (toggle-theme-brightness)
 	(toggle-background)))
 
 (defun toggle-indent-tabs-mode ()
@@ -1194,10 +1244,10 @@ on if a Solarized variant is currently active."
 (define-key my-pairs-map (kbd "t") 'insert-tag-pair)
 (define-key my-pairs-map (kbd "d") 'delete-around)
 
-;; Toggle Solarized or background brightness
-(global-set-key (kbd "<f9>") 'toggle-solarized-or-background)
+;; Toggle theme or background brightness
+(global-set-key (kbd "<f9>") 'toggle-theme-brightness-or-background)
 ;; Define it twice for good measure (C-c w t)
-(define-key my-window-map (kbd "t") 'toggle-solarized-or-background)
+(define-key my-window-map (kbd "t") 'toggle-theme-brightness-or-background)
 
 
 ;; Enable disabled commands

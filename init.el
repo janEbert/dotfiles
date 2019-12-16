@@ -896,8 +896,7 @@ the context."
 (if (require 'toc-org nil t)
     (progn
 	  (add-hook 'org-mode-hook 'toc-org-mode)
-	  (add-to-list 'org-tag-alist '("TOC" . ?T)))
-  (warn "toc-org not found"))
+	  (add-to-list 'org-tag-alist '("TOC" . ?T))))
 
 ;; Jupyter
 (setq exec-path (append exec-path `(,(expand-file-name my-jupyter-dir))))

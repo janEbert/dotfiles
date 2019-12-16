@@ -386,6 +386,7 @@
 ;; (setq ob-async-no-async-languages-alist
 ;; 	  '("jupyter-python" "jupyter-julia"))
 
+(setq my-org-babel-load-languages '())
 (if (and (require 'org-install nil t)
 		 (require 'org-habit nil t))
 	(progn
@@ -399,7 +400,11 @@
 	  (define-key my-org-map (kbd "l") 'org-store-link)
 	  (define-key my-org-map (kbd "a") 'org-agenda)
 	  (define-key my-org-map (kbd "o") 'org-switchb)
-	  (define-key my-org-map (kbd "c") 'org-capture)))
+	  (define-key my-org-map (kbd "c") 'org-capture)
+	  (setq my-org-babel-load-languages
+			(append my-org-babel-load-languages
+					'((emacs-lisp . t)
+					  (python . t))))))
 
 
 ;; load-theme "fixes"
@@ -896,12 +901,12 @@ the context."
 
 ;; Jupyter
 (setq exec-path (append exec-path `(,(expand-file-name my-jupyter-dir))))
-(org-babel-do-load-languages
- 'org-babel-load-languages
- '((emacs-lisp . t)
-   ;;(julia . t) TODO need upstream fix
-   (python . t)
-   (jupyter . t)))
+(if (functionp 'org-babel-jupyter-scratch-buffer)
+	(setq my-org-babel-load-languages
+		  (append my-org-babel-load-languages
+				  '(
+					;; (julia . t)  TODO needs upstream fix; is too old
+					(jupyter . t)))))
 
 ;; Emacs IPython Notebook
 (setq ein:polymode t)
@@ -919,6 +924,10 @@ the context."
 ;; TODO fix PreviewLaTeX in AuCTeX
 ;; (texfrag-global-mode)
 ;; (add-hook 'eww-mode-hook 'texfrag-mode)
+
+(if (functionp 'org-babel-do-load-languages)
+	(org-babel-do-load-languages 'org-babel-load-languages
+								 my-org-babel-load-languages))
 
 
 ;; Julia mode
@@ -1148,12 +1157,17 @@ on if a Solarized variant is currently active."
 	  (setq indent-tabs-mode nil)
 	  (untabify (point-min) (point-max)))))
 
-(defun toggle-pixel-scroll-mode ()
-  "Toggle `pixel-scroll-mode'."
-  (interactive)
-  (if (eq pixel-scroll-mode nil)
-	  (pixel-scroll-mode 1)
-	(pixel-scroll-mode 0)))
+(if (functionp pixel-scroll-mode)
+	(defun toggle-pixel-scroll-mode ()
+	  "Toggle `pixel-scroll-mode'."
+	  (interactive)
+	  (if (eq pixel-scroll-mode nil)
+		  (pixel-scroll-mode 1)
+		(pixel-scroll-mode 0)))
+  (defun toggle-pixel-scroll-mode ()
+	"No op."
+	(interactive)
+	()))
 
 
 (defun my-julia-repl ()

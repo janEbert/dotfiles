@@ -56,10 +56,15 @@ else
 	TMUX_CMD = ln $(LN_FLAGS) $(PWD)/.tmux.conf $(HOME_DIR)/.tmux.conf
 endif
 
+# Conda
+CONDA_DIR = $(HOME_DIR)
+
 # Julia
 JULIA_CONFIG_DIR = $(HOME_DIR)/.julia/config
 
-all: keyboard bash_aliases zsh git vim emacs tmux julia nvim
+# Neovim
+
+all: keyboard bash_aliases zsh git vim emacs tmux conda julia nvim
 
 keyboard:
 	ln $(LN_FLAGS) $(PWD)/$(KB_MOD_SOURCE) $(KB_MOD_TARGET)
@@ -74,6 +79,7 @@ zsh:
 	$(ZSH_PROMPT_NOCOLOR_CMD)
 
 git:
+	mkdir -p $(GIT_DIR)
 	ln $(LN_FLAGS) $(PWD)/.gitconfig $(GIT_DIR)/.gitconfig
 	ln $(LN_FLAGS) $(PWD)/.gitignore_global $(GIT_DIR)/.gitignore_global
 
@@ -93,6 +99,10 @@ emacs: init.el
 
 tmux:
 	$(TMUX_CMD)
+
+conda: .condarc
+	mkdir -p $(CONDA_DIR)
+	ln $(LN_FLAGS) $(PWD)/.condarc $(CONDA_DIR)/.condarc
 
 julia: startup.jl
 	mkdir -p $(JULIA_CONFIG_DIR)

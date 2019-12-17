@@ -218,17 +218,18 @@
              (file-directory-p (concat basedir f)))
         (add-to-list 'custom-theme-load-path (concat basedir f)))))
 
+(defun dont-show-whitespace ()
+  "Disable showing whitespace in the current buffer."
+  (setq-local show-trailing-whitespace nil)
+  (whitespace-mode 0))
+
 (defun toggle-show-whitespace ()
   "Toggle showing whitespace in the current buffer."
   (interactive)
-  (if (or show-trailing-whitespace global-whitespace-mode whitespace-mode)
-	  (progn
-		(setq-local show-trailing-whitespace nil)
-		(whitespace-mode 0))
-	(progn
-	  (setq-local show-trailing-whitespace t)
-	  (if (not global-whitespace-mode)
-		  (whitespace-mode 1)))))
+  (if (or show-trailing-whitespace whitespace-mode)
+	  (dont-show-whitespace)
+	(setq-local show-trailing-whitespace t)
+	(whitespace-mode 1)))
 
 
 (define-prefix-command 'my-extended-map)
@@ -713,24 +714,30 @@ stop playback."
 the context."
 		(interactive)
 		(condition-case err
-			(evil-repeat-pop)
+			(call-interactively 'evil-repeat-pop)
 		  (user-error (if flyspell-mode
-						  (flyspell-auto-correct-word)
+						  (call-interactively 'flyspell-auto-correct-word)
 						(signal (car err) (cdr err))))))
+
+	  ;; Prepare Xref
+	  (setq xref-prompt-for-identifier (append xref-prompt-for-identifier
+											   '(my-maybe-evil-repeat-pop-next)))
 
 	  (defun my-maybe-evil-repeat-pop-next ()
 		"Execute `evil-repeat-pop-next' or `xref-find-definitions' depending on
 the context."
 		(interactive)
 		(condition-case nil
-			(evil-repeat-pop-next)
-		  (user-error (xref-find-definitions))))
+			(call-interactively 'evil-repeat-pop-next)
+		  (user-error (call-interactively 'xref-find-definitions))))
 
 	  ;; C-. executes `flyspell-auto-correct-word' if no prior repetition can
 	  ;; be popped (only if `flyspell-mode' is enabled).
 	  (define-key evil-normal-state-map (kbd "C-.") 'my-maybe-evil-repeat-pop)
-	  ;; M-. executes `xref-find-definitions' if no prior repetition can be popped.
-	  (define-key evil-normal-state-map (kbd "M-.") 'my-maybe-evil-repeat-pop-next)
+	  ;; M-. executes `xref-find-definitions' if no prior repetition can
+	  ;; be popped.
+	  (define-key evil-normal-state-map (kbd "M-.")
+		'my-maybe-evil-repeat-pop-next)
 
 	  ;; C-r invokes undo-propose (since we do not use undo-tree)
 	  (define-key evil-normal-state-map (kbd "C-r") 'undo-propose)
@@ -888,9 +895,14 @@ the context."
   )
 
 ;; Emacs libvterm
-(if (functionp 'vterm-mode)
-	;; Disable whitespace in VTerm mode
-	(add-hook 'vterm-mode-hook 'toggle-show-whitespace))
+
+;; Disable whitespace in VTerm mode
+;; TODO these do not work
+;; (autoload 'vterm-mode-hook "vterm")
+;; (add-hook 'vterm-mode-hook 'toggle-show-whitespace)
+(advice-add 'vterm :after
+			(lambda (&rest args) (toggle-show-whitespace))
+			'((name . "vterm-toggle-show-whitespace")))
 
 ;; toc-org
 (if (require 'toc-org nil t)
@@ -1218,6 +1230,9 @@ on if a Solarized variant is currently active."
 
 ;; Indent using tabs or spaces (C-c x i)
 (define-key my-extended-map (kbd "i") 'toggle-indent-tabs-mode)
+
+;; Toggle showing whitespace (C-c x w)
+(define-key my-extended-map (kbd "w") 'toggle-show-whitespace)
 
 ;; Toggle pixel-scrolling (C-c x p)
 (define-key my-extended-map (kbd "p") 'toggle-pixel-scroll-mode)

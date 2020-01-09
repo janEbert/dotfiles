@@ -22,6 +22,7 @@
 "
 " Optional plugins:
 "   - [ale](https://github.com/w0rp/ale)
+"   - [coc.nvim](https://github.com/neoclide/coc.nvim)
 "   - [fzf.vim](https://github.com/junegunn/fzf.vim)
 "   - [LanguageClient-neovim](https://github.com/autozimu/LanguageClient-neovim)
 "   - [matchit](https://github.com/chrisbra/matchit)
@@ -626,7 +627,7 @@ let g:fzf_colors = {
 "    - StaticLint
 "    - SymbolServer
 
-" language serner
+" language server
 let g:LanguageClient_autoStart = 0
 let g:LanguageClient_serverCommands = {
 \    'julia': ['julia', '--startup-file=no', '--history-file=no', '-e', '
@@ -641,6 +642,8 @@ let g:LanguageClient_serverCommands = {
 \        run(server);
 \    ']
 \}
+
+" TODO configure CoC.nvim
 
 " plugin-specific mappings
 nnoremap <silent> g<C-k> :call LanguageClient_textDocument_hover()<CR>
@@ -923,6 +926,7 @@ if g:mypluginsexist
     " packadd! vim-autoclose
     " packadd! nerdtree
     " packadd! LanguageClient-neovim
+    " packadd! coc.nvim
     " packadd! ale
 endif
 

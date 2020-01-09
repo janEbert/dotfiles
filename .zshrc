@@ -193,6 +193,12 @@ fi
 # Files with .h suffix are treated as C++ source files.
 export GTAGSFORCECPP=false
 
+# Node.js
+export PATH="$HOME/Downloads/node-v13.6.0-linux-x64/bin:$PATH"
+
+# Lua
+export PATH="$HOME/.luarocks/bin:$PATH"
+
 # Julia
 # Choose a high number so Julia automatically finds the maximum.
 export JULIA_NUM_THREADS=64

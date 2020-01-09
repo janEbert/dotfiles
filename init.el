@@ -13,6 +13,8 @@
 ;; Put etags configurations into "~/.emacs.d/etags".
 ;;
 ;; External plugins to download:
+;;   - [ats2-mode](https://github.com/githwxi/ATS-Postiats) (in utils/emacs)
+;;   - [flymake-ats2](https://github.com/githwxi/ATS-Postiats) (in utils/emacs)
 ;;   - [lsp-julia](https://github.com/non-Jedi/lsp-julia) (optional)
 ;;
 ;; Themes to download:
@@ -54,6 +56,8 @@
 (defconst my-julia-bin "~/local/bin/julia")
 (defconst my-julia-default-environment "~/.julia/environments/v1.3")
 (defconst my-jupyter-dir "~/anaconda3/bin")
+
+;; (defconst my-rls-bin "~/.cargo/bin/rls")
 
 (defconst my-music-dir "~/Music/")
 
@@ -300,6 +304,11 @@
 (ido-mode 1)
 (add-hook 'ido-make-buffer-list-hook 'ido-summary-buffers-to-end)
 
+;; EWW
+;; TODO instead of this, try to request the generated website with a slightly
+;; TODO smaller screen size
+(add-hook 'eww-mode-hook (lambda () (setq-local display-line-numbers nil)))
+
 ;; Ediff
 (setq ediff-window-setup-function 'ediff-setup-windows-plain)
 (setq ediff-split-window-function 'split-window-horizontally)
@@ -356,30 +365,67 @@
 		  (flymake-mode 0)))
 	  (define-key my-extended-map (kbd "f") 'toggle-flymake-mode)))
 
-;; Org
+;; Org mode
 (setq org-directory "~/.emacs.d/org")
+
+;; Keys
 (setq org-disputed-keys
 	  (quote
-	   (;; these are the defaults
+	   (;; these are the defaults (changed bindings)
+		;; org-shiftup C-S-p
 		([(shift up)] . [(control shift p)])
+		;; org-shiftdown C-S-n
 		([(shift down)] . [(control shift n)])
+		;; org-shiftleft M--
 		([(shift left)] . [(meta -)])
+		;; org-shiftright M-+
 		([(shift right)] . [(meta +)])
+		;; org-shiftcontrolright (C-M-+)
 		([(control shift right)] . [(control meta +)])
+		;; org-shiftcontrolleft (C-M--)
 		([(control shift left)] . [(control meta -)])
 		;; these are custom
-		([(control meta shift left)] . [(control meta shift b)])
-		([(control meta shift right)] . [(control meta shift f)])
+		;; TODO do these even exist?
+		;; ;; TODO C-M-S-b (C-M-B)
+		;; ([(control meta shift left)] . [(control meta shift b)])
+		;; ;; TODO C-M-S-f (C-M-F)
+		;; ([(control meta shift right)] . [(control meta shift f)])
+		;; org-shiftcontrolup C-M-S-p (C-M-P)
 		([(control shift up)] . [(control meta shift p)])
+		;; org-shiftcontroldown C-M-S-n (C-M-N)
 		([(control shift down)] . [(control meta shift n)])
+		;; org-metaup M-S-p (M-P)
 		([(meta up)] . [(meta shift p)])
+		;; org-metadown M-S-n (M-N)
 		([(meta down)] . [(meta shift n)])
+		;; org-metaleft M-S-b (M-B)
 		([(meta left)] . [(meta shift b)])
-		([(meta right)] . [(meta shift f)]))))
-(setq org-log-done (quote time))
+		;; org-metaright M-S-f (M-F)
+		([(meta right)] . [(meta shift f)])
+		;; org-shiftmetaup M-S-u (M-U)
+		([(meta shift up)] . [(meta shift u)])
+		;; org-shiftmetadown M-S-d (M-D)
+		([(meta shift down)] . [(meta shift d)])
+		;; org-shiftmetaleft C-S-b
+		([(meta shift left)] . [(control shift b)])
+		;; org-shiftmetaright C-S-f
+		([(meta shift right)] . [(control shift f)]))))
 (setq org-replace-disputed-keys t)
 (setq org-use-extra-keys t)
 (setq org-use-speed-commands t)
+(setq org-goto-auto-isearch nil)
+
+(setq org-catch-invisible-edits 'smart)
+;; TODO org-list-demote-modify-bullet maybe
+;; TODO org-list-indent-offset 1 or 2 maybe
+
+;; Only remove highlighting by executing C-c C-c
+(setq org-remove-highlights-with-change nil)
+;; Allow starting lists with letters
+(setq org-list-allow-alphabetical t)
+(setq org-log-done (quote time))
+
+;; Org Babel
 
 ;; (setq org-confirm-babel-evaluate nil)
 
@@ -670,6 +716,7 @@ stop playback."
 	  (evil-set-initial-state 'prog-mode 'normal)
 	  (evil-set-initial-state 'text-mode 'normal)
 	  (evil-set-initial-state 'tex-mode  'normal)
+	  (evil-set-initial-state 'conf-mode 'normal)
 	  ;; But also not in these (possibly inherited) modes
 	  (evil-set-initial-state 'help-mode   'emacs)
 	  (evil-set-initial-state 'Info-mode   'emacs)
@@ -985,6 +1032,13 @@ the context."
 ;; 	  (add-hook 'julia-mode-hook #'lsp)))
 
 
+;; ATS2 (Postiats)
+(require 'ats-mode "ats2-mode" t)
+(autoload 'flymake-ats2-load "flymake-ats2")
+(add-hook 'ats-mode-hook 'flymake-ats2-load)
+(add-hook 'c/ats-mode-hook 'flymake-ats2-load)
+
+
 ;; Eglot
 ;; Use company-capf backend whenever `M-x eglot' connects
 ;; TODO Maybe redundant as this is always forced
@@ -996,6 +1050,7 @@ the context."
 (if (require 'eglot nil t)
 
 	(progn
+	  ;; (add-to-list 'eglot-server-programs `((rust-mode) eglot-rls ,my-rls-bin))
 	  (add-hook 'rust-mode-hook   'eglot-ensure)
 	  (add-hook 'python-mode-hook 'eglot-ensure)
 
@@ -1006,9 +1061,9 @@ the context."
 	  (defun my-julia-get-project-root (dir)
 		"Get the Julia project root directory of the given `dir'."
 		(expand-file-name (if dir
-							  (or (locate-dominating-file dir "Project.toml")
-								  (locate-dominating-file
+							  (or (locate-dominating-file
 								   dir "JuliaProject.toml")
+								  (locate-dominating-file dir "Project.toml")
 								  my-julia-default-environment)
 							my-julia-default-environment)))
 

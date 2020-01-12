@@ -53,7 +53,7 @@ change_monitor_gamma_brightness() {
 alias untar="tar -xf"
 alias untargz="tar -xzf"
 alias egitig="\$EDITOR \$(git rev-parse --git-dir)/info/exclude"
-alias pullsubs="find . -mindepth 1 -maxdepth 1 -type d -exec git --git-dir={}/.git --work-tree=$PWD/{} pull \;"
+alias pullsubs="find . -name '.git' -type d | xargs -P10 -I{} git --git-dir={} --work-tree=\$PWD/{}/.. pull"
 alias emacs="emacsclient -c -a '' -F \"'(fullscreen . maximized)\""
 alias maxcompr="7z a -t7z -mx9 -m0=lzma2 -mmt2 -md1024m"
 

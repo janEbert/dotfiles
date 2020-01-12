@@ -59,6 +59,7 @@
 
 ;; (defconst my-rls-bin "~/.cargo/bin/rls")
 
+(defconst my-line-number-format 'relative)
 (defconst my-music-dir "~/Music/")
 
 ;; For faster initialization
@@ -125,7 +126,6 @@
  '(delete-trailing-lines nil)
  '(dired-always-read-filesystem t)
  '(display-battery-mode t)
- '(display-line-numbers (quote relative))
  '(display-line-numbers-widen t)
  '(display-raw-bytes-as-hex t)
  '(display-time-24hr-format t)
@@ -266,6 +266,12 @@
 ;; Use visible bell instead of tone
 (setq visible-bell t)
 
+;; Display line numbers
+(setq-default display-line-numbers my-line-number-format)
+
+;; Shorten yes/no prompts
+(fset 'yes-or-no-p 'y-or-n-p)
+
 ;; Start maximized (does not work with Emacsclient)
 ;; Can use `default-frame-alist', however, then _every_ new frame is maximized;
 ;; this works with Emacsclient.
@@ -353,6 +359,7 @@
 ;; Flymake
 (if (require 'flymake nil t)
 	(progn
+	  (remove-hook 'flymake-diagnostic-functions 'flymake-proc-legacy-flymake)
 	  (add-hook 'prog-mode-hook #'flymake-mode)
 	  (define-key flymake-mode-map (kbd "M-n") 'flymake-goto-next-error)
 	  (define-key flymake-mode-map (kbd "M-p") 'flymake-goto-prev-error)
@@ -374,26 +381,39 @@
 	   (;; these are the defaults (changed bindings)
 		;; org-shiftup C-S-p
 		([(shift up)] . [(control shift p)])
+		;; alternatively default M-p
+		;; ([(shift up)] . [(meta p)])
 		;; org-shiftdown C-S-n
 		([(shift down)] . [(control shift n)])
+		;; alternatively default M-n
+		;; ([(shift down)] . [(meta n)])
 		;; org-shiftleft M--
 		([(shift left)] . [(meta -)])
 		;; org-shiftright M-+
 		([(shift right)] . [(meta +)])
-		;; org-shiftcontrolright (C-M-+)
+		;; org-shiftcontrolright (C-M-+) (default: M-S-+ (M-4))
 		([(control shift right)] . [(control meta +)])
-		;; org-shiftcontrolleft (C-M--)
+		;; org-shiftcontrolleft (C-M--) (default: M-S-- (M-_))
 		([(control shift left)] . [(control meta -)])
+
 		;; these are custom
 		;; TODO do these even exist?
 		;; ;; TODO C-M-S-b (C-M-B)
 		;; ([(control meta shift left)] . [(control meta shift b)])
 		;; ;; TODO C-M-S-f (C-M-F)
 		;; ([(control meta shift right)] . [(control meta shift f)])
+
 		;; org-shiftcontrolup C-M-S-p (C-M-P)
 		([(control shift up)] . [(control meta shift p)])
+		;; alternatively M-S-p (M-P)
+		;; ([(control shift up)] . [(meta shift p)])
 		;; org-shiftcontroldown C-M-S-n (C-M-N)
 		([(control shift down)] . [(control meta shift n)])
+		;; alternatively M-S-n (M-N)
+		;; ([(control shift down)] . [(meta shift n)])
+
+		;; These are already assigned with `org-use-extra-keys'.
+		;; Kept only for comfort.
 		;; org-metaup M-S-p (M-P)
 		([(meta up)] . [(meta shift p)])
 		;; org-metadown M-S-n (M-N)
@@ -409,7 +429,8 @@
 		;; org-shiftmetaleft C-S-b
 		([(meta shift left)] . [(control shift b)])
 		;; org-shiftmetaright C-S-f
-		([(meta shift right)] . [(control shift f)]))))
+		([(meta shift right)] . [(control shift f)])
+		)))
 (setq org-replace-disputed-keys t)
 (setq org-use-extra-keys t)
 (setq org-use-speed-commands t)
@@ -427,16 +448,26 @@
 
 ;; Org Babel
 
-;; (setq org-confirm-babel-evaluate nil)
+(setq org-confirm-babel-evaluate nil)
 
 ;; If we ever use ob-async...
 ;; (setq ob-async-no-async-languages-alist
 ;; 	  '("jupyter-python" "jupyter-julia"))
 
 (setq my-org-babel-load-languages '())
+
+;; Other settings and keybindings
 (if (and (require 'org-install nil t)
 		 (require 'org-habit nil t))
 	(progn
+	  (defun org-beamer-mode-or-select-beamer-environment ()
+		"Activate `org-beamer-mode' or `org-beamer-select-environment' if it is
+already active."
+		(interactive)
+		(if (eq org-beamer-mode nil)
+			(org-beamer-mode)
+		  (org-beamer-select-environment)))
+
 	  (add-hook 'org-babel-after-execute-hook 'org-display-inline-images)
 	  (add-hook 'org-mode-hook 'org-display-inline-images)
 	  (add-hook 'message-mode-hook 'orgtbl-mode)
@@ -448,6 +479,14 @@
 	  (define-key my-org-map (kbd "a") 'org-agenda)
 	  (define-key my-org-map (kbd "o") 'org-switchb)
 	  (define-key my-org-map (kbd "c") 'org-capture)
+
+	  ;; Activate beamer mode or select beamer environment with C-c o b
+	  ;; Use C-c C-b for navigation like always
+	  (add-hook 'org-beamer-mode-hook
+				(lambda () (define-key org-beamer-mode-map (kbd "C-c C-b") nil)))
+	  (define-key my-org-map (kbd "b")
+		'org-beamer-mode-or-select-beamer-environment)
+
 	  (setq my-org-babel-load-languages
 			(append my-org-babel-load-languages
 					'((emacs-lisp . t)
@@ -520,7 +559,7 @@ theme variant."
 (defun highlight-todos ()
   "Highlight TODO-related keywords."
   (font-lock-add-keywords nil
-						  '(("\\<\\(\\(?:TODO\\|FIXME\\)[Ss]?\\>:?\\)" 1
+						  '(("\\<\\(\\(?:TODO\\|FIXME\\|XXX\\)[Ss]?\\>:?\\)" 1
 							 font-lock-warning-face t))))
 
 (add-hook 'prog-mode-hook 'highlight-todos)
@@ -566,14 +605,15 @@ theme variant."
 (add-hook 'LaTeX-mode-hook (lambda () (electric-pair-local-mode 0)))
 (setq reftex-plug-into-AUCTeX t)
 
-;; Use PDF Tools
-(add-hook 'TeX-mode-hook
-		  (lambda () (setf (nth 1
-								(assq 'output-pdf TeX-view-program-selection))
-						   "PDF Tools")))
-;; If PDF-Tools are used:
-(add-hook 'TeX-after-compilation-finished-functions
-		  'TeX-revert-document-buffer)
+;; Use PDF-Tools
+(if (functionp 'pdf-tools-install)
+	(add-hook 'TeX-mode-hook
+			  (lambda () (setf (nth 1
+									(assq 'output-pdf TeX-view-program-selection))
+							   "PDF Tools")))
+  ;; If PDF-Tools are used: TODO really only then?
+  (add-hook 'TeX-after-compilation-finished-functions
+			'TeX-revert-document-buffer))
 ;; TODO LuaLaTeX available instead of pdflatex?
 ;; TODO TeX-file-line-error useful?
 
@@ -1080,9 +1120,10 @@ the context."
 					 "\"); "
 					 "run(server)"))))
 
-	  (add-to-list
-	   'eglot-server-programs
-	   '(julia-mode . my-julia-lsp-command))
+	  ;; TODO periodical errors
+	  ;; (add-to-list
+	  ;;  'eglot-server-programs
+	  ;;  '(julia-mode . my-julia-lsp-command))
 
 	  (add-hook 'julia-mode-hook 'eglot-ensure)
 	  ;; Wait longer due to slow compilation
@@ -1107,6 +1148,12 @@ the context."
   (if (y-or-n-p "Kill Emacs server? ")
 	  (progn (save-some-buffers)
 			 (kill-emacs))))
+
+(defun kill-other-buffers ()
+  "Kill all other buffers."
+  (interactive)
+  (if (y-or-n-p "Kill all other buffers? ")
+	  (mapc 'kill-buffer (delq (current-buffer) (buffer-list)))))
 
 (defun insert-arbitrary-pair (beginning ending)
   "Insert a pair of any two characters."
@@ -1235,6 +1282,30 @@ on if a Solarized variant is currently active."
 	(interactive)
 	()))
 
+;; TODO turn this into minor mode
+(defun toggle-presentation-mode ()
+  "Toggle hiding any visual distractions."
+  (interactive)
+  (if (eq mode-line-format nil)
+	  (progn
+		(kill-local-variable 'mode-line-format)
+		(kill-local-variable 'display-line-numbers)
+		(toggle-frame-fullscreen)
+		(if (eq major-mode 'pdf-view-mode)
+			(pdf-view-fit-page-to-window))
+		(kill-local-variable 'echo-keystrokes)
+		(kill-local-variable 'inhibit-message))
+	(progn
+	  (setq-local mode-line-format nil)
+	  (setq-local display-line-numbers nil)
+	  (delete-other-windows)
+	  (toggle-frame-fullscreen)
+	  (if (eq major-mode 'pdf-view-mode)
+		  (progn
+			(sleep-for 0 200) ; sadly necessary
+			(pdf-view-fit-page-to-window)))
+	  (setq-local echo-keystrokes 0) ; debatable
+	  (setq-local inhibit-message t))))
 
 (defun my-julia-repl ()
   "Start a Julia REPL in a terminal emulator in the selected window."
@@ -1329,6 +1400,8 @@ on if a Solarized variant is currently active."
 ;; Query whether to kill Emacs server (C-c k)
 (define-key mode-specific-map (kbd "k") 'query-kill-emacs)
 
+(define-key my-extended-map (kbd "k") 'kill-other-buffers)
+
 ;; Surround point or region (C-c s)
 (define-key mode-specific-map (kbd "s") 'insert-char-pair)
 
@@ -1355,6 +1428,7 @@ on if a Solarized variant is currently active."
 (put 'upcase-region 'disabled nil)
 (put 'set-goal-column 'disabled nil)
 (put 'narrow-to-region 'disabled nil)
+(put 'dired-find-alternate-file 'disabled nil)
 
 ;;; init.el ends here
 

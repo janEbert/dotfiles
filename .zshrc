@@ -141,6 +141,10 @@ if [ -f ~/.bash_aliases ]; then
     . ~/.bash_aliases
 fi
 
+if [ -f ~/.bash_aliases_local ]; then
+    . ~/.bash_aliases_local
+fi
+
 if [ "x$SSH_CLIENT" = x ] && [ "x$SSH_TTY" = x ] \
         && [ "x$SSH_CONNECTION" = x ] && [ -f ~/.Xmodmap ]; then
     xmodmap ~/.Xmodmap

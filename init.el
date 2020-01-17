@@ -1292,16 +1292,29 @@ on if a Solarized variant is currently active."
 		(kill-local-variable 'display-line-numbers)
 		(toggle-frame-fullscreen)
 		(if (eq major-mode 'pdf-view-mode)
+			(local-unset-key (kbd "<mouse-1>"))
+			(local-unset-key (kbd "<mouse-3>"))
+			(local-unset-key [down-mouse-1])
+			(local-unset-key [down-mouse-3])
+			(pdf-misc-context-menu-minor-mode 1)
 			(pdf-view-fit-page-to-window))
 		(kill-local-variable 'echo-keystrokes)
-		(kill-local-variable 'inhibit-message))
+		(kill-local-variable 'inhibit-message)
+		;; TODO why does `winner-undo' not work here?
+		)
 	(progn
+	  (winner-save-unconditionally)
 	  (setq-local mode-line-format nil)
 	  (setq-local display-line-numbers nil)
 	  (delete-other-windows)
 	  (toggle-frame-fullscreen)
 	  (if (eq major-mode 'pdf-view-mode)
 		  (progn
+			(local-set-key (kbd "<mouse-1>") 'pdf-view-next-page-command)
+			(local-set-key (kbd "<mouse-3>") 'pdf-view-previous-page-command)
+			(local-unset-key [down-mouse-1])
+			(local-unset-key [down-mouse-3])
+			(pdf-misc-context-menu-minor-mode 0)
 			(sleep-for 0 200) ; sadly necessary
 			(pdf-view-fit-page-to-window)))
 	  (setq-local echo-keystrokes 0) ; debatable

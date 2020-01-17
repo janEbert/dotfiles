@@ -285,7 +285,8 @@ fi
 
 
 # Emacs TRAMP fix (keep this at the very end!)
-if [[ "$TERM" == "dumb" ]]; then
+if [[ "$TERM" == "dumb" ]] && \
+       [[ -n "$(echo "$INSIDE_EMACS" | grep tramp)" ]]; then
     unsetopt zle
     unsetopt prompt_cr
     unsetopt prompt_subst

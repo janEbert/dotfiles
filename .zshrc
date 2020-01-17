@@ -285,7 +285,7 @@ fi
 
 
 # Emacs TRAMP fix (keep this at the very end!)
-if [[ "$TERM" == "dumb" ]] && [[ ${INSIDE_EMACS/*,/} == "tramp" ]]; then
+if [[ "$TERM" == "dumb" ]]; then
     unsetopt zle
     unsetopt prompt_cr
     unsetopt prompt_subst

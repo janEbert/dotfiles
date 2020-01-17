@@ -152,7 +152,7 @@ fi
 
 stty -ixon
 
-export PATH="$HOME/.nimble/bin:$HOME/local/bin:/usr/lib/ccache:$PATH"
+export PATH="$HOME/local/bin:/usr/lib/ccache:$PATH"
 
 [ -f ~/.emacs.d/bin/doom ] && export PATH="$HOME/.emacs.d/bin:$PATH"
 
@@ -212,6 +212,8 @@ export JULIA_NUM_THREADS=64
 # Rust
 export PATH="$HOME/.cargo/bin:$PATH"
 
+# Nim
+export PATH="$HOME/.nimble/bin:$PATH"
 
 # Use "emulate sh -c '. file.sh'" when compatibility demands it.
 

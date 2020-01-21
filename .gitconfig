@@ -17,6 +17,7 @@
 	ci = commit
 	cm = commit -m
 	co = checkout
+	cpi = cherry-pick
 	cs = clone --depth 1
 	csb = clone -b master --single-branch --depth 1
 	d = diff

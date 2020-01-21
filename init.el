@@ -382,6 +382,8 @@
 		(if (eq flymake-mode nil)
 			(flymake-mode 1)
 		  (flymake-mode 0)))
+
+	  ;; Toggle flymake mode (C-c t f)
 	  (define-key my-toggle-map (kbd "f") 'toggle-flymake-mode)))
 
 ;; Org mode
@@ -1433,10 +1435,13 @@ on if a Solarized variant is currently active."
 ;; Query whether to kill Emacs server (C-c k)
 (define-key mode-specific-map (kbd "k") 'query-kill-emacs)
 
-;; Find file with find (C-c t f)
+;; Rename uniquely (C-c x r)
+(define-key my-extended-map (kbd "r") 'rename-uniquely)
+
+;; Find file with find (C-c x f)
 (define-key my-extended-map (kbd "f") 'find-name-dired)
 
-;; Kill other buffers (C-c t k)
+;; Kill other buffers (C-c x k)
 (define-key my-extended-map (kbd "k") 'kill-other-buffers)
 
 ;; Surround point or region (C-c s)

@@ -173,7 +173,7 @@
  '(semantic-mode t)
  '(sentence-end-double-space nil)
  '(set-mark-command-repeat-pop t)
- '(shell-prompt-pattern "^[^#$%>
+ '(shell-prompt-pattern "^\\(###\\)?[^#$%>
 ]*[#$%>] *")
  '(show-paren-mode t)
  '(show-paren-style (quote parenthesis) nil nil "Maybe try out expression or mixed.")
@@ -207,20 +207,26 @@
 
 ;; For external plugins in `my-extended-package-dir'
 (let ((default-directory my-extended-package-dir))
-  (setq load-path
-		(append
-		 (let ((load-path  (copy-sequence load-path)))
-		   (append
-			(copy-sequence (normal-top-level-add-to-load-path '(".")))
-			(normal-top-level-add-subdirs-to-load-path)))
-		 load-path)))
+  (if (file-exists-p my-extended-package-dir)
+	  (setq load-path
+			(append
+			 (let ((load-path  (copy-sequence load-path)))
+			   (append
+				(copy-sequence (normal-top-level-add-to-load-path '(".")))
+				(normal-top-level-add-subdirs-to-load-path)))
+			 load-path))
+	(warn "%s does not exist; no custom extensions loaded"
+		  my-extended-package-dir)))
 
 ;; Load themes in `my-themes-dir'
 (let ((basedir my-themes-dir))
-  (dolist (f (directory-files basedir))
-    (if (and (not (or (equal f ".") (equal f "..")))
-             (file-directory-p (concat basedir f)))
-        (add-to-list 'custom-theme-load-path (concat basedir f)))))
+  (if (file-exists-p my-themes-dir)
+	  (dolist (f (directory-files basedir))
+		(if (and (not (or (equal f ".") (equal f "..")))
+				 (file-directory-p (concat basedir f)))
+			(add-to-list 'custom-theme-load-path (concat basedir f))))
+	(warn "%s does not exist; no custom themes loaded"
+		  my-extended-package-dir)))
 
 (defun dont-show-whitespace ()
   "Disable showing whitespace in the current buffer."
@@ -239,6 +245,10 @@
 (define-prefix-command 'my-extended-map)
 ;; Extended custom commands (C-c x)
 (define-key mode-specific-map (kbd "x") 'my-extended-map)
+
+(define-prefix-command 'my-toggle-map)
+;; Custom commands for toggling (C-c t)
+(define-key mode-specific-map (kbd "t") 'my-toggle-map)
 
 ;; Do complete .bin files
 (setq completion-ignored-extensions
@@ -299,8 +309,9 @@
 ;; Auto-fill in TeX mode
 (add-hook 'tex-mode-hook 'auto-fill-mode)
 
-;; Disable whitespace in Term mode
-(add-hook 'term-mode-hook 'toggle-show-whitespace)
+;; Disable whitespace in Shell and Term mode
+(add-hook 'shell-mode-hook 'toggle-show-whitespace)
+(add-hook 'term-mode-hook  'toggle-show-whitespace)
 
 
 ;; Dired
@@ -357,7 +368,8 @@
 		  (shell)))))
 
 ;; Flymake
-(if (require 'flymake nil t)
+(if (and (not (version< emacs-version "26"))
+		 (require 'flymake nil t))
 	(progn
 	  (remove-hook 'flymake-diagnostic-functions 'flymake-proc-legacy-flymake)
 	  (add-hook 'prog-mode-hook #'flymake-mode)
@@ -370,7 +382,7 @@
 		(if (eq flymake-mode nil)
 			(flymake-mode 1)
 		  (flymake-mode 0)))
-	  (define-key my-extended-map (kbd "f") 'toggle-flymake-mode)))
+	  (define-key my-toggle-map (kbd "f") 'toggle-flymake-mode)))
 
 ;; Org mode
 (setq org-directory "~/.emacs.d/org")
@@ -637,7 +649,8 @@ theme variant."
 	(dumb-jump-mode))
 
 ;; Magit
-(if (require 'magit nil t)
+(if (and (not (version< emacs-version "26"))
+		 (require 'magit nil t))
 	(progn
 	  (define-prefix-command 'my-magit-map)
 	  (define-key mode-specific-map (kbd "g") 'my-magit-map)
@@ -675,12 +688,15 @@ theme variant."
 		"Load the playlist emms-music in 'my-music-dir, go to a random track and
 stop playback."
 		(interactive)
-		(emms-play-playlist (expand-file-name "emms-music" my-music-dir))
+		(let ((playlist-file (expand-file-name "emms-music" my-music-dir)))
+		  (if (file-exists-p playlist-file)
+			  (emms-play-playlist playlist-file)))
 		(emms-random)
 		(emms-stop)
 		(update-emms-faces))
 
-	  (add-hook 'after-init-hook 'init-emms)
+	  (if (not (version< emacs-version "26"))
+		  (add-hook 'after-init-hook 'init-emms))
 
 	  ;; EMMS key bindings (C-c m)
 	  (define-prefix-command 'my-emms-map)
@@ -831,7 +847,7 @@ the context."
 
 
 	  ;; TODO this is most likely unnecessary
-	  ;; ;; Toggle global Evil mode with C-c x v (also toggle undo-tree-mode).
+	  ;; ;; Toggle global Evil mode with C-c t v (also toggle undo-tree-mode).
 	  ;; ;; Does not disable evil-magit.
 	  ;; ;; TODO what about evil minor modes?
 	  ;; (defun toggle-global-evil ()
@@ -842,7 +858,7 @@ the context."
 	  ;; 			 (global-undo-tree-mode 0))
 	  ;; 	(progn (evil-mode 1)
 	  ;; 		   (global-undo-tree-mode 0))))
-	  ;; (define-key my-extended-map (kbd "v") 'toggle-global-evil)
+	  ;; (define-key my-toggle-map (kbd "v") 'toggle-global-evil)
 
 	  ;; Evil-snipe
 	  (if (require 'evil-snipe nil t)
@@ -928,7 +944,8 @@ the context."
 	  (define-key my-emms-map	  (kbd "o") 'counsel-rhythmbox)))
 
 ;; Helm
-(if (require 'helm-config nil t)
+(if (and (not (version< emacs-version "26"))
+		 (require 'helm-config nil t))
 	(progn
 	  ;;(global-set-key (kbd "M-x") #'helm-M-x)
 	  ;;(global-set-key (kbd "C-x C-f") #'helm-find-files)
@@ -998,13 +1015,15 @@ the context."
 	  (add-to-list 'org-tag-alist '("TOC" . ?T))))
 
 ;; Jupyter
-(setq exec-path (append exec-path `(,(expand-file-name my-jupyter-dir))))
-(if (functionp 'org-babel-jupyter-scratch-buffer)
-	(setq my-org-babel-load-languages
-		  (append my-org-babel-load-languages
-				  '(
-					;; (julia . t)  TODO needs upstream fix; is too old
-					(jupyter . t)))))
+(if (not (version< emacs-version "26"))
+	(progn
+	  (setq exec-path (append exec-path `(,(expand-file-name my-jupyter-dir))))
+	  (if (functionp 'org-babel-jupyter-scratch-buffer)
+		  (setq my-org-babel-load-languages
+				(append my-org-babel-load-languages
+						'(
+						  ;; (julia . t)  TODO needs upstream fix; is too old
+						  (jupyter . t)))))))
 
 ;; Emacs IPython Notebook
 (setq ein:polymode t)
@@ -1087,7 +1106,8 @@ the context."
 ;; 			(setq-local company-backends
 ;; 						(cons 'company-capf
 ;; 							  (remove 'company-capf company-backends)))))
-(if (require 'eglot nil t)
+(if (and (not (version< emacs-version "26"))
+		 (require 'eglot nil t))
 
 	(progn
 	  ;; (add-to-list 'eglot-server-programs `((rust-mode) eglot-rls ,my-rls-bin))
@@ -1367,14 +1387,14 @@ on if a Solarized variant is currently active."
 (global-set-key (kbd "M-%")   'query-replace-regexp)
 (global-set-key (kbd "C-M-%") 'query-replace)
 
-;; Indent using tabs or spaces (C-c x i)
-(define-key my-extended-map (kbd "i") 'toggle-indent-tabs-mode)
+;; Indent using tabs or spaces (C-c t i)
+(define-key my-toggle-map (kbd "i") 'toggle-indent-tabs-mode)
 
-;; Toggle showing whitespace (C-c x w)
-(define-key my-extended-map (kbd "w") 'toggle-show-whitespace)
+;; Toggle showing whitespace (C-c t w)
+(define-key my-toggle-map (kbd "w") 'toggle-show-whitespace)
 
-;; Toggle pixel-scrolling (C-c x p)
-(define-key my-extended-map (kbd "p") 'toggle-pixel-scroll-mode)
+;; Toggle pixel-scrolling (C-c t p)
+(define-key my-toggle-map (kbd "p") 'toggle-pixel-scroll-mode)
 
 ;; Compile (C-c x c)
 (define-key my-extended-map (kbd "c") 'compile)
@@ -1413,6 +1433,10 @@ on if a Solarized variant is currently active."
 ;; Query whether to kill Emacs server (C-c k)
 (define-key mode-specific-map (kbd "k") 'query-kill-emacs)
 
+;; Find file with find (C-c t f)
+(define-key my-extended-map (kbd "f") 'find-name-dired)
+
+;; Kill other buffers (C-c t k)
 (define-key my-extended-map (kbd "k") 'kill-other-buffers)
 
 ;; Surround point or region (C-c s)

@@ -30,6 +30,7 @@
 	p = pull
 	pn = pull --no-rebase
 	rb = rebase
+	rc = rebase --continue
 	ri = rebase -i
 	# Rebase onto $1 from $2 to $3.
 	#   $1: Fix or new branch.

@@ -32,7 +32,6 @@
 ### Segment drawing
 # A few utility functions to make it easy and re-usable to draw segmented prompts
 
-
 # Special Powerline characters
 
 () {
@@ -67,16 +66,16 @@ prompt_end() {
 
 # Context: user@hostname (who am I and where am I)
 prompt_context() {
-  if [[ "$USER" != "$DEFAULT_USER" || -n "$SSH_CLIENT" ]]; then
-    prompt_segment "%(!..)%n@%m "
-  fi
+    if [[ "$USER" != "$DEFAULT_USER" || -n "$SSH_CLIENT" ]]; then
+        prompt_segment "%(!..)%n@%m "
+    fi
 }
 
 # From https://lobste.rs/s/x5ioqm/what_does_your_shell_prompt_look_like#c_eejehg
 function git_stash_count() {
     count=$(git stash list 2> /dev/null | wc -l) || return
     if [[ $count -gt 0 ]]; then
-      echo -n " (${count})"
+        echo -n " (${count})"
     fi
 }
 
@@ -89,7 +88,7 @@ prompt_git() {
     local PL_BRANCH_CHAR
     () {
         local LC_ALL="" LC_CTYPE="en_US.UTF-8"
-        PL_BRANCH_CHAR=$'b'         # 
+        PL_BRANCH_CHAR=$'b'
     }
     local ref dirty mode repo_path
 
@@ -99,15 +98,15 @@ prompt_git() {
         ref=$(git symbolic-ref HEAD 2> /dev/null) || ref="> $(git rev-parse --short HEAD 2> /dev/null)"
         st=''
         if [[ -n $dirty ]]; then
-            st='d'
+            st='d '
         fi
 
         if [[ -e "${repo_path}/BISECT_LOG" ]]; then
-          mode=" <B>"
+            mode=" <B>"
         elif [[ -e "${repo_path}/MERGE_HEAD" ]]; then
-          mode=" >M<"
+            mode=" >M<"
         elif [[ -e "${repo_path}/rebase" || -e "${repo_path}/rebase-apply" || -e "${repo_path}/rebase-merge" || -e "${repo_path}/../.dotest" ]]; then
-          mode=" >R>"
+            mode=" >R>"
         fi
 
         setopt promptsubst
@@ -121,7 +120,7 @@ prompt_git() {
         zstyle ':vcs_info:*' formats ' %u%c'
         zstyle ':vcs_info:*' actionformats ' %u%c'
         vcs_info
-        echo -n "${st}[${ref/refs\/heads\//$PL_BRANCH_CHAR }${vcs_info_msg_0_%% }${mode}"
+        echo -n "[${st}${ref/refs\/heads\//$PL_BRANCH_CHAR }${vcs_info_msg_0_%% }${mode}"
         git_stash_count
         echo -n "] "
     fi
@@ -146,49 +145,49 @@ prompt_bzr() {
 }
 
 prompt_hg() {
-  (( $+commands[hg] )) || return
-  local rev st branch
-  if $(hg id >/dev/null 2>&1); then
-    if $(hg prompt >/dev/null 2>&1); then
-      if [[ $(hg prompt "{status|unknown}") = "?" ]]; then
-        # if files are not added
-        st='!'
-      elif [[ -n $(hg prompt "{status|modified}") ]]; then
-        # if any modification
-        st='m'
-      else
-        # if working copy is clean
-        st='c'
-      fi
-      echo -n $(hg prompt "m {rev}@{branch}") $st
-    else
-      st=""
-      rev=$(hg id -n 2>/dev/null | sed 's/[^-0-9]//g')
-      branch=$(hg id -b 2>/dev/null)
-      if `hg st | grep -q "^\?"`; then
-        st='!'
-      elif `hg st | grep -q "^[MA]"`; then
-        st='m'
-      else
-        st='c'
-      fi
-      echo -n "m $rev@$branch" $st
+    (( $+commands[hg] )) || return
+    local rev st branch
+    if $(hg id >/dev/null 2>&1); then
+        if $(hg prompt >/dev/null 2>&1); then
+            if [[ $(hg prompt "{status|unknown}") = "?" ]]; then
+                # if files are not added
+                st='!'
+            elif [[ -n $(hg prompt "{status|modified}") ]]; then
+                # if any modification
+                st='m'
+            else
+                # if working copy is clean
+                st='c'
+            fi
+            echo -n $(hg prompt "m {rev}@{branch}") $st
+        else
+            st=""
+            rev=$(hg id -n 2>/dev/null | sed 's/[^-0-9]//g')
+            branch=$(hg id -b 2>/dev/null)
+            if `hg st | grep -q "^\?"`; then
+                st='!'
+            elif `hg st | grep -q "^[MA]"`; then
+                st='m'
+            else
+                st='c'
+            fi
+            echo -n "m $rev@$branch" $st
+        fi
+        echo -n ' '
     fi
-    echo -n ' '
-  fi
 }
 
 # Dir: current working directory
 prompt_dir() {
-  prompt_segment '%~ '
+    prompt_segment '%~ '
 }
 
 # Virtualenv: current working virtualenv
 prompt_virtualenv() {
-  local virtualenv_path="$VIRTUAL_ENV"
-  if [[ -n $virtualenv_path && -n $VIRTUAL_ENV_DISABLE_PROMPT ]]; then
-    prompt_segment "(`basename $virtualenv_path`) "
-  fi
+    local virtualenv_path="$VIRTUAL_ENV"
+    if [[ -n $virtualenv_path && -n $VIRTUAL_ENV_DISABLE_PROMPT ]]; then
+        prompt_segment "(`basename $virtualenv_path`) "
+    fi
 }
 
 # Status:
@@ -196,13 +195,13 @@ prompt_virtualenv() {
 # - am I root
 # - are there background jobs?
 prompt_status() {
-  local -a symbols
+    local -a symbols
 
-  [[ $RETVAL -ne 0 ]] && symbols+="x"
-  [[ $UID -eq 0 ]] && symbols+="#"
-  [[ $(jobs -l | wc -l) -gt 0 ]] && symbols+="j"
+    [[ $RETVAL -ne 0 ]] && symbols+="x"
+    [[ $UID -eq 0 ]] && symbols+="r"
+    [[ $(jobs -l | wc -l) -gt 0 ]] && symbols+="j"
 
-  [[ -n "$symbols" ]] && prompt_segment "$symbols "
+    [[ -n "$symbols" ]] && prompt_segment "$symbols "
 }
 
 #AWS Profile:
@@ -211,25 +210,25 @@ prompt_status() {
 #   ends in '-prod'
 # - displays black on green otherwise
 prompt_aws() {
-  [[ -z "$AWS_PROFILE" ]] && return
-  case "$AWS_PROFILE" in
-    *-prod|*production*) prompt_segment "AWS: $AWS_PROFILE " ;;
-    *) prompt_segment "AWS: $AWS_PROFILE " ;;
-  esac
+    [[ -z "$AWS_PROFILE" ]] && return
+    case "$AWS_PROFILE" in
+        *-prod|*production*) prompt_segment "AWS: $AWS_PROFILE " ;;
+        *) prompt_segment "AWS: $AWS_PROFILE " ;;
+    esac
 }
 
 ## Main prompt
 build_prompt() {
-  RETVAL=$?
-  prompt_status
-  prompt_virtualenv
-  prompt_aws
-  prompt_context
-  prompt_dir
-  prompt_git
-  prompt_bzr
-  prompt_hg
-  prompt_end
+    RETVAL=$?
+    prompt_status
+    prompt_virtualenv
+    prompt_aws
+    prompt_context
+    prompt_dir
+    prompt_git
+    prompt_bzr
+    prompt_hg
+    prompt_end
 }
 
 if ! [ -f $ZSH/oh-my-zsh.sh ]; then

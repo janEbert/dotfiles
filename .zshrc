@@ -286,7 +286,8 @@ fi
 
 # Emacs TRAMP fix (keep this at the very end!)
 if [[ "$TERM" == "dumb" ]] \
-       && ! [[ -n "$INSIDE_EMACS" ]]; then
+       && ([[ "x$INSIDE_EMACS" = x ]] \
+       || [[ -n "$(echo "$INSIDE_EMACS" | grep tramp)" ]]); then
     # TODO for some reason INSIDE_EMACS is not set on the remote host...
     # && [[ -n "$(echo "$INSIDE_EMACS" | grep tramp)" ]]; then
     unsetopt zle

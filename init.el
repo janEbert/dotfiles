@@ -1438,6 +1438,9 @@ on if a Solarized variant is currently active."
 ;; Rename uniquely (C-c x r)
 (define-key my-extended-map (kbd "r") 'rename-uniquely)
 
+;; Diff buffers (preferably in split) (C-c x d)
+(define-key my-extended-map (kbd "d") 'ediff-buffers)
+
 ;; Find file with find (C-c x f)
 (define-key my-extended-map (kbd "f") 'find-name-dired)
 

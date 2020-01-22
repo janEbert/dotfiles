@@ -959,14 +959,15 @@ the context."
 	  (setq helm-recentf-fuzzy-match t)
 	  (setq helm-lisp-fuzzy-completion t)
 	  ;;(helm-mode 1)
-	  (with-eval-after-load "eshell"
-		(add-hook
-		 'eshell-mode-hook
-		 (lambda ()
-		   (eshell-cmpl-initialize)
-		   (define-key eshell-mode-map [remap eshell-pcomplete]
-			 'helm-esh-pcomplete)
-		   (define-key eshell-mode-map (kbd "M-p") 'helm-esh-history))))))
+	  ;; (with-eval-after-load "eshell"
+	  ;; 	(add-hook
+	  ;; 	 'eshell-mode-hook
+	  ;; 	 (lambda ()
+	  ;; 	   (eshell-cmpl-initialize)
+	  ;; 	   (define-key eshell-mode-map [remap eshell-pcomplete]
+	  ;; 		 'helm-esh-pcomplete)
+	  ;; 	   (define-key eshell-mode-map (kbd "M-p") 'helm-esh-history))))
+	  ))
 
 ;; Projectile
 (if (functionp 'projectile-mode)

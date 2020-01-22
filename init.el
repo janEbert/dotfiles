@@ -173,7 +173,7 @@
  '(semantic-mode t)
  '(sentence-end-double-space nil)
  '(set-mark-command-repeat-pop t)
- '(shell-prompt-pattern "^\\(###\\)?[^#$%>
+ '(shell-prompt-pattern "^\\(?:###\\)?[^#$%>
 ]*[#$%>] *")
  '(show-paren-mode t)
  '(show-paren-style (quote parenthesis) nil nil "Maybe try out expression or mixed.")
@@ -186,7 +186,7 @@
  '(tool-bar-mode nil)
  '(tool-bar-position (quote top))
  '(tramp-shell-prompt-pattern
-   "\\(?:^\\|\\)[^]#$%>
+   "\\(?:^\\|\\)\\(?:###\\)?[^]#$%>
 ]*#?[]#$%>] *\\(\\[[0-9;]*[a-zA-Z] *\\)*")
  '(uniquify-buffer-name-style (quote forward) nil (uniquify))
  '(url-cookie-confirmation t)

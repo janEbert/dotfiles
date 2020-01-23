@@ -345,7 +345,7 @@
   (add-hook 'reftex-select-bib-mode-hook 'toggle-show-whitespace)
   (add-to-list 'reftex-include-file-commands "includeonly"))
 
-;; TRAMP
+;; Tramp
 (if (require 'tramp nil t)
 	(progn
 	  ;; Load Eshell extensions
@@ -357,10 +357,27 @@
 	  ;;   (setf (cadr (assq 'tramp-login-args (cdr (assoc "plink" tramp-methods))))
 	  ;;          '(("-l" "%u") ("-P" "%p") ("-ssh") ("-t") ("%h") ("\"")
 	  ;;            ("env 'TERM=dumb' 'PROMPT_COMMAND=' 'PS1=#$ '") ("/bin/sh") ("\""))))
+
 	  ;; Use X11 forwarding (-X)
 	  ;; TODO check if this works correctly (nope, not on multi hops)
-	  (add-to-list 'tramp-remote-process-environment
-				   (format "DISPLAY=localhost%s" (getenv "DISPLAY")))
+	  ;; (add-to-list 'tramp-remote-process-environment
+	  ;; 			   (format "DISPLAY=localhost%s" (getenv "DISPLAY")))
+
+	  ;; Speed ups
+	  ;; If files are not updated outside of Tramp
+	  ;; (setq remote-file-name-inhibit-cache nil)
+
+	  ;; Speed up completions
+	  ;; (setq tramp-completion-reread-directory-timeout nil)
+
+	  ;; Disable version control
+	  ;; (setq vc-ignore-dir-regexp
+	  ;; 		(format "\\(%s\\)\\|\\(%s\\)"
+	  ;; 				vc-ignore-dir-regexp
+	  ;; 				tramp-file-name-regexp))
+	  ;; or
+	  ;; (setq vc-handled-backends '(Git))
+
 	  (defun remote-shell ()
 		"Start a remote shell with the correct TERM environment variable."
 		(interactive)
@@ -906,7 +923,17 @@ the context."
 
 	  ;; No need to accept completion with RET; use TAB and S-TAB to cycle.
 	  ;; However, compatibility problem with YASnippet (resolved later).
-	  (company-tng-configure-default)))
+	  (company-tng-configure-default)
+
+	  ;; Increase idle delay in remote shell (revert our fast completion config)
+	  (if (require 'tramp nil t)
+		  (add-hook 'shell-mode-hook
+					(lambda ()
+					  (if (file-remote-p default-directory)
+						  (progn
+						  (setq-local company-minimum-prefix-length 3)
+						  (setq-local company-idle-delay 0.5)))))))
+  (define-key mode-specific-map (kbd "c") 'completion-at-point))
 
 ;; Company quickhelp
 (if (functionp 'company-quickhelp-mode)

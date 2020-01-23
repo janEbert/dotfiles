@@ -1140,13 +1140,18 @@ the context."
 		 (require 'eglot nil t))
 
 	(progn
-	  ;; (add-to-list 'eglot-server-programs `((rust-mode) eglot-rls ,my-rls-bin))
-	  (add-hook 'rust-mode-hook   'eglot-ensure)
-	  (add-hook 'python-mode-hook 'eglot-ensure)
+	  (if (executable-find "rls")
+		  (progn
+		  ;; (add-to-list 'eglot-server-programs `((rust-mode) eglot-rls ,my-rls-bin))
+			(add-hook 'rust-mode-hook 'eglot-ensure)))
+	  (if (executable-find "pyls")
+		  (add-hook 'python-mode-hook 'eglot-ensure))
 
-	  (add-to-list 'eglot-server-programs '((c++-mode c-mode) "clangd"))
-	  (add-hook 'c-mode-hook 'eglot-ensure)
-	  (add-hook 'c++-mode-hook 'eglot-ensure)
+	  (if (executable-find "clangd")
+		  (progn
+			(add-to-list 'eglot-server-programs '((c++-mode c-mode) "clangd"))
+			(add-hook 'c-mode-hook 'eglot-ensure)
+			(add-hook 'c++-mode-hook 'eglot-ensure)))
 
 	  (defun my-julia-get-project-root (dir)
 		"Get the Julia project root directory of the given `dir'."
@@ -1171,14 +1176,17 @@ the context."
 					 "run(server)"))))
 
 	  ;; TODO periodical errors
-	  ;; (add-to-list
-	  ;;  'eglot-server-programs
-	  ;;  '(julia-mode . my-julia-lsp-command))
+	  ;; (if (executable-find "julia")
+	  ;; 	  (progn
+	  ;; 		(add-to-list
+	  ;; 		 'eglot-server-programs
+	  ;; 		 '(julia-mode . my-julia-lsp-command))
 
-	  (add-hook 'julia-mode-hook 'eglot-ensure)
-	  ;; Wait longer due to slow compilation
-	  (add-hook 'julia-mode-hook
-				(lambda () (setq-local eglot-connect-timeout 90)))))
+	  ;; 		(add-hook 'julia-mode-hook 'eglot-ensure)
+	  ;; 		;; Wait longer due to slow compilation
+	  ;; 		(add-hook 'julia-mode-hook
+	  ;; 				  (lambda () (setq-local eglot-connect-timeout 90)))))
+	  ))
 
 
 ;; Load private configurations

@@ -12,7 +12,7 @@
 	a = add
 	ap = add -p
 	b = branch
-	br = branch
+	ca = commit --amend
 	cb = checkout -b
 	ci = commit
 	cm = commit -m

@@ -25,10 +25,12 @@
 	dn = diff --name-status
 	ds = diff --stat
 	f = fetch
+	l = log
 	llog = log --date=local
 	m = merge
 	p = pull
 	pn = pull --no-rebase
+	pr = pull --rebase
 	rb = rebase
 	rc = rebase --continue
 	ri = rebase -i
@@ -45,7 +47,10 @@
 	si = submodule init
 	sm = submodule
 	sp = push --recurse-submodules=on-demand
-	st = status
+	st = stash
+	sta = stash apply
+	ss = stash show
+	ssp = stash show --patch
 	su = submodule update --remote --merge
 	t = tag
 

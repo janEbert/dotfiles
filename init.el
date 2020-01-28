@@ -157,7 +157,7 @@
  '(package-menu-hide-low-priority t)
  '(package-selected-packages
    (quote
-	(dired-du dired-git-info purescript-mode js2-mode magit markdown-mode typescript-mode realgud dap-mode cobol-mode csharp-mode fsharp-mode go-mode num3-mode php-mode sed-mode smalltalk-mode stan-mode swift-mode zig-mode elixir-mode erlang clojure-mode cmake-mode haskell-snippets caml sml-mode haskell-mode lsp-julia nasm-mode yaml-mode ada-mode chess csv-mode json-mode vterm lua-mode python nov ein rust-mode slime yasnippet-snippets texfrag eglot undo-propose julia-repl ess form-feed nim-mode evil-collection evil-commentary evil-lion evil-magit evil-matchit evil-snipe evil-surround evil-visualstar counsel-spotify landmark auctex zotxt company-lsp company-quickhelp dumb-jump expand-region jupyter use-package gotham-theme zenburn-theme toc-org flymake org tramp projectile ivy ggtags pdf-tools yasnippet solarized-theme rainbow-delimiters lsp-mode julia-mode helm gnu-elpa-keyring-update forge evil emms darkroom company)))
+	(docker dockerfile-mode dired-du dired-git-info purescript-mode js2-mode magit markdown-mode typescript-mode realgud dap-mode cobol-mode csharp-mode fsharp-mode go-mode num3-mode php-mode sed-mode smalltalk-mode stan-mode swift-mode zig-mode elixir-mode erlang clojure-mode cmake-mode haskell-snippets caml sml-mode haskell-mode lsp-julia nasm-mode yaml-mode ada-mode chess csv-mode json-mode vterm lua-mode python nov ein rust-mode slime yasnippet-snippets texfrag eglot undo-propose julia-repl ess form-feed nim-mode evil-collection evil-commentary evil-lion evil-magit evil-matchit evil-snipe evil-surround evil-visualstar counsel-spotify landmark auctex zotxt company-lsp company-quickhelp dumb-jump expand-region jupyter use-package gotham-theme zenburn-theme toc-org flymake org tramp projectile ivy ggtags pdf-tools yasnippet solarized-theme rainbow-delimiters lsp-mode julia-mode helm gnu-elpa-keyring-update forge evil emms darkroom company)))
  '(prettify-symbols-unprettify-at-point (quote right-edge))
  '(read-buffer-completion-ignore-case t)
  '(read-file-name-completion-ignore-case t)
@@ -595,6 +595,16 @@ theme variant."
 
 (add-hook 'prog-mode-hook 'highlight-todos)
 (add-hook 'tex-mode-hook  'highlight-todos)
+
+;; Fix `list-colors-display' (only works with `global-font-lock' deactivated)
+(defun quit-window--list-colors-display-reactivate-font-lock (&rest args)
+  (if (equal (buffer-name) "*Colors*")
+	  (global-font-lock-mode 1)))
+(advice-add 'list-colors-display :before
+			(lambda (&rest args) (global-font-lock-mode 0))
+			'((name . "list-colors-deactivate-font-lock")))
+(advice-add 'quit-window :before
+			#'quit-window--list-colors-display-reactivate-font-lock)
 
 ;; Ripgrep
 (if (executable-find "rg")

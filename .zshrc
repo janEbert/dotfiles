@@ -284,6 +284,33 @@ fi
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 
+# VTerm
+if [[ "$INSIDE_EMACS" = 'vterm' ]]; then
+    # Print vterm escape sequences
+    function vterm_printf(){
+        if [ -n "$TMUX" ]; then
+            # tell tmux to pass the escape sequences through
+            # (Source: http://permalink.gmane.org/gmane.comp.terminal-emulators.tmux.user/1324)
+            printf "\ePtmux;\e\e]%s\007\e\\" "$1"
+        elif [ "${TERM%%-*}" = "screen" ]; then
+            # GNU screen (screen, screen-256color, screen-256color-bce)
+            printf "\eP\e]%s\007\e\\" "$1"
+        else
+            printf "\e]%s\e\\" "$1"
+        fi
+    }
+
+    # TODO does not work/works without this using C-l
+    # Enable clearing with C-c C-l
+    # alias clear='vterm_printf "51;Evterm-clear-scrollback";tput clear'
+
+    # Enable vterm directory tracking
+    vterm_prompt_end() {
+        vterm_printf "51;A$(whoami)@$(hostname):$(pwd)";
+    }
+    PROMPT=$PROMPT'%{$(vterm_prompt_end)%}'
+fi
+
 # Emacs TRAMP fix (keep this at the very end!)
 if [[ "$TERM" == "dumb" ]] \
        && ([[ "x$INSIDE_EMACS" = x ]] \
@@ -301,4 +328,3 @@ if [[ "$TERM" == "dumb" ]] \
     fi
     PS1='$ '
 fi
-

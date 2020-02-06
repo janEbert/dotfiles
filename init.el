@@ -157,7 +157,7 @@
  '(package-menu-hide-low-priority t)
  '(package-selected-packages
    (quote
-	(docker dockerfile-mode dired-du dired-git-info purescript-mode js2-mode magit markdown-mode typescript-mode realgud dap-mode cobol-mode csharp-mode fsharp-mode go-mode num3-mode php-mode sed-mode smalltalk-mode stan-mode swift-mode zig-mode elixir-mode erlang clojure-mode cmake-mode haskell-snippets caml sml-mode haskell-mode lsp-julia nasm-mode yaml-mode ada-mode chess csv-mode json-mode vterm lua-mode python nov ein rust-mode slime yasnippet-snippets texfrag eglot undo-propose julia-repl ess form-feed nim-mode evil-collection evil-commentary evil-lion evil-magit evil-matchit evil-snipe evil-surround evil-visualstar counsel-spotify landmark auctex zotxt company-lsp company-quickhelp dumb-jump expand-region jupyter use-package gotham-theme zenburn-theme toc-org flymake org tramp projectile ivy ggtags pdf-tools yasnippet solarized-theme rainbow-delimiters lsp-mode julia-mode helm gnu-elpa-keyring-update forge evil emms darkroom company)))
+	(web-mode ada-ref-man docker dockerfile-mode dired-du dired-git-info purescript-mode js2-mode magit markdown-mode typescript-mode realgud dap-mode cobol-mode csharp-mode fsharp-mode go-mode num3-mode php-mode sed-mode smalltalk-mode stan-mode swift-mode zig-mode elixir-mode erlang clojure-mode cmake-mode haskell-snippets caml sml-mode haskell-mode lsp-julia nasm-mode yaml-mode ada-mode chess csv-mode json-mode vterm lua-mode python nov ein rust-mode slime yasnippet-snippets texfrag eglot undo-propose julia-repl ess form-feed nim-mode evil-collection evil-commentary evil-lion evil-magit evil-matchit evil-snipe evil-surround evil-visualstar counsel-spotify landmark auctex zotxt company-lsp company-quickhelp dumb-jump expand-region jupyter use-package gotham-theme zenburn-theme toc-org flymake org tramp projectile ivy ggtags pdf-tools yasnippet solarized-theme rainbow-delimiters lsp-mode julia-mode helm gnu-elpa-keyring-update forge evil emms darkroom company)))
  '(prettify-symbols-unprettify-at-point (quote right-edge))
  '(read-buffer-completion-ignore-case t)
  '(read-file-name-completion-ignore-case t)
@@ -418,14 +418,22 @@
 		([(shift down)] . [(control shift n)])
 		;; alternatively default M-n
 		;; ([(shift down)] . [(meta n)])
-		;; org-shiftleft M--
-		([(shift left)] . [(meta -)])
-		;; org-shiftright M-+
-		([(shift right)] . [(meta +)])
-		;; org-shiftcontrolright (C-M-+) (default: M-S-+ (M-4))
-		([(control shift right)] . [(control meta +)])
-		;; org-shiftcontrolleft (C-M--) (default: M-S-- (M-_))
-		([(control shift left)] . [(control meta -)])
+		;; org-shiftleft C-S-b
+		([(shift left)] . [(control shift b)])
+		;; alternatively default M--
+		;; ([(shift left)] . [(meta -)])
+		;; org-shiftright C-S-f
+		([(shift right)] . [(control shift f)])
+		;; alternatively default M-+
+		;; ([(shift right)] . [(meta +)])
+		;; org-shiftcontrolright (C-M-S-f) (default: M-S-+ (M-4))
+		([(control shift right)] . [(control meta shift f)])
+		;; alternatively C-M-+
+		;; ([(control shift right)] . [(control meta +)])
+		;; org-shiftcontrolleft (C-M-S-b) (default: M-S-- (M-_))
+		([(control shift left)] . [(control meta shift b)])
+		;; alternatively C-M--
+		;; ([(control shift left)] . [(control meta -)])
 
 		;; these are custom
 		;; TODO do these even exist?
@@ -457,10 +465,14 @@
 		([(meta shift up)] . [(meta shift u)])
 		;; org-shiftmetadown M-S-d (M-D)
 		([(meta shift down)] . [(meta shift d)])
-		;; org-shiftmetaleft C-S-b
-		([(meta shift left)] . [(control shift b)])
-		;; org-shiftmetaright C-S-f
-		([(meta shift right)] . [(control shift f)])
+		;; org-shiftmetaleft M-S-l (M-L)
+		([(meta shift left)] . [(meta shift l)])
+		;; alternatively C-S-b
+		;; ([(meta shift left)] . [(control shift b)])
+		;; org-shiftmetaright M-S-r (M-R)
+		([(meta shift right)] . [(meta shift r)])
+		;; alternatively C-S-f
+		;; ([(meta shift right)] . [(control shift f)])
 		)))
 (setq org-replace-disputed-keys t)
 (setq org-use-extra-keys t)
@@ -605,6 +617,30 @@ theme variant."
 			'((name . "list-colors-deactivate-font-lock")))
 (advice-add 'quit-window :before
 			#'quit-window--list-colors-display-reactivate-font-lock)
+
+;; TODO write interactive version for one color
+(defun preview-hex-colors ()
+  "Preview colors as the face color of HTML hex color codes (#fff or #0afff1)."
+  (interactive)
+  (font-lock-add-keywords
+   nil
+   '(("#[[:xdigit:]]\\{3\\}"
+	  (0 (put-text-property
+		  (match-beginning 0)
+		  (match-end 0)
+		  'face (list :background
+					  (let* (
+							 (ms (match-string-no-properties 0))
+							 (r (substring ms 1 2))
+							 (g (substring ms 2 3))
+							 (b (substring ms 3 4)))
+						(concat "#" r r g g b b))))))
+	 ("#[[:xdigit:]]\\{6\\}"
+	  (0 (put-text-property
+		  (match-beginning 0)
+		  (match-end 0)
+		  'face (list :background (match-string-no-properties 0)))))))
+  (font-lock-flush))
 
 ;; Ripgrep
 (if (executable-find "rg")

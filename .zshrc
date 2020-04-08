@@ -179,6 +179,8 @@ export CVSEDITOR=$EDITOR
 
 # Android stuff
 # export PATH="$PATH:$HOME/Downloads/android-platform-tools"
+# Flutter
+# export PATH="$PATH:$HOME/Downloads/flutter/bin"
 
 # GNU Global
 if [ -f ~/.globalrc ]; then

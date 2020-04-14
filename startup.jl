@@ -18,12 +18,14 @@ function tbg()
     gnome_term_profiles = "/org/gnome/terminal/legacy/profiles:/"
     first_profile = chomp(read(pipeline(`dconf list $gnome_term_profiles`, `head -n 1`), String))
     if ENV["SOLARIZED_THEME"] == "dark"
-        run(`dconf write "$gnome_term_profiles$(first_profile)background-color" "'rgb(0,43,54)'"`)
-        run(`dconf write "$gnome_term_profiles$(first_profile)foreground-color" "'rgb(131,148,150)'"`)
+        bg_color = "'rgb(0,43,54)'"
+        fg_color = "'rgb(131,148,150)'"
     else
-        run(`dconf write "$gnome_term_profiles$(first_profile)background-color" "'rgb(253,246,227)'"`)
-        run(`dconf write "$gnome_term_profiles$(first_profile)foreground-color" "'rgb(101,123,131)'"`)
+        bg_color = "'rgb(253,246,227)'"
+        fg_color = "'rgb(101,123,131)'"
     end
+    run(`dconf write "$gnome_term_profiles$(first_profile)background-color" "$bg_color"`)
+    run(`dconf write "$gnome_term_profiles$(first_profile)foreground-color" "$fg_color"`)
 
     #=
     if !isempty(ENV["ZSH_THEME"])

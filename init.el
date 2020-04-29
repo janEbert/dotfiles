@@ -6,7 +6,7 @@
 ;;                [--with-x-toolkit=lucid] [--prefix=...]
 ;;    [sudo] make install
 ;; Execute:
-;;    emacsclient -c -a '' -F "'(fullscreen . maximized)"
+;;    emacsclient -c -a ''
 
 ;; Put external plugins into "~/.emacs.d/lisp".
 ;; Put themes into "~/.emacs.d/themes".
@@ -92,7 +92,8 @@
 ;; installed packages.  Don't delete this line.  If you don't want it,
 ;; just comment it out by adding a semicolon to the start of the line.
 ;; You may delete these explanatory comments.
-(package-initialize)
+(when (< emacs-major-version 27)
+  (package-initialize))
 
 ;; Add package lists
 (require 'package)
@@ -153,7 +154,7 @@
  '(mouse-wheel-progressive-speed nil)
  '(mouse-yank-at-point t)
  '(nnmail-expiry-wait 'never)
- '(org-agenda-files '("~/Uni/SMWLevelGenerator/plan.org"))
+ '(org-agenda-files nil)
  '(package-archive-priorities '(("gnu" . 5) ("melpa-stable" . 3) ("melpa" . 2)))
  '(package-menu-hide-low-priority t)
  '(package-selected-packages
@@ -251,6 +252,10 @@
 ;; Custom commands for toggling (C-c t)
 (define-key mode-specific-map (kbd "t") 'my-toggle-map)
 
+;; Use flex completion style
+;; (setq completion-styles (append completion-styles
+;; 								'(flex)))
+
 ;; Do complete .bin files
 (setq completion-ignored-extensions
 	  (remove ".bin" completion-ignored-extensions))
@@ -286,6 +291,9 @@
 ;; Use visible bell instead of tone
 (setq visible-bell t)
 
+;; Show tooltips in full
+(setq tooltip-resize-echo-area t)
+
 ;; Display line numbers
 (setq-default display-line-numbers my-line-number-format)
 
@@ -295,7 +303,21 @@
 ;; Start maximized (does not work with Emacsclient)
 ;; Can use `default-frame-alist', however, then _every_ new frame is maximized;
 ;; that works with Emacsclient.
+;; `after-make-frame-functions' and `server-after-make-frame-hook' have
+;; the same problem.
 (add-to-list 'initial-frame-alist '(fullscreen . maximized))
+;; We use `default-frame-alist' and remove the entry in
+;; `after-make-frame-functions'.
+(when (daemonp)
+  (add-to-list 'default-frame-alist '(fullscreen . maximized))
+
+  (defun remove-default-frame-maximized (&optional frame)
+	"Remove the entry `(fullscreen . maximized)' from `default-frame-alist' and
+remove this function from `after-make-frame-functions'."
+	(setq default-frame-alist
+		  (delete '(fullscreen . maximized) default-frame-alist))
+	(remove-hook 'after-make-frame-functions 'remove-default-frame-maximized))
+  (add-hook 'after-make-frame-functions 'remove-default-frame-maximized))
 
 ;; Use flyspell for strings and comments by default
 (add-hook 'prog-mode-hook 'flyspell-prog-mode)
@@ -327,8 +349,11 @@
 ;; Dired
 (add-hook 'dired-after-readin-hook 'toggle-show-whitespace)
 
+;; Icomplete
+(icomplete-mode 1)
+
 ;; Ido
-(ido-mode 1)
+;; (ido-mode 1)
 (add-hook 'ido-make-buffer-list-hook 'ido-summary-buffers-to-end)
 
 ;; EWW
@@ -375,6 +400,7 @@
 
 ;; Use EDE everywhere
 ;; (global-ede-mode t) (conflicts with org-mode binding)
+
 ;; Change font
 (add-to-list 'default-frame-alist
              '(font . "DejaVu Sans Mono-11"))
@@ -607,9 +633,30 @@ already active."
 		(org-beamer-mode)
 	  (org-beamer-select-environment)))
 
+  ;; Show agenda when opening Emacs
+  (defun open-monthly-agenda-deselected (&optional span)
+	"Open the agenda for the next `span` days (default 30) and switch to the
+previous window."
+	(org-agenda-list nil nil (if span span 30))
+	;; Delete other window so we always open it vertically.
+	(delete-window (selected-window))
+	(switch-to-buffer-other-window "*Org Agenda*" t)
+	(select-window (previous-window)))
+
+  (if (not (daemonp))
+	  (add-hook 'window-setup-hook 'open-monthly-agenda-deselected)
+	(defun open-monthly-agenda-deselected-and-remove (&optional frame)
+	  "Run `open-monthly-agenda-deselected' and remove it from
+`after-make-frame-functions'."
+	  (open-monthly-agenda-deselected)
+	  (remove-hook 'after-make-frame-functions
+				   'open-monthly-agenda-deselected-and-remove))
+	(add-hook 'after-make-frame-functions
+			  'open-monthly-agenda-deselected-and-remove))
+
   (add-hook 'org-babel-after-execute-hook 'org-display-inline-images)
   (add-hook 'org-mode-hook 'org-display-inline-images)
-  (add-hook 'message-mode-hook 'orgtbl-mode)
+  (add-hook 'message-mode-hook 'turn-on-orgtbl)
 
   ;; Org keybindings (C-c o)
   (define-prefix-command 'my-org-map)
@@ -617,6 +664,7 @@ already active."
   (define-key my-org-map (kbd "n") 'org-footnote-action)
   (define-key my-org-map (kbd "l") 'org-store-link)
   (define-key my-org-map (kbd "a") 'org-agenda)
+  (define-key my-org-map (kbd "t") 'org-todo-list)
   (define-key my-org-map (kbd "o") 'org-switchb)
   (define-key my-org-map (kbd "c") 'org-capture)
 
@@ -697,11 +745,17 @@ theme variant."
 ;; (setq compilation-scroll-output t)
 ;; Fix colors in compilation mode
 (when (require 'ansi-color nil t)
-  (defun colorize-compilation-buffer ()
-	;; Do not do this when using grep!
+  (defun ansi-colorize-buffer ()
+	"Apply ANSI color codes in the current buffer."
+	(interactive)
+	(ansi-color-apply-on-region (point-min) (point-max)))
+
+  (defun ansi-colorize-compilation-buffer ()
+	"Apply ANSI color codes to the compilation buffer."
+	;; Only do this when we compile; don't do it for grep, for example
 	(when (eq major-mode 'compilation-mode)
 	  (ansi-color-apply-on-region compilation-filter-start (point-max))))
-  (add-hook 'compilation-filter-hook 'colorize-compilation-buffer))
+  (add-hook 'compilation-filter-hook 'ansi-colorize-compilation-buffer))
 
 
 ;; TODO Find out how to automatically get comment strings. And use that instead
@@ -953,6 +1007,7 @@ stop playback."
 	  ;; But also not in these (possibly inherited) modes
 	  (evil-set-initial-state 'help-mode    'emacs)
 	  (evil-set-initial-state 'Info-mode    'emacs)
+	  (evil-set-initial-state 'Man-mode     'emacs)
 	  (evil-set-initial-state 'comint-mode  'emacs)
 	  (evil-set-initial-state 'shell-mode   'emacs)
 	  (evil-set-initial-state 'term-mode    'emacs)
@@ -1124,8 +1179,8 @@ the context."
 
 
 ;; Ivy
-;; (ivy-mode 1)
-(when (functionp 'ivy-mode)
+(when (and (functionp 'ivy-mode) t)
+  ;; (ivy-mode 1)
   (setq ivy-use-virtual-buffers t)
   (setq ivy-count-format "(%d/%d) ")
 
@@ -1306,6 +1361,12 @@ the context."
 ;; Run rustfmt on save
 ;; (setq rust-format-on-save t)
 
+;; GDScript mode
+(autoload 'gdscript-mode-hook "gdscript-mode")
+(add-hook 'gdscript-mode-hook
+		  (lambda ()
+			(setq-local whitespace-line-column 100)))
+
 ;; lsp-mode
 ;; (when (require 'lsp-mode nil t)
 ;;   (add-hook 'prog-mode-hook #'lsp)
@@ -1346,6 +1407,9 @@ the context."
 	(add-to-list 'eglot-server-programs '((c++-mode c-mode) "clangd"))
 	(add-hook 'c-mode-hook 'eglot-ensure)
 	(add-hook 'c++-mode-hook 'eglot-ensure))
+
+  (add-to-list 'eglot-server-programs '((gd-script-mode) "localhost" 6008 "tls")) ;; or "starttls" or nil
+  (add-hook 'gd-script-mode-hook 'eglot-ensure)
 
   (defun my-julia-get-project-root (dir)
 	"Get the Julia project root directory of the given `dir'."
@@ -1699,6 +1763,9 @@ on if a Solarized variant is currently active."
 
 ;; Kill other buffers (C-c x k)
 (define-key my-extended-map (kbd "k") 'kill-other-buffers)
+
+;; Open Proced (C-c x p)
+(define-key my-extended-map (kbd "p") 'proced)
 
 ;; Enter shell (C-c x s)
 (define-key my-extended-map (kbd "s") 'shell)

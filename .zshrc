@@ -168,7 +168,7 @@ fi
 # export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/extras/CUPTI/lib64
 
 export EDITOR="vim"
-export VISUAL="emacsclient -c -a '' -F \"'(fullscreen . maximized)\""
+export VISUAL="emacsclient -c -a ''"
 
 # CCache
 export CCACHE_DIR=/tmp/ccache

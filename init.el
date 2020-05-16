@@ -56,7 +56,11 @@
 (defconst my-julia-bin "~/local/bin/julia")
 (defconst my-julia-default-environment "~/.julia/environments/v1.3")
 (defconst my-jupyter-dir "~/anaconda3/bin")
+;; (defconst my-godot-bin "~/local/bin/godot")
 
+(defconst my-lsp-package 'lsp-mode "Which LSP package to use.
+Can be a symbol in `(lsp-mode eglot all)'. If it is `all', only activate the
+hooks for eglot.")
 ;; (defconst my-rls-bin "~/.cargo/bin/rls")
 
 (defconst my-line-number-format 'relative)
@@ -119,6 +123,7 @@
 	 (java-mode . "java")
 	 (awk-mode . "awk")
 	 (other . "java")))
+ '(calendar-date-style 'iso)
  '(column-number-mode t)
  '(completion-cycle-threshold 6)
  '(current-language-environment "UTF-8")
@@ -151,14 +156,16 @@
  '(menu-bar-mode nil)
  '(message-kill-buffer-on-exit t)
  '(message-signature nil)
+ '(minibuffer-depth-indicate-mode t)
  '(mouse-wheel-progressive-speed nil)
  '(mouse-yank-at-point t)
  '(nnmail-expiry-wait 'never)
- '(org-agenda-files nil)
+ '(org-agenda-files '("~/Documents/life.org"))
  '(package-archive-priorities '(("gnu" . 5) ("melpa-stable" . 3) ("melpa" . 2)))
  '(package-menu-hide-low-priority t)
+ '(package-quickstart t)
  '(package-selected-packages
-   '(gdscript-mode disk-usage dart-mode gnuplot web-mode ada-ref-man docker dockerfile-mode dired-du dired-git-info purescript-mode js2-mode magit markdown-mode typescript-mode realgud dap-mode cobol-mode csharp-mode fsharp-mode go-mode num3-mode php-mode sed-mode smalltalk-mode stan-mode swift-mode zig-mode elixir-mode erlang clojure-mode cmake-mode haskell-snippets caml sml-mode haskell-mode lsp-julia nasm-mode yaml-mode ada-mode chess csv-mode json-mode vterm lua-mode python nov ein rust-mode slime yasnippet-snippets texfrag eglot undo-propose julia-repl ess form-feed nim-mode evil-collection evil-commentary evil-lion evil-magit evil-matchit evil-snipe evil-surround evil-visualstar landmark auctex zotxt company-lsp company-quickhelp dumb-jump expand-region jupyter use-package gotham-theme zenburn-theme toc-org flymake org tramp projectile ivy ggtags pdf-tools yasnippet solarized-theme rainbow-delimiters lsp-mode julia-mode helm gnu-elpa-keyring-update forge evil emms darkroom company))
+   '(gdscript-mode disk-usage dart-mode gnuplot web-mode ada-ref-man docker dockerfile-mode dired-du dired-git-info purescript-mode js2-mode magit markdown-mode typescript-mode realgud dap-mode cobol-mode csharp-mode fsharp-mode go-mode num3-mode php-mode sed-mode smalltalk-mode stan-mode swift-mode zig-mode elixir-mode erlang clojure-mode cmake-mode haskell-snippets caml sml-mode haskell-mode lsp-julia nasm-mode yaml-mode ada-mode chess csv-mode json-mode vterm lua-mode python nov ein rust-mode slime yasnippet-snippets texfrag eglot undo-propose julia-repl ess form-feed nim-mode evil-collection evil-commentary evil-lion evil-magit evil-matchit evil-snipe evil-surround evil-visualstar landmark auctex zotxt company-quickhelp dumb-jump expand-region jupyter use-package gotham-theme zenburn-theme toc-org flymake org tramp projectile ivy ggtags pdf-tools yasnippet solarized-theme rainbow-delimiters lsp-mode julia-mode helm gnu-elpa-keyring-update forge evil emms darkroom company))
  '(prettify-symbols-unprettify-at-point 'right-edge)
  '(read-buffer-completion-ignore-case t)
  '(read-file-name-completion-ignore-case t)
@@ -166,12 +173,13 @@
  '(recenter-redisplay t nil nil "Change this so we redraw when calling `C-u C-l`.")
  '(recentf-mode t)
  '(register-separator 43)
+ '(require-final-newline t)
  '(save-place-mode t)
  '(savehist-additional-variables
    '(command-history search-ring regexp-search-ring kill-ring extended-command-history))
  '(savehist-mode t)
  '(scroll-bar-mode 'right)
- '(semantic-mode t)
+ '(semantic-mode nil nil nil "Currently throws a recursive load error.")
  '(sentence-end-double-space nil)
  '(set-mark-command-repeat-pop t)
  '(shell-prompt-pattern "^\\(?:###\\)?[^#$%>
@@ -253,8 +261,8 @@
 (define-key mode-specific-map (kbd "t") 'my-toggle-map)
 
 ;; Use flex completion style
-;; (setq completion-styles (append completion-styles
-;; 								'(flex)))
+(setq completion-styles (append completion-styles
+								'(substring flex)))
 
 ;; Do complete .bin files
 (setq completion-ignored-extensions
@@ -311,7 +319,7 @@
 (when (daemonp)
   (add-to-list 'default-frame-alist '(fullscreen . maximized))
 
-  (defun remove-default-frame-maximized (&optional frame)
+  (defun remove-default-frame-maximized (&optional _frame)
 	"Remove the entry `(fullscreen . maximized)' from `default-frame-alist' and
 remove this function from `after-make-frame-functions'."
 	(setq default-frame-alist
@@ -350,11 +358,26 @@ remove this function from `after-make-frame-functions'."
 (add-hook 'dired-after-readin-hook 'toggle-show-whitespace)
 
 ;; Icomplete
-(icomplete-mode 1)
+;; (icomplete-mode 1)
+(fido-mode 1)
+;; (add-hook 'icomplete-minibuffer-setup-hook
+;; 		  (lambda ()
+;; 			;; FIXME find out if ivy is active
+;; 			(when (not (eq (selected-window) (ivy--get-window ivy-last)))
+;; 			  (setq icomplete-separator "\n")
+;; 			  (setq truncate-lines t)
+;; 			  (enlarge-window (1- icomplete-prospects-height)))))
+;; (setq icomplete-in-buffer t)
+;; (setq icomplete-show-matches-on-no-input nil)
+(setq icomplete-hide-common-prefix t)
+(setq icomplete-tidy-shadowed-file-names t)
+;; (setq icomplete-prospects-height 2)
+;; (setq icomplete-prospects-height 10)  ;; like ivy
 
 ;; Ido
 ;; (ido-mode 1)
-(add-hook 'ido-make-buffer-list-hook 'ido-summary-buffers-to-end)
+;; (add-hook 'ido-make-buffer-list-hook 'ido-summary-buffers-to-end)
+;; TODO ido-everywhere seems to be removed
 
 ;; EWW
 ;; TODO instead of this, try to request the generated website with a slightly
@@ -501,7 +524,7 @@ returns a list of active Docker container names, followed by colons."
   )
 
 ;; Flymake
-(when (and (not (version< emacs-version "26"))
+(when (and (>= emacs-major-version 26)
 		   (require 'flymake nil t))
   (remove-hook 'flymake-diagnostic-functions 'flymake-proc-legacy-flymake)
   (add-hook 'prog-mode-hook #'flymake-mode)
@@ -625,6 +648,10 @@ returns a list of active Docker container names, followed by colons."
 ;; Other settings and keybindings
 (when (and (require 'org-install nil t)
 		   (require 'org-habit nil t))
+  ;; First agenda file as notes file
+  (when (> (length org-agenda-files) 0)
+	(setq org-default-notes-file (car org-agenda-files)))
+
   (defun org-beamer-mode-or-select-beamer-environment ()
 	"Activate `org-beamer-mode' or `org-beamer-select-environment' if it is
 already active."
@@ -635,7 +662,7 @@ already active."
 
   ;; Show agenda when opening Emacs
   (defun open-monthly-agenda-deselected (&optional span)
-	"Open the agenda for the next `span` days (default 30) and switch to the
+	"Open the agenda for the next `span' days (default 30) and switch to the
 previous window."
 	(org-agenda-list nil nil (if span span 30))
 	;; Delete other window so we always open it vertically.
@@ -645,7 +672,7 @@ previous window."
 
   (if (not (daemonp))
 	  (add-hook 'window-setup-hook 'open-monthly-agenda-deselected)
-	(defun open-monthly-agenda-deselected-and-remove (&optional frame)
+	(defun open-monthly-agenda-deselected-and-remove (&optional _frame)
 	  "Run `open-monthly-agenda-deselected' and remove it from
 `after-make-frame-functions'."
 	  (open-monthly-agenda-deselected)
@@ -675,17 +702,35 @@ previous window."
   (define-key my-org-map (kbd "b")
 	'org-beamer-mode-or-select-beamer-environment)
 
+  ;; Calendar minibuffer
+  ;; Shift
+  (define-key org-read-date-minibuffer-local-map (kbd "M-P")
+	(lambda () (interactive) (org-eval-in-calendar '(calendar-backward-week 1))))
+  (define-key org-read-date-minibuffer-local-map (kbd "M-N")
+	(lambda () (interactive) (org-eval-in-calendar '(calendar-forward-week 1))))
+  (define-key org-read-date-minibuffer-local-map (kbd "M-B")
+	(lambda () (interactive) (org-eval-in-calendar '(calendar-backward-day 1))))
+  (define-key org-read-date-minibuffer-local-map (kbd "M-F")
+	(lambda () (interactive) (org-eval-in-calendar '(calendar-forward-day 1))))
+  ;; Shiftmeta
+  (define-key org-read-date-minibuffer-local-map (kbd "M-L")
+	(lambda () (interactive) (org-eval-in-calendar '(calendar-backward-month 1))))
+  (define-key org-read-date-minibuffer-local-map (kbd "M-R")
+	(lambda () (interactive) (org-eval-in-calendar '(calendar-forward-month 1))))
+
+  ;; TODO only load languages when they're in path; don't load shell on windows
   (setq my-org-babel-load-languages
 		(append my-org-babel-load-languages
 				'((emacs-lisp . t)
+				  (shell . t)
 				  (python . t)))))
 
 
 ;; load-theme "fixes"
-;; Correctly switch themes by first `disable-theme`ing
-;; the current one, then `load-theme`ing the other.
+;; Correctly switch themes by first `disable-theme'ing
+;; the current one, then `load-theme'ing the other.
 (advice-add 'load-theme :before
-			(lambda (&rest args) (mapc #'disable-theme custom-enabled-themes))
+			(lambda (&rest _args) (mapc #'disable-theme custom-enabled-themes))
 			'((name . "theme-dont-propagate")))
 
 (defun load-theme--restore-scroll-bar-mode (orig-fun &rest args)
@@ -770,11 +815,12 @@ theme variant."
 (add-hook 'tex-mode-hook  'highlight-todos)
 
 ;; Fix `list-colors-display' (only works with `global-font-lock' deactivated)
-(defun quit-window--list-colors-display-reactivate-font-lock (&rest args)
+(defun quit-window--list-colors-display-reactivate-font-lock (&rest _args)
+  "Reactivate font-lock after quitting the *Colors* buffer."
   (if (equal (buffer-name) "*Colors*")
 	  (global-font-lock-mode 1)))
 (advice-add 'list-colors-display :before
-			(lambda (&rest args) (global-font-lock-mode 0))
+			(lambda (&rest _args) (global-font-lock-mode 0))
 			'((name . "list-colors-deactivate-font-lock")))
 (advice-add 'quit-window :before
 			#'quit-window--list-colors-display-reactivate-font-lock)
@@ -878,14 +924,17 @@ theme variant."
 	(dumb-jump-mode))
 
 ;; Magit
-(when (and (not (version< emacs-version "26"))
+(when (and (>= emacs-major-version 26)
 		   (require 'magit nil t))
+  ;; Always wants to save all files whenever we save anything in the repo
+  ;; (magit-wip-mode 1)
+
   ;; Magit keybindings (C-c g)
   (define-prefix-command 'my-magit-map)
   (define-key mode-specific-map (kbd "g") 'my-magit-map)
   (define-key my-magit-map (kbd "g") 'magit-status)
   (define-key my-magit-map (kbd "G") 'magit-dispatch-popup)
-  (define-key magit-file-mode-map (kbd "C-c g") 'magit-file-dispatch))
+  (define-key magit-file-mode-map (kbd "C-c g f") 'magit-file-dispatch))
 
 ;; EMMS
 (if (require 'emms-setup nil t)
@@ -924,7 +973,7 @@ stop playback."
 		(emms-stop)
 		(update-emms-faces))
 
-	  (if (not (version< emacs-version "26"))
+	  (when (>= emacs-major-version 26)
 		  (add-hook 'after-init-hook 'init-emms))
 
 	  ;; EMMS key bindings (C-c m)
@@ -959,11 +1008,16 @@ stop playback."
 (setq evil-want-Y-yank-to-eol t)
 (setq evil-want-change-word-to-end nil)
 
+(setq evil-ex-substitute-global t)
+
 (setq evil-vsplit-window-right t)
 (setq evil-shift-round nil)
 (setq evil-shift-width 4)
 
 (setq evil-search-module 'evil-search)
+
+;; Change insert state to basically Emacs state (hybrid state)
+(setq evil-disable-insert-state-bindings t)
 
 ;; Required for Evil Collection
 ;; (setq evil-want-keybinding nil)
@@ -1005,14 +1059,15 @@ stop playback."
 	  (evil-set-initial-state 'conf-mode 'normal)
 	  (evil-set-initial-state 'evil-command-window-mode 'normal)
 	  ;; But also not in these (possibly inherited) modes
-	  (evil-set-initial-state 'help-mode    'emacs)
-	  (evil-set-initial-state 'Info-mode    'emacs)
-	  (evil-set-initial-state 'Man-mode     'emacs)
-	  (evil-set-initial-state 'comint-mode  'emacs)
-	  (evil-set-initial-state 'shell-mode   'emacs)
-	  (evil-set-initial-state 'term-mode    'emacs)
-	  (evil-set-initial-state 'org-mode     'emacs)
-	  (evil-set-initial-state 'picture-mode 'emacs)
+	  (evil-set-initial-state 'help-mode     'emacs)
+	  (evil-set-initial-state 'Info-mode     'emacs)
+	  (evil-set-initial-state 'Man-mode      'emacs)
+	  (evil-set-initial-state 'comint-mode   'emacs)
+	  (evil-set-initial-state 'shell-mode    'emacs)
+	  (evil-set-initial-state 'term-mode     'emacs)
+	  (evil-set-initial-state 'org-mode      'emacs)
+	  (evil-set-initial-state 'calendar-mode 'emacs)
+	  (evil-set-initial-state 'picture-mode  'emacs)
 
 	  ;; Magit commit message
 	  (add-to-list 'evil-buffer-regexps '("COMMIT_EDITMSG" . emacs))
@@ -1022,17 +1077,27 @@ stop playback."
 				(lambda () (evil-emacs-state)
 				  (setq indent-tabs-mode nil)))
 	  (advice-add 'picture-mode-exit :after
-				  (lambda (&rest args) (evil-change-to-previous-state))
+				  (lambda (&rest _args) (evil-change-to-previous-state))
 				  '((name . "picture-mode-revert-state")))
 
 	  ;; Evil mappings
+
+	  ;; Leader key on SPC
+	  (evil-set-leader 'normal (kbd "SPC"))
+
+	  ;; Use previous substitute flags by default when repeating using &
+	  (define-key evil-normal-state-map (kbd "&") 'evil-ex-repeat-substitute-with-flags)
 
 	  ;; Swap ' and ` in normal state
 	  (define-key evil-normal-state-map (kbd "'") 'evil-goto-mark)
 	  (define-key evil-normal-state-map (kbd "`") 'evil-goto-mark-line)
 
 	  ;; C-S-d to delete-forward-char in insert state
-	  (define-key evil-insert-state-map (kbd "C-S-d") 'evil-delete-char)
+	  (if (eq evil-disable-insert-state-bindings nil)
+		(define-key evil-insert-state-map (kbd "C-S-d") 'evil-delete-char)
+		;; Otherwise use bindings to shift line
+		(define-key evil-insert-state-map (kbd "C-S-d") 'evil-shift-left-line)
+		(define-key evil-insert-state-map (kbd "C-S-t") 'evil-shift-right-line))
 
 	  ;; C-l to exit from any state to normal state
 	  (define-key evil-insert-state-map   (kbd "C-l") 'evil-normal-state)
@@ -1041,6 +1106,8 @@ stop playback."
 	  (define-key evil-visual-state-map   (kbd "C-l") 'evil-normal-state)
 	  ;; Here we do not necessarily go back to normal state but that's fine.
 	  (define-key evil-ex-completion-map  (kbd "C-l") 'abort-recursive-edit)
+	  (when (eq evil-disable-insert-state-bindings t)
+		(define-key evil-insert-state-map (kbd "C-S-l") 'recenter-top-bottom))
 
 	  ;; C-S-d in normal or motion state to scroll up (C-S-u fails in Ubuntu)
 	  (define-key evil-normal-state-map (kbd "C-S-d") 'evil-scroll-up)
@@ -1052,6 +1119,8 @@ stop playback."
 	  ;; C-f moves one char forward
 	  (define-key evil-ex-completion-map (kbd "C-f") 'forward-char)
 	  (define-key evil-ex-completion-map (kbd "C-S-f") 'evil-ex-command-window)
+	  (define-key evil-ex-search-keymap (kbd "C-f") 'forward-char)
+	  (define-key evil-ex-search-keymap (kbd "C-S-f") 'evil-ex-search-command-window)
 	  ;; C-a moves to start of line
 	  (define-key evil-ex-completion-map (kbd "C-a") 'move-beginning-of-line)
 	  ;; C-d deletes char forward
@@ -1177,7 +1246,6 @@ the context."
 ;; (if (require 'company-lsp nil t)
 ;; 	(push 'company-lsp company-backends))
 
-
 ;; Ivy
 (when (and (functionp 'ivy-mode) t)
   ;; (ivy-mode 1)
@@ -1202,7 +1270,7 @@ the context."
   (define-key my-emms-map	  (kbd "o") 'counsel-rhythmbox))
 
 ;; Helm
-(when (and (not (version< emacs-version "26"))
+(when (and (>= emacs-major-version 26)
 		   (require 'helm-config nil t))
   ;;(global-set-key (kbd "M-x") #'helm-M-x)
   ;;(global-set-key (kbd "C-x C-f") #'helm-find-files)
@@ -1265,7 +1333,7 @@ the context."
 (if (functionp 'vterm)
 	(progn
 	  (advice-add 'vterm :after
-				  (lambda (&rest args) (toggle-show-whitespace))
+				  (lambda (&rest _args) (toggle-show-whitespace))
 				  '((name . "vterm-toggle-show-whitespace")))
 	  (define-key my-extended-map (kbd "t") 'vterm))
   ;; Enter terminal (C-c x t)
@@ -1277,7 +1345,7 @@ the context."
   (add-to-list 'org-tag-alist '("TOC" . ?T)))
 
 ;; Jupyter
-(when (not (version< emacs-version "26"))
+(when (>= emacs-major-version 26)
   (setq exec-path (append exec-path `(,(expand-file-name my-jupyter-dir))))
   (when (functionp 'org-babel-jupyter-scratch-buffer)
 	(setq my-org-babel-load-languages
@@ -1307,6 +1375,11 @@ the context."
 							   my-org-babel-load-languages))
 
 
+;; JavaScript Mode
+(add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
+(add-to-list 'interpreter-mode-alist '("node" . js2-mode))
+(add-to-list 'interpreter-mode-alist '("nodejs" . js2-mode))
+
 ;; PHP mode
 (autoload 'php-mode-hook "php-mode")
 (add-hook 'php-mode-hook
@@ -1314,6 +1387,8 @@ the context."
 
 ;; Web mode
 (when (require 'web-mode nil t)
+  (add-to-list 'auto-mode-alist '("\\.php\\'" . web-mode))
+
   (add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.[agj]sp\\'" . web-mode))
@@ -1344,12 +1419,6 @@ the context."
 	  '((default "julia")
 		(new "julian")))
 
-;; lsp-julia
-;; (setq lsp-julia-default-environment my-julia-default-environment)
-;; ;; If we don't want to use the included Language Server:
-;; (setq lsp-julia-package-dir nil)
-;; (require 'lsp-julia nil t)
-
 
 ;; Rust mode
 ;; (require 'rust-mode)
@@ -1363,15 +1432,10 @@ the context."
 
 ;; GDScript mode
 (autoload 'gdscript-mode-hook "gdscript-mode")
+;; (setq gdscript-godot-executable my-godot-bin)
 (add-hook 'gdscript-mode-hook
 		  (lambda ()
 			(setq-local whitespace-line-column 100)))
-
-;; lsp-mode
-;; (when (require 'lsp-mode nil t)
-;;   (add-hook 'prog-mode-hook #'lsp)
-;;   (add-hook 'julia-mode-hook #'lsp-mode)
-;;   (add-hook 'julia-mode-hook #'lsp))
 
 
 ;; ATS2 (Postiats)
@@ -1379,6 +1443,58 @@ the context."
 (autoload 'flymake-ats2-load "flymake-ats2")
 (add-hook 'ats-mode-hook 'flymake-ats2-load)
 (add-hook 'c/ats-mode-hook 'flymake-ats2-load)
+
+
+;; lsp-mode
+(when (and (or (eq my-lsp-package 'lsp-mode) (eq my-lsp-package 'all))
+		   (require 'lsp-mode nil t))
+  (when (not (eq my-lsp-package 'all))
+	(add-hook 'prog-mode-hook #'lsp))  ;; or #'lsp-deferred
+
+  ;; LSP Prefix (C-c l)
+  (setq lsp-keymap-prefix "C-c l")
+
+  (setq lsp-before-save-edits nil)
+  (when (< emacs-major-version 27)
+	(setq lsp-completion-styles '(basic)))
+
+
+  (when (executable-find "rust-analyzer")
+	(setq lsp-rust-server 'rust-analyzer)
+	(autoload 'lsp-rust-analyzer-inlay-hints-mode "lsp-rust")
+	(lsp-rust-analyzer-inlay-hints-mode 1))
+
+  ;; (setq lsp-pyls-plugins-pylint-enabled t) ;; source also disables this
+  ;; (setq lsp-pyls-plugins-pycodestyle-max-line-length 100)
+  ;; (setq lsp-pyls-plugins-pycodestyle-max-line-length 100)
+  ;; (setq lsp-pyls-plugins-flake8-max-line-length 100)
+  (setq lsp-pyls-plugins-pydocstyle-enabled t)
+  (setq lsp-pyls-plugins-rope-completion-enabled t)
+  (setq lsp-pyls-plugins-yapf-enabled t)
+  (setq lsp-pyls-plugins-flake8-enabled t)
+
+  ;; lsp-julia
+  (setq lsp-julia-default-environment my-julia-default-environment)
+  ;; ;; If we don't want to use the included Language Server:
+  ;; (setq lsp-julia-package-dir nil)
+  (when (require 'lsp-julia nil t)
+	nil
+	;; (add-hook 'julia-mode-hook #'lsp-mode)
+	;; (add-hook 'julia-mode-hook #'lsp)
+	)
+
+
+  ;; TRAMP enabled pyls example
+  ;; (lsp-register-client
+  ;;  (make-lsp-client :new-connection (lsp-tramp-connection "/path/to/pyls")
+  ;; 					:major-modes '(python-mode)
+  ;; 					:remote? t
+  ;; 					:server-id 'pyls-remote))
+
+  ;; LSP config using local variables
+  ;; (add-hook 'hack-local-variables-hook
+  ;; 			(lambda () (when (derived-mode-p 'XXX-mode) (lsp))))
+  )
 
 
 ;; Eglot
@@ -1389,7 +1505,8 @@ the context."
 ;; 			(setq-local company-backends
 ;; 						(cons 'company-capf
 ;; 							  (remove 'company-capf company-backends)))))
-(when (and (not (version< emacs-version "26"))
+(when (and (or (eq my-lsp-package 'eglot) (eq my-lsp-package 'all))
+		   (>= emacs-major-version 26)
 		   (require 'eglot nil t))
 
   (when (executable-find "rls")
@@ -1408,6 +1525,9 @@ the context."
 	(add-hook 'c-mode-hook 'eglot-ensure)
 	(add-hook 'c++-mode-hook 'eglot-ensure))
 
+  (when (executable-find "digestif")
+	(add-hook 'tex-mode-hook 'eglot-ensure))
+
   (add-to-list 'eglot-server-programs '((gd-script-mode) "localhost" 6008 "tls")) ;; or "starttls" or nil
   (add-hook 'gd-script-mode-hook 'eglot-ensure)
 
@@ -1420,8 +1540,8 @@ the context."
 							  my-julia-default-environment)
 						my-julia-default-environment)))
 
-  (defun my-julia-lsp-command (arg)
-	"Command to start the Julia language server. `arg' is ignored."
+  (defun my-julia-lsp-command (_arg)
+	"Command to start the Julia language server."
 	(let ((project-root-dir (my-julia-get-project-root (buffer-file-name))))
 	  `("julia" "--startup-file=no" "--history-file=no"
 		,(concat "--project=" project-root-dir)
@@ -1488,6 +1608,57 @@ the context."
   (when (y-or-n-p "Kill all other buffers? ")
 	(mapc 'kill-buffer (delq (current-buffer) (buffer-list)))))
 
+(defun minibuffer-insert (obtain-text-function)
+  "Insert text obtained by calling `obtain-text-function (current-buffer)' into
+the minibuffer."
+  (let ((text
+		 (with-current-buffer (window-buffer (minibuffer-selected-window))
+		   (funcall obtain-text-function (current-buffer)))))
+	(when text
+	  (insert text))))
+
+(defun minibuffer-insert-abbreviated-buffer-file-name ()
+  "Insert the current, abbreviated `buffer-file-name' into the minibuffer."
+  (interactive)
+  (minibuffer-insert
+   (lambda (&rest _args) (abbreviate-file-name buffer-file-name))))
+
+(defun minibuffer-insert-buffer-file-name ()
+  "Insert the current `buffer-file-name' into the minibuffer."
+  (interactive)
+  (minibuffer-insert
+   (lambda (&rest _args) buffer-file-name)))
+
+(defun minibuffer-insert-abbreviated-default-directory ()
+  "Insert the current, abbreviated `default-directory' into the minibuffer."
+  (interactive)
+  (minibuffer-insert
+   (lambda (&rest _args) (abbreviate-file-name default-directory))))
+
+(defun minibuffer-insert-default-directory ()
+  "Insert the current `default-directory' into the minibuffer."
+  (interactive)
+  (minibuffer-insert
+   (lambda (&rest _args) default-directory)))
+
+;; (defun minibuffer-insert-buffer-file-name ()
+;;   "Insert the current `buffer-file-name' into the minibuffer."
+;;   (interactive)
+;;   (let ((current-file-name
+;; 		 (abbreviate-file-name
+;; 		  (with-current-buffer (window-buffer (minibuffer-selected-window))
+;; 			buffer-file-name))))
+;; 	(when current-file-name
+;; 	  (insert current-file-name))))
+
+(defun quit-other-window ()
+  "Quit the other (next) window while staying in the selected window."
+  (interactive)
+  (select-window (next-window))
+  (quit-window nil)
+  (select-window (previous-window)))
+
+
 (defun insert-arbitrary-pair (beginning ending)
   "Insert a pair of any two characters."
   (if (region-active-p)
@@ -1541,12 +1712,6 @@ given `ending' after, but reversed ('[a' -> 'a[')."
 	(delete-backward-char count)
 	(delete-char count)))
 
-(defun quit-other-window ()
-  "Quit the other (next) window while staying in the selected window."
-  (interactive)
-  (select-window (next-window))
-  (quit-window nil)
-  (select-window (previous-window)))
 
 (defun toggle-background ()
   "Toggle background brightness and reload theme."
@@ -1656,6 +1821,7 @@ on if a Solarized variant is currently active."
 	(setq-local echo-keystrokes 0) ; debatable
 	(setq-local inhibit-message t)))
 
+
 (defun my-julia-repl ()
   "Start a Julia REPL in a terminal emulator in the selected window."
   (interactive)
@@ -1752,6 +1918,7 @@ on if a Solarized variant is currently active."
 ;; Query whether to kill Emacs server (C-c k)
 (define-key mode-specific-map (kbd "k") 'query-kill-emacs)
 
+
 ;; Rename uniquely (C-c x r)
 (define-key my-extended-map (kbd "r") 'rename-uniquely)
 
@@ -1760,6 +1927,20 @@ on if a Solarized variant is currently active."
 
 ;; Find file with find (C-c x f)
 (define-key my-extended-map (kbd "f") 'find-name-dired)
+
+;; Insert the abbreviated `buffer-file-name' into the minibuffer (C-c x F)
+(define-key my-extended-map (kbd "F")
+  'minibuffer-insert-abbreviated-buffer-file-name)
+
+;; Insert `buffer-file-name' into the minibuffer (C-c x P)
+(define-key my-extended-map (kbd "P") 'minibuffer-insert-buffer-file-name)
+
+;; Insert the abbreviated `default-directory' into the minibuffer (C-c x D)
+(define-key my-extended-map (kbd "D")
+  'minibuffer-insert-abbreviated-default-directory)
+
+;; Insert `default-directory' into the minibuffer (C-c x L)
+(define-key my-extended-map (kbd "L") 'minibuffer-insert-default-directory)
 
 ;; Kill other buffers (C-c x k)
 (define-key my-extended-map (kbd "k") 'kill-other-buffers)
@@ -1811,4 +1992,3 @@ on if a Solarized variant is currently active."
 (put 'dired-find-alternate-file 'disabled nil)
 
 ;;; init.el ends here
-

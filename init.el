@@ -11,6 +11,7 @@
 ;; Put external plugins into "~/.emacs.d/lisp".
 ;; Put themes into "~/.emacs.d/themes".
 ;; Put etags configurations into "~/.emacs.d/etags".
+;; Link target "~/.emacs.d/.gnus.el" to name "~/.gnus.el"
 ;;
 ;; External plugins to download:
 ;;   - [ats2-mode](https://github.com/githwxi/ATS-Postiats) (in utils/emacs)
@@ -180,6 +181,7 @@ hooks for eglot.")
  '(savehist-mode t)
  '(scroll-bar-mode 'right)
  '(semantic-mode nil nil nil "Currently throws a recursive load error.")
+ '(send-mail-function 'smtpmail-send-it)
  '(sentence-end-double-space nil)
  '(set-mark-command-repeat-pop t)
  '(shell-prompt-pattern "^\\(?:###\\)?[^#$%>
@@ -359,7 +361,8 @@ remove this function from `after-make-frame-functions'."
 
 ;; Icomplete
 ;; (icomplete-mode 1)
-(fido-mode 1)
+;; (fido-mode 1)
+
 ;; (add-hook 'icomplete-minibuffer-setup-hook
 ;; 		  (lambda ()
 ;; 			;; FIXME find out if ivy is active
@@ -1248,7 +1251,7 @@ the context."
 
 ;; Ivy
 (when (and (functionp 'ivy-mode) t)
-  ;; (ivy-mode 1)
+  (ivy-mode 1)
   (setq ivy-use-virtual-buffers t)
   (setq ivy-count-format "(%d/%d) ")
 
@@ -1267,10 +1270,11 @@ the context."
 
   (define-key mode-specific-map (kbd "j") 'counsel-semantic-or-imenu)
   (define-key mode-specific-map (kbd "r") 'ivy-resume)
-  (define-key my-emms-map	  (kbd "o") 'counsel-rhythmbox))
+  (when (require 'emms-setup nil t)
+	(define-key my-emms-map	  (kbd "o") 'counsel-rhythmbox)))
 
 ;; Helm
-(when (and (>= emacs-major-version 26)
+(when (and nil (>= emacs-major-version 26)
 		   (require 'helm-config nil t))
   ;;(global-set-key (kbd "M-x") #'helm-M-x)
   ;;(global-set-key (kbd "C-x C-f") #'helm-find-files)
@@ -1586,6 +1590,37 @@ the context."
 
 ;; Load private configurations
 (load (expand-file-name ".private_config.el" my-emacs-dir) t)
+;; ---
+;; ;; Calendar Location and Time
+;; (setq calendar-latitude )
+;; (setq calendar-longitude )
+;; (setq calendar-location-name )
+;;
+;; ;; (setq calendar-time-zone )
+;; ;; (setq calendar-standard-time-zone-name )
+;; ;; (setq calendar-daylight-time-zone-name )
+;;
+;; ;; (setq calendar-daylight-time-offset )
+;; ;; (setq calendar-daylight-savings-starts ))
+;; ;; (setq calendar-daylight-savings-starts-time )
+;; ;; (setq calendar-daylight-savings-ends ))
+;; ;; (setq calendar-daylight-savings-ends-time )
+;;
+;; ;; Workday time
+;; ;; (setq timeclock-workday )
+;;
+;; ;; Mail
+;; (setq user-full-name )
+;; (setq user-mail-address )
+;; ;; (setq smtpmail-mail-address )
+;; (setq smtpmail-smtp-user )
+;; (setq smtpmail-smtp-server )
+;; (setq smtpmail-smtp-service )
+;;
+;; ;; Tramp
+;; ;; Passthrough proxies
+;; ;; (see example in Tramp section)
+;; ---
 
 
 ;; Custom commands
@@ -1859,8 +1894,8 @@ on if a Solarized variant is currently active."
 
 ;; Swap literal and regex isearch
 ;; (we then don't need (search-default-mode t))
-;; Following line commented out due to Ivy/Helm:
-;; (global-set-key (kbd "C-s") 'isearch-forward-regexp)
+(when (not (functionp 'swiper))
+  (global-set-key (kbd "C-s") 'isearch-forward-regexp))
 (global-set-key (kbd "C-r")   'isearch-backward-regexp)
 (global-set-key (kbd "C-M-s") 'isearch-forward)
 (global-set-key (kbd "C-M-r") 'isearch-backward)
@@ -1906,8 +1941,9 @@ on if a Solarized variant is currently active."
 (define-key my-window-map (kbd "R") 'redraw-display)
 
 ;; imenu and ibuffer keybindings
-;; (imenu commented out due to Ivy; ibuffer is better standalone)
-;; (define-key mode-specific-map (kbd "j") 'imenu)
+(when (not (functionp 'counsel-semantic-or-imenu))
+  (define-key mode-specific-map (kbd "j") 'imenu))
+;; ibuffer is better standalone
 (define-key mode-specific-map (kbd "b") 'ibuffer)
 
 ;; Remap `transpose-sexps' to M-S-t to avoid the Terminal shortcut.

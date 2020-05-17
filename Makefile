@@ -64,7 +64,9 @@ JULIA_CONFIG_DIR = $(HOME_DIR)/.julia/config
 
 # Neovim
 
-all: keyboard bash_aliases zsh git vim emacs tmux conda julia nvim
+all: all_except_emacs emacs
+
+all_except_emacs: keyboard bash_aliases zsh git vim tmux conda julia nvim
 
 keyboard:
 	ln $(LN_FLAGS) $(PWD)/$(KB_MOD_SOURCE) $(KB_MOD_TARGET)
@@ -96,6 +98,8 @@ emacs: init.el
 	mkdir -p $(EMACS_DIR)/themes
 	mkdir -p $(EMACS_DIR)/etags
 	ln $(LN_FLAGS) $(PWD)/init.el $(EMACS_DIR)/init.el
+	ln $(LN_FLAGS) $(PWD)/early-init.el $(EMACS_DIR)/early-init.el
+	ln $(LN_FLAGS) $(PWD)/.gnus.el $(HOME_DIR)/.gnus.el
 
 tmux:
 	$(TMUX_CMD)

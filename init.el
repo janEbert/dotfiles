@@ -8,10 +8,12 @@
 ;; Execute:
 ;;    emacsclient -c -a ''
 
+;; Link target "~/.emacs.d/.gnus.el" to name "~/.gnus.el"
+;; (optional) Create "~/.emacs.d/.private_config.el"
+;;
 ;; Put external plugins into "~/.emacs.d/lisp".
 ;; Put themes into "~/.emacs.d/themes".
 ;; Put etags configurations into "~/.emacs.d/etags".
-;; Link target "~/.emacs.d/.gnus.el" to name "~/.gnus.el"
 ;;
 ;; External plugins to download:
 ;;   - [ats2-mode](https://github.com/githwxi/ATS-Postiats) (in utils/emacs)

@@ -68,19 +68,19 @@ all: all_except_emacs emacs
 
 all_except_emacs: keyboard bash_aliases zsh git vim tmux conda julia nvim
 
-keyboard:
+keyboard: winkeys.ahk .Xmodmap .XCompose
 	ln $(LN_FLAGS) $(PWD)/$(KB_MOD_SOURCE) $(KB_MOD_TARGET)
 	$(KB_COMPOSE_CMD)
 
-bash_aliases:
+bash_aliases: .bash_aliases
 	$(BASH_ALIASES_CMD)
 
-zsh:
+zsh: .zshrc .zsh_prompt .zsh_prompt_nocolor
 	$(ZSH_CMD)
 	$(ZSH_PROMPT_CMD)
 	$(ZSH_PROMPT_NOCOLOR_CMD)
 
-git:
+git: .gitconfig .gitignore_global
 	mkdir -p $(GIT_DIR)
 	ln $(LN_FLAGS) $(PWD)/.gitconfig $(GIT_DIR)/.gitconfig
 	ln $(LN_FLAGS) $(PWD)/.gitignore_global $(GIT_DIR)/.gitignore_global
@@ -93,7 +93,7 @@ vim: .vimrc
 	mkdir -p $(VIM_DIR)/tags
 	mkdir -p $(VIM_DIR)/tmp
 
-emacs: init.el
+emacs: init.el early-init.el .gnus.el
 	mkdir -p $(EMACS_DIR)/lisp
 	mkdir -p $(EMACS_DIR)/themes
 	mkdir -p $(EMACS_DIR)/etags
@@ -101,7 +101,7 @@ emacs: init.el
 	ln $(LN_FLAGS) $(PWD)/early-init.el $(EMACS_DIR)/early-init.el
 	ln $(LN_FLAGS) $(PWD)/.gnus.el $(HOME_DIR)/.gnus.el
 
-tmux:
+tmux: .tmux.conf
 	$(TMUX_CMD)
 
 conda: .condarc

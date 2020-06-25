@@ -1,3 +1,5 @@
+# -*- mode: sh; sh-shell: zsh -*-
+
 tbg() {
     if [[ "$SOLARIZED_THEME" = "dark" ]]; then
         export SOLARIZED_THEME="light"

@@ -9,10 +9,16 @@ ifeq ($(OS),Windows_NT)
 # TODO
 	KB_MOD_TARGET = ""
 	KB_COMPOSE_CMD = echo "nop for KB_COMPOSE_CMD"
+	XKB_LAYOUT_TARGET_DIR = ""
+	XKB_LAYOUT_TARGET_DIR_CMD = "nop for XKB_LAYOUT_TARGET_DIR_CMD"
+	XKB_LAYOUT_CMD = echo "nop for XKB_LAYOUT_CMD"
 else
 	KB_MOD_SOURCE = .Xmodmap
 	KB_MOD_TARGET = $(HOME_DIR)/.Xmodmap
 	KB_COMPOSE_CMD = ln $(LN_FLAGS) $(PWD)/.XCompose $(HOME_DIR)/.XCompose
+	XKB_LAYOUT_TARGET_DIR = $(HOME_DIR)/.config/xkb/symbols
+	XKB_LAYOUT_TARGET_DIR_CMD = mkdir -p $(XKB_LAYOUT_TARGET_DIR)
+	XKB_LAYOUT_CMD = ln $(LN_FLAGS) $(PWD)/jan-dvp $(XKB_LAYOUT_TARGET_DIR)/jan-dvp
 endif
 
 # Bash aliases
@@ -56,6 +62,17 @@ else
 	TMUX_CMD = ln $(LN_FLAGS) $(PWD)/.tmux.conf $(HOME_DIR)/.tmux.conf
 endif
 
+# ripgrep
+ifeq ($(OS),Windows_NT)
+	RG_PRE_TARGET_DIR = ""
+	RG_PRE_TARGET_CMD = echo "nop for RG_PRE_TARGET_CMD"
+	RG_PRE_CMD = echo "nop for RG_PRE_CMD"
+else
+	RG_PRE_TARGET_DIR = ~/local/bin
+	RG_PRE_TARGET_DIR_CMD = mkdir -p $(RG_PRE_TARGET_DIR)
+	RG_PRE_CMD = ln $(LN_FLAGS) $(PWD)/to_text $(RG_PRE_TARGET_DIR)/to_text
+endif
+
 # Conda
 CONDA_DIR = $(HOME_DIR)
 
@@ -71,6 +88,8 @@ all_except_emacs: keyboard bash_aliases zsh git vim tmux conda julia nvim
 keyboard: winkeys.ahk .Xmodmap .XCompose
 	ln $(LN_FLAGS) $(PWD)/$(KB_MOD_SOURCE) $(KB_MOD_TARGET)
 	$(KB_COMPOSE_CMD)
+	$(XKB_LAYOUT_TARGET_DIR_CMD)
+	$(XKB_LAYOUT_CMD)
 
 bash_aliases: .bash_aliases
 	$(BASH_ALIASES_CMD)
@@ -103,6 +122,10 @@ emacs: init.el early-init.el .gnus.el
 
 tmux: .tmux.conf
 	$(TMUX_CMD)
+
+ripgrep: to_text
+	$(RG_PRE_TARGET_DIR_CMD)
+	$(RG_PRE_CMD)
 
 conda: .condarc
 	mkdir -p $(CONDA_DIR)

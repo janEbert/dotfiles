@@ -91,6 +91,11 @@ hooks for eglot.")
 ;; Prefer more recent files when loading.
 (setq load-prefer-newer t)
 
+(defun find-init-file ()
+  "Find init.el in `my-emacs-dir'."
+  (interactive)
+  (find-file (expand-file-name "init.el" my-emacs-dir)))
+
 ;; This key binding here so it is loaded before errors
 ;; Edit init.el (C-c i)
 (define-key mode-specific-map (kbd "i") 'find-init-file)
@@ -99,11 +104,11 @@ hooks for eglot.")
 ;; installed packages.  Don't delete this line.  If you don't want it,
 ;; just comment it out by adding a semicolon to the start of the line.
 ;; You may delete these explanatory comments.
-(when (< emacs-major-version 27)
+(when (or (< emacs-major-version 27) (and t (= emacs-major-version 27) (< emacs-minor-version 1)))
   (package-initialize))
 
 ;; Add package lists
-(require 'package)
+(add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/"))
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
 (add-to-list 'package-archives
 			 '("melpa-stable" . "https://stable.melpa.org/packages/"))
@@ -164,11 +169,16 @@ hooks for eglot.")
  '(mouse-yank-at-point t)
  '(nnmail-expiry-wait 'never)
  '(org-agenda-files '("~/Documents/life.org"))
- '(package-archive-priorities '(("gnu" . 5) ("melpa-stable" . 3) ("melpa" . 2)))
+ '(package-archive-priorities
+   '(("org" . 9)
+	 ("gnu" . 7)
+	 ("melpa" . 5)
+	 ("melpa-stable" . 3)))
  '(package-menu-hide-low-priority t)
  '(package-quickstart t)
  '(package-selected-packages
-   '(gdscript-mode disk-usage dart-mode gnuplot web-mode ada-ref-man docker dockerfile-mode dired-du dired-git-info purescript-mode js2-mode magit markdown-mode typescript-mode realgud dap-mode cobol-mode csharp-mode fsharp-mode go-mode num3-mode php-mode sed-mode smalltalk-mode stan-mode swift-mode zig-mode elixir-mode erlang clojure-mode cmake-mode haskell-snippets caml sml-mode haskell-mode lsp-julia nasm-mode yaml-mode ada-mode chess csv-mode json-mode vterm lua-mode python nov ein rust-mode slime yasnippet-snippets texfrag eglot undo-propose julia-repl ess form-feed nim-mode evil-collection evil-commentary evil-lion evil-magit evil-matchit evil-snipe evil-surround evil-visualstar landmark auctex zotxt company-quickhelp dumb-jump expand-region jupyter use-package gotham-theme zenburn-theme toc-org flymake org tramp projectile ivy ggtags pdf-tools yasnippet solarized-theme rainbow-delimiters lsp-mode julia-mode helm gnu-elpa-keyring-update forge evil emms darkroom company))
+   '(counsel swiper projectile rust-mode slime jsonrpc d-mode cider gdscript-mode disk-usage dart-mode gnuplot web-mode ada-ref-man docker dockerfile-mode dired-du dired-git-info purescript-mode js2-mode magit markdown-mode typescript-mode realgud dap-mode cobol-mode csharp-mode fsharp-mode go-mode num3-mode php-mode sed-mode smalltalk-mode stan-mode swift-mode zig-mode elixir-mode erlang clojure-mode cmake-mode haskell-snippets caml sml-mode haskell-mode lsp-julia nasm-mode yaml-mode ada-mode chess csv-mode json-mode vterm lua-mode python nov ein yasnippet-snippets texfrag eglot undo-propose julia-repl ess form-feed nim-mode evil-collection evil-commentary evil-lion evil-magit evil-matchit evil-snipe evil-surround evil-visualstar landmark auctex zotxt company-quickhelp dumb-jump expand-region jupyter use-package gotham-theme zenburn-theme toc-org flymake org tramp ivy ggtags pdf-tools yasnippet solarized-theme rainbow-delimiters julia-mode helm gnu-elpa-keyring-update forge evil emms darkroom company))
+ '(password-cache-expiry 1200)
  '(prettify-symbols-unprettify-at-point 'right-edge)
  '(read-buffer-completion-ignore-case t)
  '(read-file-name-completion-ignore-case t)
@@ -182,14 +192,14 @@ hooks for eglot.")
    '(command-history search-ring regexp-search-ring kill-ring extended-command-history))
  '(savehist-mode t)
  '(scroll-bar-mode 'right)
- '(semantic-mode nil nil nil "Currently throws a recursive load error.")
+ '(semantic-mode t)
  '(send-mail-function 'smtpmail-send-it)
  '(sentence-end-double-space nil)
  '(set-mark-command-repeat-pop t)
  '(shell-prompt-pattern "^\\(?:###\\)?[^#$%>
 ]*[#$%>] *")
  '(show-paren-mode t)
- '(show-paren-style 'parenthesis nil nil "Maybe try out expression or mixed.")
+ '(show-paren-style 'mixed nil nil "Originally parenthesis. Maybe try out expression or mixed.")
  '(show-paren-when-point-in-periphery t)
  '(show-paren-when-point-inside-paren t)
  '(show-trailing-whitespace t)
@@ -202,6 +212,7 @@ hooks for eglot.")
    "\\(?:^\\|\\)\\(?:###\\)?[^]#$%>
 ]*#?[]#$%>] *\\(\\[[0-9;]*[a-zA-Z] *\\)*")
  '(uniquify-buffer-name-style 'forward nil (uniquify))
+ '(url-automatic-caching t)
  '(url-cookie-confirmation t)
  '(vc-follow-symlinks t)
  '(vc-make-backup-files t)
@@ -217,7 +228,6 @@ hooks for eglot.")
  )
 
 (setq package-check-signature t)
-(setq password-cache-expiry 1200)
 
 ;; For external plugins in `my-extended-package-dir'
 (let ((default-directory my-extended-package-dir))
@@ -264,7 +274,11 @@ hooks for eglot.")
 ;; Custom commands for toggling (C-c t)
 (define-key mode-specific-map (kbd "t") 'my-toggle-map)
 
-;; Use flex completion style
+(define-prefix-command 'my-music-map)
+;; Music commands (C-c m)
+(define-key mode-specific-map (kbd "m") 'my-music-map)
+
+;; Use more flexible completion styles
 (setq completion-styles (append completion-styles
 								'(substring flex)))
 
@@ -275,11 +289,11 @@ hooks for eglot.")
 ;; Ignore .emacs.d in recentf
 (setq recentf-exclude
 	  (append recentf-exclude
-			  `(,(concat "^"
-						 (replace-regexp-in-string
-						  "\\." "\\."
-						  (expand-file-name my-emacs-dir) t t)
-						 "/.*"))))
+			  (list (concat "^"
+							(replace-regexp-in-string
+							 "\\." "\\."
+							 (expand-file-name my-emacs-dir) t t)
+							"/.*"))))
 
 ;; More Eshell visual commands
 (with-eval-after-load "em-term"
@@ -331,8 +345,11 @@ remove this function from `after-make-frame-functions'."
 	(remove-hook 'after-make-frame-functions 'remove-default-frame-maximized))
   (add-hook 'after-make-frame-functions 'remove-default-frame-maximized))
 
-;; Use flyspell for strings and comments by default
+;; Use Flyspell for strings and comments by default
 (add-hook 'prog-mode-hook 'flyspell-prog-mode)
+;; Use it for all text when writing e-mails
+(add-hook 'message-mode-hook 'flyspell-mode)
+(add-hook 'mail-mode-hook 'flyspell-mode)
 
 ;; Deactivate scroll bars
 (add-hook 'emacs-startup-hook (lambda () (scroll-bar-mode 0)))
@@ -346,7 +363,8 @@ remove this function from `after-make-frame-functions'."
 
 ;; Use tab for completion if line is already indented.
 ;; Activate if it is dangerous (to go alone (without `company')).
-;; (setq tab-always-indent 'complete)
+(unless (functionp 'company-complete)
+  (setq tab-always-indent 'complete))
 
 ;; Autoclose blocks in LaTeX mode
 (add-hook 'latex-mode-hook 'latex-electric-env-pair-mode)
@@ -368,7 +386,7 @@ remove this function from `after-make-frame-functions'."
 ;; (add-hook 'icomplete-minibuffer-setup-hook
 ;; 		  (lambda ()
 ;; 			;; FIXME find out if ivy is active
-;; 			(when (not (eq (selected-window) (ivy--get-window ivy-last)))
+;; 			(unless (eq (selected-window) (ivy--get-window ivy-last))
 ;; 			  (setq icomplete-separator "\n")
 ;; 			  (setq truncate-lines t)
 ;; 			  (enlarge-window (1- icomplete-prospects-height)))))
@@ -390,37 +408,44 @@ remove this function from `after-make-frame-functions'."
 (add-hook 'eww-mode-hook (lambda () (setq-local display-line-numbers nil)))
 
 ;; xwidgets webkit
-(add-hook 'xwidget-webkit-mode-hook
-		  (lambda ()
-			(local-set-key (kbd "<mouse-4>") 'xwidget-webkit-scroll-down)
-			(local-set-key (kbd "<mouse-5>") 'xwidget-webkit-scroll-up)
-			))
+(when (functionp 'xwidget-webkit-browse-url)
+  (add-hook 'xwidget-webkit-mode-hook
+			(lambda ()
+			  (local-set-key (kbd "<mouse-4>") 'xwidget-webkit-scroll-down)
+			  (local-set-key (kbd "<mouse-5>") 'xwidget-webkit-scroll-up)
+			  ))
 
-;; Only allow local files to be opened with xwidgets.
-(defun xwidget-webkit-goto-uri--allow-files-only (orig-fun &rest args)
-  "Only allow local files (using \"file://\" as the filter pattern)."
-  (if (eq (string-match "^file://" (nth 1 args)) 0)
-	  (apply orig-fun args)
-	(message "currently only allowing local files; disable `allow-files-only' advice on `xwidget-webkit-goto-uri'")
-	(apply orig-fun
-		   (cons (car args)
-				 (cons
-				  (concat "file://"
-						  (expand-file-name
-						   "only-files-error.html" my-emacs-dir))
-				  (cddr args))))))
-(advice-add 'xwidget-webkit-goto-uri :around
-			#'xwidget-webkit-goto-uri--allow-files-only
-			'((name . "allow-files-only")))
+  ;; Only allow local files to be opened with xwidgets.
+  ;; FIXME False sense of security; in xwidget buffers, we can still follow
+  ;; non-local links.
+  (defun xwidget-webkit-goto-uri--allow-files-only (orig-fun &rest args)
+	"Only allow local files (using \"file://\" as the filter pattern)."
+	(if (eq (string-match "^file://" (nth 1 args)) 0)
+		(apply orig-fun args)
+	  (message "currently only allowing local files; disable `allow-files-only' advice on `xwidget-webkit-goto-uri'")
+	  (apply orig-fun
+			 (cons (car args)
+				   (cons
+					(concat "file://"
+							(expand-file-name
+							 "only-files-error.html" my-emacs-dir))
+					(cddr args))))))
+  (advice-add 'xwidget-webkit-goto-uri :around
+			  #'xwidget-webkit-goto-uri--allow-files-only
+			  '((name . "allow-files-only")))
 
-(defun xwidget-webkit-open-file (file &optional new-session)
-  "Open a local file from the xwidget webkit browser."
-  (interactive "fxwidget-webkit File: ")
-  (xwidget-webkit-browse-url
-   (concat "file://"
-		   (and (memq system-type '(windows-nt ms-dos)) "/")
-		   (expand-file-name file))
-   new-session))
+  (defun xwidget-webkit-open-file (file &optional new-session)
+	"Open a local file from the xwidget webkit browser."
+	(interactive "fxwidget-webkit File: ")
+	(xwidget-webkit-browse-url
+	 (concat "file://"
+			 (and (memq system-type '(windows-nt ms-dos)) "/")
+			 (expand-file-name file))
+	 new-session)))
+
+;; Avoid performance issues in files with very long lines.
+(when (functionp 'global-so-long-mode)
+  (global-so-long-mode 1))
 
 ;; Ediff
 (setq ediff-window-setup-function 'ediff-setup-windows-plain)
@@ -636,9 +661,21 @@ returns a list of active Docker container names, followed by colons."
 (setq org-enforce-todo-dependencies t)
 (setq org-enforce-todo-checkbox-dependencies t)
 
+;; Custom TODO keyword faces
+(setq org-todo-keyword-faces '(("INFO" . "blue")
+							   ("STARTED" . "yellow")
+							   ("ISSUE" . org-warning)
+							   ("CANCELED" . (:foreground "red" :weight bold))))
+
 ;; Persistent clock history
 (setq org-clock-persist t)
 (org-clock-persistence-insinuate)
+
+;; Export settings
+
+(setq org-export-with-smart-quotes t)
+;; Use HTML5
+(setq org-html-html5-fancy t)
 
 ;; Org Babel
 
@@ -689,6 +726,7 @@ previous window."
   (add-hook 'org-babel-after-execute-hook 'org-display-inline-images)
   (add-hook 'org-mode-hook 'org-display-inline-images)
   (add-hook 'message-mode-hook 'turn-on-orgtbl)
+  (add-hook 'mail-mode-hook 'turn-on-orgtbl)
 
   ;; Org keybindings (C-c o)
   (define-prefix-command 'my-org-map)
@@ -722,6 +760,9 @@ previous window."
 	(lambda () (interactive) (org-eval-in-calendar '(calendar-backward-month 1))))
   (define-key org-read-date-minibuffer-local-map (kbd "M-R")
 	(lambda () (interactive) (org-eval-in-calendar '(calendar-forward-month 1))))
+
+  ;; Open PDFs in Emacs
+  (setcdr (assoc "\\.pdf\\'" org-file-apps) 'emacs)
 
   ;; TODO only load languages when they're in path; don't load shell on windows
   (setq my-org-babel-load-languages
@@ -794,18 +835,18 @@ theme variant."
 ;; TODO write toggle
 ;; (setq compilation-scroll-output t)
 ;; Fix colors in compilation mode
-(when (require 'ansi-color nil t)
-  (defun ansi-colorize-buffer ()
-	"Apply ANSI color codes in the current buffer."
-	(interactive)
-	(ansi-color-apply-on-region (point-min) (point-max)))
+(autoload 'ansi-color-apply-on-region "ansi-color")
+(defun ansi-colorize-buffer ()
+  "Apply ANSI color codes in the current buffer."
+  (interactive)
+  (ansi-color-apply-on-region (point-min) (point-max)))
 
-  (defun ansi-colorize-compilation-buffer ()
-	"Apply ANSI color codes to the compilation buffer."
-	;; Only do this when we compile; don't do it for grep, for example
-	(when (eq major-mode 'compilation-mode)
-	  (ansi-color-apply-on-region compilation-filter-start (point-max))))
-  (add-hook 'compilation-filter-hook 'ansi-colorize-compilation-buffer))
+(defun ansi-colorize-compilation-buffer ()
+  "Apply ANSI color codes to the compilation buffer."
+  ;; Only do this when we compile; don't do it for grep, for example
+  (when (eq major-mode 'compilation-mode)
+	(ansi-color-apply-on-region compilation-filter-start (point-max))))
+(add-hook 'compilation-filter-hook 'ansi-colorize-compilation-buffer)
 
 
 ;; TODO Find out how to automatically get comment strings. And use that instead
@@ -862,6 +903,13 @@ theme variant."
 	(setq grep-command
 		  "rg --color always -nH --null --no-heading --smart-case -e "))
 
+;; Built-in modes
+(add-hook 'sh-mode-hook
+		  (lambda () (setq indent-tabs-mode nil)))
+
+(add-hook 'picture-mode-hook
+		  (lambda () (setq indent-tabs-mode nil)))
+
 
 ;; Package config
 
@@ -893,7 +941,8 @@ theme variant."
 (add-hook 'TeX-mode-hook (lambda () (prettify-symbols-mode 1)))
 (add-hook 'LaTeX-mode-hook 'TeX-source-correlate-mode)
 (add-hook 'LaTeX-mode-hook 'LaTeX-math-mode)
-(add-hook 'LaTeX-mode-hook #'flymake-mode)
+(when (require 'flymake nil t)
+  (add-hook 'LaTeX-mode-hook #'flymake-mode))
 (add-hook 'LaTeX-mode-hook (lambda () (electric-pair-local-mode 0)))
 (setq reftex-plug-into-AUCTeX t)
 
@@ -923,6 +972,10 @@ theme variant."
 (add-hook 'TeX-mode-hook   'auto-fill-mode)
 (add-hook 'LaTeX-mode-hook 'turn-on-reftex)
 (add-hook 'LaTeX-mode-hook 'latex-electric-env-pair-mode)
+
+;; Num3 mode
+(global-num3-mode)
+;; (setq num3-threshold 4)
 
 ;; Dumb Jump
 (when (functionp 'dumb-jump-mode)
@@ -982,20 +1035,18 @@ stop playback."
 		  (add-hook 'after-init-hook 'init-emms))
 
 	  ;; EMMS key bindings (C-c m)
-	  (define-prefix-command 'my-emms-map)
-	  (define-key mode-specific-map (kbd "m") 'my-emms-map)
-	  (define-key my-emms-map (kbd "SPC") 'emms-pause)
-	  (define-key my-emms-map (kbd "s") 'emms-stop)
-	  (define-key my-emms-map (kbd "p") 'emms-previous)
-	  (define-key my-emms-map (kbd "n") 'emms-next)
-	  (define-key my-emms-map (kbd "r") 'emms-random)
-	  (define-key my-emms-map (kbd "m") 'emms-shuffle)
-	  (define-key my-emms-map (kbd "b") 'emms-seek-backward)
-	  (define-key my-emms-map (kbd "f") 'emms-seek-forward)
-	  (define-key my-emms-map (kbd "l") 'emms)
-	  (define-key my-emms-map (kbd "i") 'init-emms)
-	  (define-key my-emms-map (kbd "+") 'emms-volume-raise)
-	  (define-key my-emms-map (kbd "-") 'emms-volume-lower))
+	  (define-key my-music-map (kbd "SPC") 'emms-pause)
+	  (define-key my-music-map (kbd "s") 'emms-stop)
+	  (define-key my-music-map (kbd "p") 'emms-previous)
+	  (define-key my-music-map (kbd "n") 'emms-next)
+	  (define-key my-music-map (kbd "r") 'emms-random)
+	  (define-key my-music-map (kbd "m") 'emms-shuffle)
+	  (define-key my-music-map (kbd "b") 'emms-seek-backward)
+	  (define-key my-music-map (kbd "f") 'emms-seek-forward)
+	  (define-key my-music-map (kbd "l") 'emms)
+	  (define-key my-music-map (kbd "i") 'init-emms)
+	  (define-key my-music-map (kbd "+") 'emms-volume-raise)
+	  (define-key my-music-map (kbd "-") 'emms-volume-lower))
   (defun update-emms-faces ()
 	"No op." ;; TODO remove when hook is added
 	()))
@@ -1043,16 +1094,20 @@ stop playback."
 
 	  ;; Other Evil packages
 	  ;; Evil Surround
-	  (global-evil-surround-mode 1)
+	  (when (functionp 'global-evil-surround-mode)
+		(global-evil-surround-mode 1))
 	  ;; evil-commentary
-	  (evil-commentary-mode 1)
+	  (when (functionp 'evil-commentary-mode)
+		(evil-commentary-mode 1))
 	  ;; evil-lion
-	  (evil-lion-mode)
+	  (when (functionp 'evil-lion-mode)
+		(evil-lion-mode))
 	  ;; evil-matchit
-	  (if (require 'evil-matchit nil t)
+	  (when (require 'evil-matchit nil t)
 		  (global-evil-matchit-mode 1))
 	  ;; evil-visualstar
-	  (global-evil-visualstar-mode 1)
+	  (when (functionp 'global-evil-visualstar-mode)
+		(global-evil-visualstar-mode 1))
 
 	  ;; Emacs state by default (must be added to head of list)
 	  ;; (add-to-list 'evil-buffer-regexps '("." . emacs))
@@ -1070,17 +1125,19 @@ stop playback."
 	  (evil-set-initial-state 'comint-mode   'emacs)
 	  (evil-set-initial-state 'shell-mode    'emacs)
 	  (evil-set-initial-state 'term-mode     'emacs)
+	  (evil-set-initial-state 'message-mode  'emacs)
+	  (evil-set-initial-state 'mail-mode     'emacs)
 	  (evil-set-initial-state 'org-mode      'emacs)
 	  (evil-set-initial-state 'calendar-mode 'emacs)
 	  (evil-set-initial-state 'picture-mode  'emacs)
+	  (evil-set-initial-state 'compilation-mode 'emacs)
 
 	  ;; Magit commit message
 	  (add-to-list 'evil-buffer-regexps '("COMMIT_EDITMSG" . emacs))
 
 	  ;; Picture mode
 	  (add-hook 'picture-mode-hook
-				(lambda () (evil-emacs-state)
-				  (setq indent-tabs-mode nil)))
+				(lambda () (evil-emacs-state)))
 	  (advice-add 'picture-mode-exit :after
 				  (lambda (&rest _args) (evil-change-to-previous-state))
 				  '((name . "picture-mode-revert-state")))
@@ -1201,8 +1258,7 @@ the context."
 
 
 ;; Company
-(if (functionp 'global-company-mode)
-	(progn
+(when (functionp 'global-company-mode)
 	  (add-hook 'after-init-hook 'global-company-mode)
 	  ;; Faster auto completion
 	  (setq company-minimum-prefix-length 2)
@@ -1238,7 +1294,6 @@ the context."
 						(progn
 						  (setq-local company-minimum-prefix-length 3)
 						  (setq-local company-idle-delay 0.5)))))))
-  (define-key mode-specific-map (kbd "c") 'completion-at-point))
 
 ;; Company quickhelp
 (when (functionp 'company-quickhelp-mode)
@@ -1257,23 +1312,29 @@ the context."
   (setq ivy-use-virtual-buffers t)
   (setq ivy-count-format "(%d/%d) ")
 
-  (global-set-key (kbd "C-s")	'swiper)
-  (global-set-key (kbd "M-x")	'counsel-M-x)
-  (global-set-key (kbd "C-x C-f") 'counsel-find-file)
   (global-set-key (kbd "C-x b")	'ivy-switch-buffer)
   (global-set-key (kbd "C-x 4 b") 'ivy-switch-buffer-other-window)
-  (global-set-key (kbd "C-x d")	'counsel-dired)
-  (global-set-key (kbd "C-x r b") 'counsel-bookmark)
-  (global-set-key (kbd "<f1> f")	'counsel-describe-function)
-  (global-set-key (kbd "<f1> v")	'counsel-describe-variable)
-  (global-set-key (kbd "<f1> l")	'counsel-find-library)
-  (global-set-key (kbd "<f2> i")	'counsel-info-lookup-symbol)
-  (global-set-key (kbd "<f2> u")	'counsel-unicode-char)
 
-  (define-key mode-specific-map (kbd "j") 'counsel-semantic-or-imenu)
   (define-key mode-specific-map (kbd "r") 'ivy-resume)
-  (when (require 'emms-setup nil t)
-	(define-key my-emms-map	  (kbd "o") 'counsel-rhythmbox)))
+
+  (when (functionp 'swiper)
+	(global-set-key (kbd "C-s")	'swiper))
+
+  (when (functionp 'counsel-M-x)
+	(global-set-key (kbd "M-x")	'counsel-M-x)
+	(global-set-key (kbd "C-x C-f") 'counsel-find-file)
+	(global-set-key (kbd "C-x d")	'counsel-dired)
+	(global-set-key (kbd "C-x r b") 'counsel-bookmark)
+	(global-set-key (kbd "<f1> f")	'counsel-describe-function)
+	(global-set-key (kbd "<f1> v")	'counsel-describe-variable)
+	(global-set-key (kbd "<f1> l")	'counsel-find-library)
+	(global-set-key (kbd "<f2> i")	'counsel-info-lookup-symbol)
+	(global-set-key (kbd "<f2> u")	'counsel-unicode-char)
+
+	(define-key mode-specific-map (kbd "j") 'counsel-semantic-or-imenu)
+	(define-key my-music-map	  (kbd "o") 'counsel-rhythmbox))
+  )
+
 
 ;; Helm
 (when (and nil (>= emacs-major-version 26)
@@ -1328,6 +1389,78 @@ the context."
 (when (functionp 'pdf-tools-install)
   (pdf-tools-install)
   ;; or (pdf-loader-install)
+
+  ;; Start with fit page
+  (add-hook 'pdf-view-mode-hook 'pdf-view-fit-page-to-window)
+  (when (functionp 'swiper)
+	(define-key pdf-view-mode-map (kbd "C-s") 'isearch-forward-regexp))
+
+  ;; Enable printer
+  (setq pdf-misc-print-program "lpr")
+
+  ;; Create better Org mode links
+  (require 'ol)
+
+  (org-link-set-parameters "pdfview"
+						   :follow 'org-pdfview-open
+						   :export 'org-pdfview-export
+						   :store 'org-pdfview-store-link)
+
+  (defun org-pdfview-export (link description format)
+	"Export a pdfview link from Org files."
+	(let ((path (if (string-match "\\(.*?\\)\\(?:::\\([0-9]+\\)\\)?$" link)
+					(match-string 1 link)
+				  link))
+		  (page (and (match-beginning 2) (match-string 2 link)))
+		  (desc (or description link)))
+	  (when (strinp path)
+		(setq path (expand-file-name path))
+		(cond
+		 ((eq format 'html)
+		  (format "<a href=\"%s%s\">%s</a>"
+				  path
+				  (if (and page (not (string= page "1")))
+					  (concat "#page=" page) "")
+				  desc))
+		 ((eq format 'latex) (format "\\href{run:%s}{%s}" path desc))
+		 ((eq format 'ascii) (format "%s (%s)" desc path))
+		 (t path)))))
+
+  (defun org-pdfview-open (link)
+	"Open a pdfview link from an Org file."
+	(string-match "\\(.*?\\)\\(?:::\\([0-9]+\\)\\)?$" link)
+	(let ((path (match-string 1 link))
+		  (page (and (match-beginning 2)
+					 (string-to-number (match-string 2 link)))))
+	  (org-open-file path 1)
+	  (when page (pdf-view-goto-page page))))
+
+  (defun org-pdfview-store-link ()
+	"Store a link to a pdfview buffer."
+	(when (eq major-mode 'pdf-view-mode)
+	  (let* ((path buffer-file-name)
+			 ;; (pdf-view-current-page) calls the following
+			 (page (pdf-view-current-page))
+			 (link (concat "pdfview:" path
+						   (if (not (eq page 1))
+							   (concat "::" (number-to-string page)) "")))
+			 (title (cdr (assoc 'title (pdf-info-metadata))))
+			 (title (if (string-empty-p title)
+						(file-name-nondirectory path)
+					  title)))
+		(org-link-store-props
+		 :type "pdfview"
+		 :link link
+		 :description title))))
+
+  (defun org-pdfview-complete-link ()
+	"Use the existing file name completion for file.
+Links to get the file name, then asks the user for the page number
+and append it."
+	(concat (replace-regexp-in-string "^file:" "docview:"
+									  (org-link-complete-file))
+			"::"
+			(read-from-minibuffer "Page:" "1")))
   )
 
 ;; Emacs libvterm
@@ -1352,7 +1485,7 @@ the context."
 
 ;; Jupyter
 (when (>= emacs-major-version 26)
-  (setq exec-path (append exec-path `(,(expand-file-name my-jupyter-dir))))
+  (setq exec-path (append exec-path (list (expand-file-name my-jupyter-dir))))
   (when (functionp 'org-babel-jupyter-scratch-buffer)
 	(setq my-org-babel-load-languages
 		  (append my-org-babel-load-languages
@@ -1389,7 +1522,9 @@ the context."
 ;; PHP mode
 (autoload 'php-mode-hook "php-mode")
 (add-hook 'php-mode-hook
-		  (lambda () (setq indent-tabs-mode t)))
+		  (lambda ()
+			(setq indent-tabs-mode t)
+			(setq-local whitespace-line-column 120)))
 
 ;; Web mode
 (when (require 'web-mode nil t)
@@ -1401,7 +1536,10 @@ the context."
   (add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
   (add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
-  (add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode)))
+  (add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
+
+  ;; (add-hook 'web-mode-hook (check what file-name ends, then set whitespace-line-column and others accordingly))
+  )
 
 
 ;; Julia mode
@@ -1424,6 +1562,9 @@ the context."
 (setq julia-repl-executable-records
 	  '((default "julia")
 		(new "julian")))
+
+;; SLIME
+(setq inferior-lisp-program "sbcl")
 
 
 ;; Rust mode
@@ -1452,13 +1593,13 @@ the context."
 
 
 ;; lsp-mode
+;; LSP Prefix (C-c l)
+(setq lsp-keymap-prefix "C-c l")
+
 (when (and (or (eq my-lsp-package 'lsp-mode) (eq my-lsp-package 'all))
 		   (require 'lsp-mode nil t))
-  (when (not (eq my-lsp-package 'all))
+  (unless (eq my-lsp-package 'all)
 	(add-hook 'prog-mode-hook #'lsp))  ;; or #'lsp-deferred
-
-  ;; LSP Prefix (C-c l)
-  (setq lsp-keymap-prefix "C-c l")
 
   (setq lsp-before-save-edits nil)
   (when (< emacs-major-version 27)
@@ -1514,6 +1655,48 @@ the context."
 (when (and (or (eq my-lsp-package 'eglot) (eq my-lsp-package 'all))
 		   (>= emacs-major-version 26)
 		   (require 'eglot nil t))
+  ;; Keybindings like for lsp-mode
+  (define-prefix-command 'my-eglot-map)
+
+  ;; Eglot Prefix (C-c l)
+  (define-key eglot-mode-map (kbd "C-c l") 'my-eglot-map)
+
+  ;; Session commands
+  (define-prefix-command 'my-eglot-session-map)
+  (define-key my-eglot-map (kbd "s") 'my-eglot-session-map)
+
+  (define-key my-eglot-session-map (kbd "s") 'eglot)
+  (define-key my-eglot-session-map (kbd "r") 'eglot-reconnect)
+  (define-key my-eglot-session-map (kbd "q") 'eglot-shutdown)
+  ;; These do not exist in lsp-mode
+  (define-key my-eglot-session-map (kbd "b") 'eglot-events-buffer)
+  (define-key my-eglot-session-map (kbd "e") 'eglot-stderr-buffer)
+  (define-key my-eglot-session-map (kbd "c") 'eglot-signal-didChangeConfiguration)
+
+  ;; Refactoring commands
+  (define-prefix-command 'my-eglot-refactor-map)
+  (define-key my-eglot-map (kbd "r") 'my-eglot-refactor-map)
+
+  (define-key my-eglot-refactor-map (kbd "r") 'eglot-rename)
+
+  ;; Formatting commands
+  (define-prefix-command 'my-eglot-format-map)
+  (define-key my-eglot-map (kbd "=") 'my-eglot-format-map)
+
+  (define-key my-eglot-format-map (kbd "=") 'eglot-format)
+
+  ;; Code action commands
+  (define-prefix-command 'my-eglot-action-map)
+  (define-key my-eglot-map (kbd "a") 'my-eglot-action-map)
+
+  (define-key my-eglot-action-map (kbd "a") 'eglot-code-actions)
+
+  ;; Help commands
+  (define-prefix-command 'my-eglot-help-map)
+  (define-key my-eglot-map (kbd "h") 'my-eglot-help-map)
+
+  (define-key my-eglot-help-map (kbd "h") 'eglot-help-at-point)
+
 
   (when (executable-find "rls")
 	;; (add-to-list 'eglot-server-programs `((rust-mode) eglot-rls ,my-rls-bin))
@@ -1627,11 +1810,6 @@ the context."
 
 ;; Custom commands
 
-(defun find-init-file ()
-  "Find init.el in `my-emacs-dir'."
-  (interactive)
-  (find-file (expand-file-name "init.el" my-emacs-dir)))
-
 (defun query-kill-emacs ()
   "Query whether to `kill-emacs' and if yes, `save-some-buffers' and kill."
   (interactive)
@@ -1677,16 +1855,6 @@ the minibuffer."
   (interactive)
   (minibuffer-insert
    (lambda (&rest _args) default-directory)))
-
-;; (defun minibuffer-insert-buffer-file-name ()
-;;   "Insert the current `buffer-file-name' into the minibuffer."
-;;   (interactive)
-;;   (let ((current-file-name
-;; 		 (abbreviate-file-name
-;; 		  (with-current-buffer (window-buffer (minibuffer-selected-window))
-;; 			buffer-file-name))))
-;; 	(when current-file-name
-;; 	  (insert current-file-name))))
 
 (defun quit-other-window ()
   "Quit the other (next) window while staying in the selected window."
@@ -1822,41 +1990,42 @@ on if a Solarized variant is currently active."
 	  (flyspell-mode 1)
 	(flyspell-mode 0)))
 
-;; TODO turn this into minor mode
-(defun toggle-presentation-mode ()
-  "Toggle hiding any visual distractions."
-  (interactive)
-  (if (eq mode-line-format nil)
-	  (progn
-		(kill-local-variable 'mode-line-format)
-		(kill-local-variable 'display-line-numbers)
-		(toggle-frame-fullscreen)
-		(when (eq major-mode 'pdf-view-mode)
-		  (local-unset-key (kbd "<mouse-1>"))
-		  (local-unset-key (kbd "<mouse-3>"))
-		  (local-unset-key [down-mouse-1])
-		  (local-unset-key [down-mouse-3])
-		  (pdf-misc-context-menu-minor-mode 1)
-		  (pdf-view-fit-page-to-window))
-		(kill-local-variable 'echo-keystrokes)
-		(kill-local-variable 'inhibit-message)
-		;; TODO why does `winner-undo' not work here?
-		)
-	(winner-save-unconditionally)
-	(setq-local mode-line-format nil)
-	(setq-local display-line-numbers nil)
-	(delete-other-windows)
-	(toggle-frame-fullscreen)
-	(when (eq major-mode 'pdf-view-mode)
-	  (local-set-key (kbd "<mouse-1>") 'pdf-view-next-page-command)
-	  (local-set-key (kbd "<mouse-3>") 'pdf-view-previous-page-command)
-	  (local-unset-key [down-mouse-1])
-	  (local-unset-key [down-mouse-3])
-	  (pdf-misc-context-menu-minor-mode 0)
-	  (sleep-for 0 200) ; sadly necessary
-	  (pdf-view-fit-page-to-window))
-	(setq-local echo-keystrokes 0) ; debatable
-	(setq-local inhibit-message t)))
+(when (functionp 'pdf-tools-install)
+  ;; TODO turn this into minor mode
+  (defun toggle-presentation-mode ()
+	"Toggle hiding any visual distractions."
+	(interactive)
+	(if (eq mode-line-format nil)
+		(progn
+		  (kill-local-variable 'mode-line-format)
+		  (kill-local-variable 'display-line-numbers)
+		  (toggle-frame-fullscreen)
+		  (when (eq major-mode 'pdf-view-mode)
+			(local-unset-key (kbd "<mouse-1>"))
+			(local-unset-key (kbd "<mouse-3>"))
+			(local-unset-key [down-mouse-1])
+			(local-unset-key [down-mouse-3])
+			(pdf-misc-context-menu-minor-mode 1)
+			(pdf-view-fit-page-to-window))
+		  (kill-local-variable 'echo-keystrokes)
+		  (kill-local-variable 'inhibit-message)
+		  ;; TODO why does `winner-undo' not work here?
+		  )
+	  (winner-save-unconditionally)
+	  (setq-local mode-line-format nil)
+	  (setq-local display-line-numbers nil)
+	  (delete-other-windows)
+	  (toggle-frame-fullscreen)
+	  (when (eq major-mode 'pdf-view-mode)
+		(local-set-key (kbd "<mouse-1>") 'pdf-view-next-page-command)
+		(local-set-key (kbd "<mouse-3>") 'pdf-view-previous-page-command)
+		(local-unset-key [down-mouse-1])
+		(local-unset-key [down-mouse-3])
+		(pdf-misc-context-menu-minor-mode 0)
+		(sleep-for 0 200) ; sadly necessary
+		(pdf-view-fit-page-to-window))
+	  (setq-local echo-keystrokes 0) ; debatable
+	  (setq-local inhibit-message t))))
 
 
 (defun my-julia-repl ()
@@ -1890,13 +2059,17 @@ on if a Solarized variant is currently active."
 ;; Better expanding
 (global-set-key (kbd "M-/") 'hippie-expand)
 
+;; Better completion mapping (C-c c)
+(unless (functionp 'company-complete)
+  (define-key mode-specific-map (kbd "c") 'completion-at-point))
+
 ;; Like dt or df in Vim
 (global-set-key (kbd "M-z") 'zap-up-to-char)
 (define-key mode-specific-map (kbd "z") 'zap-to-char)
 
 ;; Swap literal and regex isearch
 ;; (we then don't need (search-default-mode t))
-(when (not (functionp 'swiper))
+(unless (functionp 'swiper)
   (global-set-key (kbd "C-s") 'isearch-forward-regexp))
 (global-set-key (kbd "C-r")   'isearch-backward-regexp)
 (global-set-key (kbd "C-M-s") 'isearch-forward)
@@ -1914,6 +2087,9 @@ on if a Solarized variant is currently active."
 
 ;; Toggle pixel-scrolling (C-c t p)
 (define-key my-toggle-map (kbd "p") 'toggle-pixel-scroll-mode)
+
+;; Toggle auto fill mode (C-c t F)
+(define-key my-toggle-map (kbd "F") 'auto-fill-mode)
 
 ;; Toggle Flyspell mode (C-c t s)
 (define-key my-toggle-map (kbd "s") 'toggle-flyspell-mode)
@@ -1943,7 +2119,7 @@ on if a Solarized variant is currently active."
 (define-key my-window-map (kbd "R") 'redraw-display)
 
 ;; imenu and ibuffer keybindings
-(when (not (functionp 'counsel-semantic-or-imenu))
+(unless (functionp 'counsel-semantic-or-imenu)
   (define-key mode-specific-map (kbd "j") 'imenu))
 ;; ibuffer is better standalone
 (define-key mode-specific-map (kbd "b") 'ibuffer)
@@ -1957,8 +2133,11 @@ on if a Solarized variant is currently active."
 (define-key mode-specific-map (kbd "k") 'query-kill-emacs)
 
 
-;; Rename uniquely (C-c x r)
-(define-key my-extended-map (kbd "r") 'rename-uniquely)
+;; Revert buffer (C-c x r)
+(define-key my-extended-map (kbd "r") 'revert-buffer)
+
+;; Rename uniquely (C-c x R)
+(define-key my-extended-map (kbd "R") 'rename-uniquely)
 
 ;; Diff buffers (preferably in split) (C-c x d)
 (define-key my-extended-map (kbd "d") 'ediff-buffers)
@@ -1995,11 +2174,12 @@ on if a Solarized variant is currently active."
 ;; Open file with EWW (C-c x o)
 (define-key my-extended-map (kbd "o") 'eww-open-file)
 
-;; Enter xwidget webkit (C-c x x)
-(define-key my-extended-map (kbd "x") 'xwidget-webkit-browse-url)
+(when (functionp 'xwidget-webkit-browse-url)
+  ;; Enter xwidget webkit (C-c x x)
+  (define-key my-extended-map (kbd "x") 'xwidget-webkit-browse-url)
 
-;; Open file with xwidget webkit (C-c x l)
-(define-key my-extended-map (kbd "l") 'xwidget-webkit-open-file)
+  ;; Open file with xwidget webkit (C-c x l)
+  (define-key my-extended-map (kbd "l") 'xwidget-webkit-open-file))
 
 ;; Surround point or region (C-c s)
 (define-key mode-specific-map (kbd "s") 'insert-char-pair)

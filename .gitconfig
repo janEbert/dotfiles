@@ -8,6 +8,15 @@
 [core]
 	editor = vim
 	excludesfile = ~/.gitignore_global
+[color]
+	ui = auto
+[transfer]
+	fsckObjects = true
+[receive]
+	fsckObjects = true
+[fetch]
+	fsckObjects = true
+
 [alias]
 	a = add
 	ap = add -p
@@ -65,6 +74,3 @@
 	pr = !sh -c 'git fetch origin pull/$1/head:pr-$1' -
 	prc = !sh -c 'git fetch origin pull/$1/head:pr-$1 && git checkout pr-$1' -
 	pruneall = !git remote | xargs -n 1 git remote prune
-
-[color]
-	ui = auto

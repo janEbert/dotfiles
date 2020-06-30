@@ -1,8 +1,0 @@
-partial alphanumeric_keys
-xkb_symbols "jdvp" {
-    include "us(dvp)"
-    name[Group1] = "Jan-DVP (English Programmer Dvorak with German Umlauts)";
-
-    key <AC05> { [ i, I, adiaeresis, Adiaeresis ] };
-    key <AD07> { [ g, G, odiaeresis, Odiaeresis ] };
-};

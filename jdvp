@@ -1,0 +1,14 @@
+// Works best with the following options
+// (if nbsp:zwnj2nb3nnb4 does not work, use nbsp:level3n)
+// (in GNOME, we don't need grp:win_space_toggle):
+//    'lv3:ralt_switch', 'shift:both_capslock', 'ctrl:nocaps', 'nbsp:zwnj2nb3nnb4',
+//    'compose:102', 'keypad:pointerkeys', 'grp:win_space_toggle', 'keypad:oss'
+
+partial alphanumeric_keys
+xkb_symbols "basic" {
+    include "us(dvp)"
+    name[Group1] = "Jan-DVP (English Programmer Dvorak with German Umlauts)";
+
+    key <AC05> { [ i, I, adiaeresis, Adiaeresis ] };
+    key <AB05> { [ x, X, odiaeresis, Odiaeresis ] };
+};

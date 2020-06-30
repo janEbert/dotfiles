@@ -18,7 +18,7 @@ else
 	KB_COMPOSE_CMD = ln $(LN_FLAGS) $(PWD)/.XCompose $(HOME_DIR)/.XCompose
 	XKB_LAYOUT_TARGET_DIR = $(HOME_DIR)/.config/xkb/symbols
 	XKB_LAYOUT_TARGET_DIR_CMD = mkdir -p $(XKB_LAYOUT_TARGET_DIR)
-	XKB_LAYOUT_CMD = ln $(LN_FLAGS) $(PWD)/jan-dvp $(XKB_LAYOUT_TARGET_DIR)/jan-dvp
+	XKB_LAYOUT_CMD = ln $(LN_FLAGS) $(PWD)/jdvp $(XKB_LAYOUT_TARGET_DIR)/jdvp
 endif
 
 # Bash aliases
@@ -85,7 +85,7 @@ all: all_except_emacs emacs
 
 all_except_emacs: keyboard bash_aliases zsh git vim tmux conda julia nvim
 
-keyboard: winkeys.ahk .Xmodmap .XCompose
+keyboard: winkeys.ahk .Xmodmap .XCompose jdvp
 	ln $(LN_FLAGS) $(PWD)/$(KB_MOD_SOURCE) $(KB_MOD_TARGET)
 	$(KB_COMPOSE_CMD)
 	$(XKB_LAYOUT_TARGET_DIR_CMD)

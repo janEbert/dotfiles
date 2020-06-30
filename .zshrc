@@ -146,8 +146,8 @@ if [ -f ~/.bash_aliases_local ]; then
 fi
 
 if [ "x$SSH_CLIENT" = x ] && [ "x$SSH_TTY" = x ] \
-        && [ "x$SSH_CONNECTION" = x ] && [ -f ~/.config/xkb/symbols/jan-dvp ]; then
-    # setxkbmap -I "$HOME/.config/xkb" jan-dvp jdvp -print | xkbcomp -I"$HOME/.config/xkb" - "$DISPLAY" 2> /dev/null
+        && [ "x$SSH_CONNECTION" = x ] && [ -f ~/.config/xkb/symbols/jdvp ]; then
+    # setxkbmap -I "$HOME/.config/xkb" jdvp basic -print | xkbcomp -I"$HOME/.config/xkb" - "$DISPLAY" 2> /dev/null
 fi
 
 if [ "x$SSH_CLIENT" = x ] && [ "x$SSH_TTY" = x ] \

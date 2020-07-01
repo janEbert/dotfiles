@@ -104,12 +104,15 @@ closure-compile-css() {
          "${args_except_last[@]}" --output-file "$minified_name" "$last_arg"
 }
 
+elisp() {
+    \emacs --batch --eval '(princ (format "%s\n" '"$1))"
+}
+
 alias untar="tar -xf"
 alias untargz="tar -xzf"
 alias egitig="\$EDITOR \$(git rev-parse --git-dir)/info/exclude"
 alias pullsubs="find . -name '.git' -type d | xargs -P10 -I{} git --git-dir={} --work-tree=\$PWD/{}/.. pull"
 alias emacs="emacsclient -c -a ''"
-alias elisp="\emacs --batch --eval"
 alias dex="stack exec dex --"
 alias rgp="rg --pre to_text"
 alias maxcompr="7z a -t7z -mx9 -m0=lzma2 -mmt2 -md1024m"

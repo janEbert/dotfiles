@@ -1,3 +1,4 @@
+// In GNOME: Add in /usr/share/X11/xkb/rules/evdev.xml as a <layout>
 // Works best with the following options
 // (if nbsp:zwnj2nb3nnb4 does not work, use nbsp:level3n)
 // (in GNOME, we don't need grp:win_space_toggle):

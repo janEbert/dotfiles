@@ -1052,7 +1052,7 @@ stop playback."
 	()))
 
 
-;; undo-propose
+;; undo-propose (C-c u)
 (define-key mode-specific-map (kbd "u") 'undo-propose)
 
 ;; dired-git-info
@@ -1267,8 +1267,8 @@ the context."
 	  (setq company-dabbrev-downcase nil)
 
 	  (setq company-selection-wrap-around t)
-	  ;; Autocomplete (C-c c)
-	  (define-key mode-specific-map (kbd "c") 'company-complete)
+	  ;; Autocomplete (C-c n)
+	  (define-key mode-specific-map (kbd "n") 'company-complete)
 
 	  ;; Usual completion keybindings
 	  ;; (with-eval-after-load "company"
@@ -1990,6 +1990,14 @@ on if a Solarized variant is currently active."
 	  (flyspell-mode 1)
 	(flyspell-mode 0)))
 
+(if (functionp 'global-num3-mode)
+	(defun toggle-global-num3-mode ()
+	  "Toggle global Num3 mode."
+	  (interactive)
+	  (if (eq global-num3-mode nil)
+		  (global-num3-mode 1)
+		(global-num3-mode 0))))
+
 (when (functionp 'pdf-tools-install)
   ;; TODO turn this into minor mode
   (defun toggle-presentation-mode ()
@@ -2059,9 +2067,9 @@ on if a Solarized variant is currently active."
 ;; Better expanding
 (global-set-key (kbd "M-/") 'hippie-expand)
 
-;; Better completion mapping (C-c c)
+;; Better completion mapping (C-c n)
 (unless (functionp 'company-complete)
-  (define-key mode-specific-map (kbd "c") 'completion-at-point))
+  (define-key mode-specific-map (kbd "n") 'completion-at-point))
 
 ;; Like dt or df in Vim
 (global-set-key (kbd "M-z") 'zap-up-to-char)
@@ -2094,8 +2102,11 @@ on if a Solarized variant is currently active."
 ;; Toggle Flyspell mode (C-c t s)
 (define-key my-toggle-map (kbd "s") 'toggle-flyspell-mode)
 
-;; Compile (C-c x c)
-(define-key my-extended-map (kbd "c") 'compile)
+;; Toggle Num3 mode (C-c t N)
+(define-key my-toggle-map (kbd "N") 'toggle-global-num3-mode)
+
+;; Compile (C-c c)
+(define-key mode-specific-map (kbd "c") 'compile)
 
 
 ;; Don't use arrow keys for window/buffer management (C-c w)
@@ -2158,6 +2169,9 @@ on if a Solarized variant is currently active."
 
 ;; Insert `default-directory' into the minibuffer (C-c x L)
 (define-key my-extended-map (kbd "L") 'minibuffer-insert-default-directory)
+
+;; Describe char (C-c x c)
+(define-key my-extended-map (kbd "c") 'describe-char)
 
 ;; Kill other buffers (C-c x k)
 (define-key my-extended-map (kbd "k") 'kill-other-buffers)

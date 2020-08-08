@@ -96,9 +96,20 @@ hooks for eglot.")
   (interactive)
   (find-file (expand-file-name "init.el" my-emacs-dir)))
 
-;; This key binding here so it is loaded before errors
+(defun query-kill-emacs ()
+  "Query whether to `kill-emacs' and if yes, `save-some-buffers' and kill."
+  (interactive)
+  (when (y-or-n-p "Kill Emacs server? ")
+	(save-some-buffers)
+	(kill-emacs)))
+
+;; These key bindings here so they are loaded before errors
 ;; Edit init.el (C-c i)
 (define-key mode-specific-map (kbd "i") 'find-init-file)
+
+;; Query whether to kill Emacs server (C-c k)
+(define-key mode-specific-map (kbd "k") 'query-kill-emacs)
+
 
 ;; Added by Package.el.  This must come before configurations of
 ;; installed packages.  Don't delete this line.  If you don't want it,
@@ -125,6 +136,7 @@ hooks for eglot.")
  '(backup-by-copying-when-linked t)
  '(before-save-hook '(time-stamp))
  '(bookmark-save-flag 1)
+ '(c-basic-offset 4)
  '(c-default-style
    '((c-mode . "k&r")
 	 (c++-mode . "k&r")
@@ -146,6 +158,7 @@ hooks for eglot.")
  '(display-time-mode t)
  '(electric-pair-mode t)
  '(electric-quote-comment nil)
+ '(global-cwarn-mode t)
  '(global-hl-line-mode t)
  '(global-subword-mode t)
  '(global-whitespace-mode t)
@@ -177,13 +190,14 @@ hooks for eglot.")
  '(package-menu-hide-low-priority t)
  '(package-quickstart t)
  '(package-selected-packages
-   '(counsel swiper projectile rust-mode slime jsonrpc d-mode cider gdscript-mode disk-usage dart-mode gnuplot web-mode ada-ref-man docker dockerfile-mode dired-du dired-git-info purescript-mode js2-mode magit markdown-mode typescript-mode realgud dap-mode cobol-mode csharp-mode fsharp-mode go-mode num3-mode php-mode sed-mode smalltalk-mode stan-mode swift-mode zig-mode elixir-mode erlang clojure-mode cmake-mode haskell-snippets caml sml-mode haskell-mode lsp-julia nasm-mode yaml-mode ada-mode chess csv-mode json-mode vterm lua-mode python nov ein yasnippet-snippets texfrag eglot undo-propose julia-repl ess form-feed nim-mode evil-collection evil-commentary evil-lion evil-magit evil-matchit evil-snipe evil-surround evil-visualstar landmark auctex zotxt company-quickhelp dumb-jump expand-region jupyter use-package gotham-theme zenburn-theme toc-org flymake org tramp ivy ggtags pdf-tools yasnippet solarized-theme rainbow-delimiters julia-mode helm gnu-elpa-keyring-update forge evil emms darkroom company))
+   '(mines magit julia-repl counsel swiper projectile rust-mode slime jsonrpc d-mode cider gdscript-mode disk-usage dart-mode gnuplot web-mode ada-ref-man docker dockerfile-mode dired-du dired-git-info purescript-mode js2-mode markdown-mode typescript-mode realgud dap-mode cobol-mode csharp-mode fsharp-mode go-mode num3-mode php-mode sed-mode smalltalk-mode stan-mode swift-mode zig-mode elixir-mode erlang clojure-mode cmake-mode haskell-snippets caml sml-mode haskell-mode lsp-julia nasm-mode yaml-mode ada-mode chess csv-mode json-mode vterm lua-mode python nov ein yasnippet-snippets texfrag eglot undo-propose ess form-feed nim-mode evil-collection evil-commentary evil-lion evil-magit evil-matchit evil-snipe evil-surround evil-visualstar landmark auctex zotxt company-quickhelp dumb-jump expand-region jupyter use-package gotham-theme zenburn-theme toc-org flymake org tramp ivy ggtags pdf-tools yasnippet solarized-theme rainbow-delimiters julia-mode helm gnu-elpa-keyring-update forge evil emms darkroom company))
  '(password-cache-expiry 1200)
  '(prettify-symbols-unprettify-at-point 'right-edge)
  '(read-buffer-completion-ignore-case t)
  '(read-file-name-completion-ignore-case t)
  '(read-quoted-char-radix 16)
  '(recenter-redisplay t nil nil "Change this so we redraw when calling `C-u C-l`.")
+ '(recentf-max-saved-items 200)
  '(recentf-mode t)
  '(register-separator 43)
  '(require-final-newline t)
@@ -278,6 +292,10 @@ hooks for eglot.")
 ;; Music commands (C-c m)
 (define-key mode-specific-map (kbd "m") 'my-music-map)
 
+(define-prefix-command 'my-mode-map)
+;; Actual mode specific commands (C-c y)
+(define-key mode-specific-map (kbd "y") 'my-mode-map)
+
 ;; Use more flexible completion styles
 (setq completion-styles (append completion-styles
 								'(substring flex)))
@@ -349,7 +367,7 @@ remove this function from `after-make-frame-functions'."
 (add-hook 'prog-mode-hook 'flyspell-prog-mode)
 ;; Use it for all text when writing e-mails
 (add-hook 'message-mode-hook 'flyspell-mode)
-(add-hook 'mail-mode-hook 'flyspell-mode)
+;; (add-hook 'mail-mode-hook 'flyspell-mode)
 
 ;; Deactivate scroll bars
 (add-hook 'emacs-startup-hook (lambda () (scroll-bar-mode 0)))
@@ -452,7 +470,7 @@ remove this function from `after-make-frame-functions'."
 (setq ediff-split-window-function 'split-window-horizontally)
 
 ;; Use EDE everywhere
-;; (global-ede-mode t) (conflicts with org-mode binding)
+(global-ede-mode t) ;; conflicts with org-mode binding
 
 ;; Change font
 (add-to-list 'default-frame-alist
@@ -680,6 +698,9 @@ returns a list of active Docker container names, followed by colons."
 ;; Org Babel
 
 (setq org-confirm-babel-evaluate nil)
+;; FIXME do we need this or the line below?
+(setq org-src-preserve-indentation t)
+;; (setq org-edit-src-content-indentation 0)
 
 ;; If we ever use ob-async...
 ;; (setq ob-async-no-async-languages-alist
@@ -706,7 +727,8 @@ already active."
   (defun open-monthly-agenda-deselected (&optional span)
 	"Open the agenda for the next `span' days (default 30) and switch to the
 previous window."
-	(org-agenda-list nil nil (if span span 30))
+	;; (org-agenda-list nil nil (if span span 30))
+	(org-agenda-run-series "Agenda and all TODOs" `(((agenda "" ((org-agenda-span (quote ,(if span span 30))))) (alltodo ""))))
 	;; Delete other window so we always open it vertically.
 	(delete-window (selected-window))
 	(switch-to-buffer-other-window "*Org Agenda*" t)
@@ -726,7 +748,7 @@ previous window."
   (add-hook 'org-babel-after-execute-hook 'org-display-inline-images)
   (add-hook 'org-mode-hook 'org-display-inline-images)
   (add-hook 'message-mode-hook 'turn-on-orgtbl)
-  (add-hook 'mail-mode-hook 'turn-on-orgtbl)
+  ;; (add-hook 'mail-mode-hook 'turn-on-orgtbl)
 
   ;; Org keybindings (C-c o)
   (define-prefix-command 'my-org-map)
@@ -763,6 +785,40 @@ previous window."
 
   ;; Open PDFs in Emacs
   (setcdr (assoc "\\.pdf\\'" org-file-apps) 'emacs)
+
+
+  ;; Enable LaTeX letter class
+  (with-eval-after-load 'ox-latex
+	(add-to-list 'org-latex-classes
+				 '("letter" "\\documentclass[11pt]{letter}"
+				   ("\\opening{%s}")
+				   ("\\closing{%s}")
+				   ("\\ps{}\n%s")
+				   ("\\cc{%s}")
+				   ("\\encl{%s}"))))
+
+  (defun my-org-plain-text-filter-no-break-space (text backend info)
+	"Ensure non-breaking spaces (\" \") are properly handled in Org export."
+	(replace-regexp-in-string
+	 " "
+	 (cond ((org-export-derived-backend-p backend 'latex) "~")
+		   ((org-export-derived-backend-p backend 'html) "&nbsp;"))
+	 text t t))
+
+  (defun my-org-plain-text-filter-zero-width-space (text backend info)
+	"Ensure zero-width spaces (\"​\") are properly handled in Org export."
+	(replace-regexp-in-string
+	 "​"
+	 (cond ((org-export-derived-backend-p backend 'latex) "\\hspace{0pt}")
+		   ((org-export-derived-backend-p backend 'html) "&#8203;"))
+	 text t t))
+
+  (with-eval-after-load 'ox
+	(setq org-export-filter-plain-text-functions
+		  (append org-export-filter-plain-text-functions
+				  '(my-org-plain-text-filter-no-break-space
+					my-org-plain-text-filter-zero-width-space))))
+
 
   ;; TODO only load languages when they're in path; don't load shell on windows
   (setq my-org-babel-load-languages
@@ -945,6 +1001,10 @@ theme variant."
   (add-hook 'LaTeX-mode-hook #'flymake-mode))
 (add-hook 'LaTeX-mode-hook (lambda () (electric-pair-local-mode 0)))
 (setq reftex-plug-into-AUCTeX t)
+;; Find/visit `TeX-master' (C-c y v)
+(with-eval-after-load 'auctex
+  (define-key TeX-mode-map (kbd "C-c y v")
+	(lambda () (interactive) (find-file (concat (TeX-master-file) ".tex")))))
 
 ;; Use PDF-Tools
 (when (functionp 'pdf-tools-install)
@@ -1126,7 +1186,7 @@ stop playback."
 	  (evil-set-initial-state 'shell-mode    'emacs)
 	  (evil-set-initial-state 'term-mode     'emacs)
 	  (evil-set-initial-state 'message-mode  'emacs)
-	  (evil-set-initial-state 'mail-mode     'emacs)
+	  ;; (evil-set-initial-state 'mail-mode     'emacs)
 	  (evil-set-initial-state 'org-mode      'emacs)
 	  (evil-set-initial-state 'calendar-mode 'emacs)
 	  (evil-set-initial-state 'picture-mode  'emacs)
@@ -1311,6 +1371,10 @@ the context."
   (ivy-mode 1)
   (setq ivy-use-virtual-buffers t)
   (setq ivy-count-format "(%d/%d) ")
+
+  ;; Cannot quit `visit-tags-table'; disable it
+  (define-key ivy-mode-map (kbd "M-.")
+	(lambda () (interactive) (message "not allowed here")))
 
   (global-set-key (kbd "C-x b")	'ivy-switch-buffer)
   (global-set-key (kbd "C-x 4 b") 'ivy-switch-buffer-other-window)
@@ -1542,6 +1606,13 @@ and append it."
   )
 
 
+;; Python mode
+(add-hook 'python-mode-hook
+		  (lambda ()
+			(kill-local-variable 'tab-width)
+			(kill-local-variable 'python-indent-offset)))
+
+
 ;; Julia mode
 ;; (require 'julia-mode)
 (autoload 'julia-mode-hook "julia-mode")
@@ -1602,6 +1673,7 @@ and append it."
 	(add-hook 'prog-mode-hook #'lsp))  ;; or #'lsp-deferred
 
   (setq lsp-before-save-edits nil)
+  (setq lsp-completion-enable-additional-text-edit nil)
   (when (< emacs-major-version 27)
 	(setq lsp-completion-styles '(basic)))
 
@@ -1610,6 +1682,9 @@ and append it."
 	(setq lsp-rust-server 'rust-analyzer)
 	(autoload 'lsp-rust-analyzer-inlay-hints-mode "lsp-rust")
 	(lsp-rust-analyzer-inlay-hints-mode 1))
+
+  ;; Parallel jobs for the LSP and store index in file
+  (setq lsp-clients-clangd-args '("-j=4" "-background-index"))
 
   ;; (setq lsp-pyls-plugins-pylint-enabled t) ;; source also disables this
   ;; (setq lsp-pyls-plugins-pycodestyle-max-line-length 100)
@@ -1809,13 +1884,6 @@ and append it."
 
 
 ;; Custom commands
-
-(defun query-kill-emacs ()
-  "Query whether to `kill-emacs' and if yes, `save-some-buffers' and kill."
-  (interactive)
-  (when (y-or-n-p "Kill Emacs server? ")
-	(save-some-buffers)
-	(kill-emacs)))
 
 (defun kill-other-buffers ()
   "Kill all other buffers."
@@ -2139,9 +2207,6 @@ on if a Solarized variant is currently active."
 (global-set-key (kbd "M-T") 'transpose-sexps)
 ;; Remap `kill-whole-line' to M-S-k to avoid Terminal misinterpretation.
 (global-set-key (kbd "M-K") 'kill-whole-line)
-
-;; Query whether to kill Emacs server (C-c k)
-(define-key mode-specific-map (kbd "k") 'query-kill-emacs)
 
 
 ;; Revert buffer (C-c x r)

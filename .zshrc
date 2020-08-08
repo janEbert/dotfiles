@@ -218,6 +218,9 @@ export JULIA_NUM_THREADS=64
 
 # Rust
 export PATH="$HOME/.cargo/bin:$PATH"
+# sccache
+export SCCACHE_CACHE_SIZE="1G"
+export RUSTC_WRAPPER=sccache
 
 # Nim
 export PATH="$HOME/.nimble/bin:$PATH"

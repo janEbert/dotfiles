@@ -294,6 +294,10 @@ This way, the newly added directories have priority over old ones."
 	  (dont-show-whitespace)
 	(show-whitespace)))
 
+(defun disable-string-face ()
+  "Disable the string face."
+  (setq-local font-lock-string-face nil))
+
 
 (define-prefix-command 'my-extended-map)
 ;; Extended custom commands (C-c x)
@@ -419,9 +423,12 @@ remove this function from `after-make-frame-functions'."
 ;; Auto-fill in TeX mode
 (add-hook 'tex-mode-hook 'auto-fill-mode)
 
-;; Disable whitespace in Shell and Term mode
-(add-hook 'shell-mode-hook 'toggle-show-whitespace)
-(add-hook 'term-mode-hook  'toggle-show-whitespace)
+;; Disable whitespace and string face in Eshell, comint, Shell, and Term mode
+(dolist (mode-hook
+		 '(eshell-mode-hook comint-mode-hook shell-mode-hook term-mode-hook))
+  (add-hook mode-hook (lambda ()
+						(dont-show-whitespace)
+						(disable-string-face))))
 
 
 ;; Dired
@@ -1340,6 +1347,10 @@ stop playback."
 	  ;; C-k deletes line forward
 	  (define-key evil-ex-completion-map (kbd "C-k") 'evil-delete-line)
 	  (define-key evil-ex-completion-map (kbd "C-S-k") 'evil-insert-digraph)
+	  ;; M-p gets previous complete history element
+	  (define-key evil-ex-completion-map (kbd "M-p") 'previous-complete-history-element)
+	  ;; M-n gets next complete history element
+	  (define-key evil-ex-completion-map (kbd "M-n") 'next-complete-history-element)
 
 	  ;; C-l in normal state to remove highlighting
 	  (define-key evil-normal-state-map (kbd "C-l") 'evil-ex-nohighlight)
@@ -1623,15 +1634,17 @@ and append it."
 
 ;; Emacs libvterm
 
-;; Disable whitespace in VTerm mode
+;; Disable whitespace and string face in VTerm mode
 ;; TODO these do not work
 ;; (autoload 'vterm-mode-hook "vterm")
 ;; (add-hook 'vterm-mode-hook 'toggle-show-whitespace)
 (if (functionp 'vterm)
 	(progn
 	  (advice-add 'vterm :after
-				  (lambda (&rest _args) (toggle-show-whitespace))
-				  '((name . "vterm-toggle-show-whitespace")))
+				  (lambda (&rest _args)
+					(dont-show-whitespace)
+					(disable-string-face))
+				  '((name . "vterm-disable-special-visuals")))
 	  (define-key my-extended-map (kbd "t") 'vterm))
   ;; Enter terminal (C-c x t)
   (define-key my-extended-map (kbd "t") 'term))

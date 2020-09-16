@@ -112,12 +112,14 @@ vim: .vimrc
 	mkdir -p $(VIM_DIR)/tags
 	mkdir -p $(VIM_DIR)/tmp
 
-emacs: init.el early-init.el .gnus.el
+emacs: init.el early-init.el eshell-alias .gnus.el
+	mkdir -p $(EMACS_DIR)/eshell
 	mkdir -p $(EMACS_DIR)/lisp
 	mkdir -p $(EMACS_DIR)/themes
 	mkdir -p $(EMACS_DIR)/etags
 	ln $(LN_FLAGS) $(PWD)/init.el $(EMACS_DIR)/init.el
 	ln $(LN_FLAGS) $(PWD)/early-init.el $(EMACS_DIR)/early-init.el
+	ln $(LN_FLAGS) $(PWD)/eshell-alias $(EMACS_DIR)/eshell/alias
 	ln $(LN_FLAGS) $(PWD)/.gnus.el $(HOME_DIR)/.gnus.el
 
 tmux: .tmux.conf

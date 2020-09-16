@@ -1,0 +1,3 @@
+alias toggle-kill-visuals echo $(setq eshell-destroy-buffer-when-process-dies (not eshell-destroy-buffer-when-process-dies))
+alias visual eshell-exec-visual $*
+alias avisual apply $(quote eshell-exec-visual) $*

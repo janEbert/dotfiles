@@ -1,4 +1,4 @@
-;; -*- mode: emacs-lisp; lexical-binding: t -*-
+;; -*- mode: emacs-lisp; lexical-binding: t; no-byte-compile: t -*-
 
 ;; Build with:
 ;;    ./autogen.sh
@@ -7,6 +7,13 @@
 ;;    [sudo] make install
 ;; Execute:
 ;;    emacsclient -c -a ''
+;; After upgrade:
+;;    \emacs --batch --eval '(byte-recompile-directory <package-user-dir> nil t)'
+;;    # or...
+;;    \emacs -q
+;;    # possibly also M-x package-initialize
+;;    M-x eval-expression (M-:)
+;;    (byte-recompile-directory package-user-dir nil t)
 
 ;; Link target "~/.emacs.d/.gnus.el" to name "~/.gnus.el"
 ;; (optional) Create "~/.emacs.d/.private_config.el"
@@ -43,6 +50,7 @@
 (defconst my-autosave-dir (expand-file-name "autosaves" my-emacs-dir))
 (defconst my-extended-package-dir (expand-file-name "lisp" my-emacs-dir))
 (defconst my-themes-dir (expand-file-name "themes" my-emacs-dir))
+(defconst my-desktop-dir (expand-file-name "desktops" my-emacs-dir))
 
 (defvar my-graphic-light-theme 'solarized-light)
 (defvar my-graphic-dark-theme 'solarized-dark)
@@ -88,9 +96,6 @@ hooks for eglot.")
 				  inhibit-compacting-font-caches t
 				  bidi-display-reordering nil))
 
-;; Prefer more recent files when loading.
-(setq load-prefer-newer t)
-
 (defun find-init-file ()
   "Find init.el in `my-emacs-dir'."
   (interactive)
@@ -115,7 +120,7 @@ hooks for eglot.")
 ;; installed packages.  Don't delete this line.  If you don't want it,
 ;; just comment it out by adding a semicolon to the start of the line.
 ;; You may delete these explanatory comments.
-(when (or (< emacs-major-version 27) (and t (= emacs-major-version 27) (< emacs-minor-version 1)))
+(when (< emacs-major-version 27)
   (package-initialize))
 
 ;; Add package lists
@@ -149,6 +154,7 @@ hooks for eglot.")
  '(current-language-environment "UTF-8")
  '(delete-old-versions t)
  '(delete-trailing-lines nil)
+ '(desktop-restore-eager 10)
  '(dired-always-read-filesystem t)
  '(dired-dwim-target 'dired-dwim-target-recent)
  '(display-battery-mode t)
@@ -190,7 +196,7 @@ hooks for eglot.")
  '(package-menu-hide-low-priority t)
  '(package-quickstart t)
  '(package-selected-packages
-   '(mines magit julia-repl counsel swiper projectile rust-mode slime jsonrpc d-mode cider gdscript-mode disk-usage dart-mode gnuplot web-mode ada-ref-man docker dockerfile-mode dired-du dired-git-info purescript-mode js2-mode markdown-mode typescript-mode realgud dap-mode cobol-mode csharp-mode fsharp-mode go-mode num3-mode php-mode sed-mode smalltalk-mode stan-mode swift-mode zig-mode elixir-mode erlang clojure-mode cmake-mode haskell-snippets caml sml-mode haskell-mode lsp-julia nasm-mode yaml-mode ada-mode chess csv-mode json-mode vterm lua-mode python nov ein yasnippet-snippets texfrag eglot undo-propose ess form-feed nim-mode evil-collection evil-commentary evil-lion evil-magit evil-matchit evil-snipe evil-surround evil-visualstar landmark auctex zotxt company-quickhelp dumb-jump expand-region jupyter use-package gotham-theme zenburn-theme toc-org flymake org tramp ivy ggtags pdf-tools yasnippet solarized-theme rainbow-delimiters julia-mode helm gnu-elpa-keyring-update forge evil emms darkroom company))
+   '(project so-long xref undohist browse-at-remote mines magit julia-repl counsel swiper projectile rust-mode slime jsonrpc d-mode cider gdscript-mode disk-usage dart-mode gnuplot web-mode ada-ref-man docker dockerfile-mode dired-du dired-git-info purescript-mode js2-mode markdown-mode typescript-mode realgud dap-mode cobol-mode csharp-mode fsharp-mode go-mode num3-mode php-mode sed-mode smalltalk-mode stan-mode swift-mode zig-mode elixir-mode erlang clojure-mode cmake-mode haskell-snippets caml sml-mode haskell-mode lsp-julia nasm-mode yaml-mode ada-mode chess csv-mode json-mode vterm lua-mode python nov ein yasnippet-snippets texfrag eglot undo-propose ess form-feed nim-mode evil-collection evil-commentary evil-lion evil-magit evil-matchit evil-snipe evil-surround evil-visualstar landmark auctex zotxt company-quickhelp dumb-jump expand-region jupyter use-package gotham-theme zenburn-theme toc-org flymake org tramp ivy ggtags pdf-tools yasnippet solarized-theme rainbow-delimiters julia-mode helm gnu-elpa-keyring-update forge evil emms darkroom company))
  '(password-cache-expiry 1200)
  '(prettify-symbols-unprettify-at-point 'right-edge)
  '(read-buffer-completion-ignore-case t)
@@ -203,7 +209,7 @@ hooks for eglot.")
  '(require-final-newline t)
  '(save-place-mode t)
  '(savehist-additional-variables
-   '(command-history search-ring regexp-search-ring kill-ring extended-command-history))
+   '(tablist-named-filter command-history search-ring regexp-search-ring kill-ring extended-command-history compile-command))
  '(savehist-mode t)
  '(scroll-bar-mode 'right)
  '(semantic-mode t)
@@ -213,7 +219,7 @@ hooks for eglot.")
  '(shell-prompt-pattern "^\\(?:###\\)?[^#$%>
 ]*[#$%>] *")
  '(show-paren-mode t)
- '(show-paren-style 'mixed nil nil "Originally parenthesis. Maybe try out expression or mixed.")
+ '(show-paren-style 'parenthesis nil nil "Originally parenthesis. Maybe try out expression or mixed.")
  '(show-paren-when-point-in-periphery t)
  '(show-paren-when-point-inside-paren t)
  '(show-trailing-whitespace t)
@@ -231,6 +237,7 @@ hooks for eglot.")
  '(vc-follow-symlinks t)
  '(vc-make-backup-files t)
  '(version-control t)
+ '(wdired-allow-to-change-permissions t)
  '(which-function-mode t)
  '(whitespace-style '(face trailing lines-tail tab-mark))
  '(winner-mode t))
@@ -243,18 +250,22 @@ hooks for eglot.")
 
 (setq package-check-signature t)
 
-;; For external plugins in `my-extended-package-dir'
-(let ((default-directory my-extended-package-dir))
-  (if (file-exists-p my-extended-package-dir)
-	  (setq load-path
-			(append
-			 (let ((load-path  (copy-sequence load-path)))
-			   (append
-				(copy-sequence (normal-top-level-add-to-load-path '(".")))
-				(normal-top-level-add-subdirs-to-load-path)))
-			 load-path))
-	(warn "%s does not exist; no custom extensions loaded"
-		  my-extended-package-dir)))
+(defun add-dir-tree-to-front-of-load-path (dir)
+  "Add `dir' and all of its subdirectories to the front of `load-path'.
+This way, the newly added directories have priority over old ones."
+  (let ((default-directory dir))
+	(if (file-exists-p dir)
+		(setq load-path
+			  (append
+			   (let ((load-path (copy-sequence load-path)))
+				 (append
+				  (copy-sequence (normal-top-level-add-to-load-path '(".")))
+				  (normal-top-level-add-subdirs-to-load-path)))
+			   load-path))
+	  (warn "%s does not exist; `load-path' was not modified" dir))))
+
+;; Add external plugins in `my-extended-package-dir' to `load-path'.
+(add-dir-tree-to-front-of-load-path my-extended-package-dir)
 
 ;; Load themes in `my-themes-dir'
 (let ((basedir my-themes-dir))
@@ -271,13 +282,17 @@ hooks for eglot.")
   (setq-local show-trailing-whitespace nil)
   (whitespace-mode 0))
 
+(defun show-whitespace ()
+  "Enable showing whitespace in the current buffer."
+  (setq-local show-trailing-whitespace t)
+  (whitespace-mode 1))
+
 (defun toggle-show-whitespace ()
   "Toggle showing whitespace in the current buffer."
   (interactive)
   (if (or show-trailing-whitespace whitespace-mode)
 	  (dont-show-whitespace)
-	(setq-local show-trailing-whitespace t)
-	(whitespace-mode 1)))
+	(show-whitespace)))
 
 
 (define-prefix-command 'my-extended-map)
@@ -313,6 +328,16 @@ hooks for eglot.")
 							 (expand-file-name my-emacs-dir) t t)
 							"/.*"))))
 
+;; Desktop/session saving
+(with-eval-after-load "desktop"
+  (add-to-list 'desktop-path my-desktop-dir))
+;; TODO Configure `frameset-filter-alist' so the stored session is more clean.
+
+;; Eshell
+
+;; Do not suggest aliasing
+(setq eshell-bad-command-tolerance 1.0e+INF)
+
 ;; More Eshell visual commands
 (with-eval-after-load "em-term"
   (setq eshell-visual-commands
@@ -327,7 +352,7 @@ hooks for eglot.")
 				  ("emacsclient" "-nw" "--no-window-system"))))
   (setq eshell-visual-subcommands
 		(append eshell-visual-subcommands
-				'(("git" "log" "reflog" "diff" "show")))))
+				'(("git" "diff" "help" "log" "reflog" "show")))))
 
 ;; Set backup directory
 (setq backup-directory-alist `(("." . ,my-backup-dir)))
@@ -371,6 +396,11 @@ remove this function from `after-make-frame-functions'."
 
 ;; Deactivate scroll bars
 (add-hook 'emacs-startup-hook (lambda () (scroll-bar-mode 0)))
+
+;; Larger undo limits
+(setq undo-limit (* undo-limit 100))
+(setq undo-strong-limit (* undo-strong-limit 100))
+(setq undo-outer-limit (* undo-outer-limit 10))
 
 ;; Smooth (mouse) scrolling
 (when (require 'pixel-scroll nil t)
@@ -452,6 +482,26 @@ remove this function from `after-make-frame-functions'."
 			  #'xwidget-webkit-goto-uri--allow-files-only
 			  '((name . "allow-files-only")))
 
+  ;; FIXME analyze and fix (better to fix below depending on values of `proc' and `arg')
+  (defun xwidget-webkit-callback--allow-files-only (orig-fun &rest args)
+	"Only allow local files on script callbacks."
+	(message (format "xwidget-event-type %s" (nth 1 args)))
+	(message (format "proc %s" (nth 3 last-input-event)))
+	(message (format "arg %s" (nth 4 last-input-event))))
+  (advice-add 'xwidget-webkit-callback :around
+			  #'xwidget-webkit-callback--allow-files-only
+			  '((name . "allow-files-only")))
+
+  ;; FIXME analyze and fix
+  ;; (defun xwidget-webkit-execute-script--allow-files-only (orig-fun &rest args)
+  ;; 	"Only allow local files on script callbacks."
+  ;; 	(message (format "xwidget-event-type %s" (nth 1 args)))
+  ;; 	(message (format "proc %s" (nth 3 last-input-event)))
+  ;; 	(message (format "arg %s" (nth 4 last-input-event))))
+  ;; (advice-add 'xwidget-webkit-execute-script :around
+  ;; 			  #'xwidget-webkit-execute-script--allow-files-only
+  ;; 			  '((name . "allow-files-only")))
+
   (defun xwidget-webkit-open-file (file &optional new-session)
 	"Open a local file from the xwidget webkit browser."
 	(interactive "fxwidget-webkit File: ")
@@ -470,11 +520,20 @@ remove this function from `after-make-frame-functions'."
 (setq ediff-split-window-function 'split-window-horizontally)
 
 ;; Use EDE everywhere
-(global-ede-mode t) ;; conflicts with org-mode binding
+(global-ede-mode 1) ;; conflicts with org-mode binding
 
 ;; Change font
 (add-to-list 'default-frame-alist
              '(font . "DejaVu Sans Mono-11"))
+
+;; 😀
+;; (set-fontset-font t 'symbol "Noto Color Emoji")
+;; (set-fontset-font t 'symbol "Noto Color Emoji" nil 'append)
+;; (set-fontset-font t '(#x1f300 . #x1fad0) "Ubuntu Mono Regular")
+;; (set-fontset-font t '(#x1f300 . #x1fad0) "Noto Color Emoji")
+;; (set-fontset-font t '(#x1f600 . #x1f64f)
+;; 				  (font-spec :name "Noto Color Emoji:" :registry "iso10646-1") nil 'prepend)
+;; (set-fontset-font "fontset-default" 'symbol "Noto Color Emoji" nil 'prepend)
 
 ;; RefTeX
 ;; (require 'reftex)
@@ -590,7 +649,11 @@ returns a list of active Docker container names, followed by colons."
   (define-key my-toggle-map (kbd "f") 'toggle-flymake-mode))
 
 ;; Org mode
+
 (setq org-directory (expand-file-name "org" my-emacs-dir))
+(setq org-publish-timestamp-directory
+	  (file-name-as-directory
+	   (expand-file-name ".org-timestamps" my-emacs-dir)))
 
 ;; Keys
 (setq org-disputed-keys
@@ -693,6 +756,7 @@ returns a list of active Docker container names, followed by colons."
 
 (setq org-export-with-smart-quotes t)
 ;; Use HTML5
+(setq org-html-doctype "html5")
 (setq org-html-html5-fancy t)
 
 ;; Org Babel
@@ -702,6 +766,11 @@ returns a list of active Docker container names, followed by colons."
 (setq org-src-preserve-indentation t)
 ;; (setq org-edit-src-content-indentation 0)
 
+;; Open source code over current window.
+(setq org-src-window-setup 'current-window)
+;; Correctly show whitespace
+(add-hook 'org-src-mode-hook 'show-whitespace)
+
 ;; If we ever use ob-async...
 ;; (setq ob-async-no-async-languages-alist
 ;; 	  '("jupyter-python" "jupyter-julia"))
@@ -709,8 +778,13 @@ returns a list of active Docker container names, followed by colons."
 (setq my-org-babel-load-languages '())
 
 ;; Other settings and keybindings
-(when (and (require 'org-install nil t)
-		   (require 'org-habit nil t))
+;; TODO org-install is obsolete; remove it when backward compatibility
+;; is not necessary anymore
+(when (and (or (>= emacs-major-version 27) (require 'org-install nil t))
+		   (require 'org-habit nil t)
+		   (require 'org-protocol nil t)
+		   (require 'org-crypt nil t)
+		   (require 'org-tempo nil t))
   ;; First agenda file as notes file
   (when (> (length org-agenda-files) 0)
 	(setq org-default-notes-file (car org-agenda-files)))
@@ -799,19 +873,29 @@ previous window."
 
   (defun my-org-plain-text-filter-no-break-space (text backend info)
 	"Ensure non-breaking spaces (\" \") are properly handled in Org export."
-	(replace-regexp-in-string
-	 " "
-	 (cond ((org-export-derived-backend-p backend 'latex) "~")
-		   ((org-export-derived-backend-p backend 'html) "&nbsp;"))
-	 text t t))
+	(let* ((nbsp " ")
+		   (replacement
+			(cond ((org-export-derived-backend-p backend 'latex) "~")
+				  ((org-export-derived-backend-p backend 'html) "&nbsp;")
+				  (t nbsp))))
+	  (unless (string= nbsp replacement)
+		(replace-regexp-in-string
+		 nbsp
+		 replacement
+		 text t t))))
 
   (defun my-org-plain-text-filter-zero-width-space (text backend info)
 	"Ensure zero-width spaces (\"​\") are properly handled in Org export."
-	(replace-regexp-in-string
-	 "​"
-	 (cond ((org-export-derived-backend-p backend 'latex) "\\hspace{0pt}")
-		   ((org-export-derived-backend-p backend 'html) "&#8203;"))
-	 text t t))
+	(let* ((zwsp "​")
+		   (replacement
+			(cond ((org-export-derived-backend-p backend 'latex) "\\hspace{0pt}")
+				  ((org-export-derived-backend-p backend 'html) "&#8203;")
+				  (t zwsp))))
+	  (unless (string= zwsp replacement)
+		(replace-regexp-in-string
+		 zwsp
+		 replacement
+		 text t t))))
 
   (with-eval-after-load 'ox
 	(setq org-export-filter-plain-text-functions
@@ -1112,12 +1196,13 @@ stop playback."
 	()))
 
 
-;; undo-propose (C-c u)
-(define-key mode-specific-map (kbd "u") 'undo-propose)
-
 ;; dired-git-info
 (with-eval-after-load 'dired
   (define-key dired-mode-map ")" 'dired-git-info-mode))
+
+;; Undohist
+(require 'undohist)
+(undohist-initialize)
 
 ;; Evil mode
 (setq evil-flash-delay 20)
@@ -1180,6 +1265,7 @@ stop playback."
 	  (evil-set-initial-state 'evil-command-window-mode 'normal)
 	  ;; But also not in these (possibly inherited) modes
 	  (evil-set-initial-state 'help-mode     'emacs)
+	  (evil-set-initial-state 'messages-buffer-mode 'emacs)
 	  (evil-set-initial-state 'Info-mode     'emacs)
 	  (evil-set-initial-state 'Man-mode      'emacs)
 	  (evil-set-initial-state 'comint-mode   'emacs)
@@ -1195,6 +1281,9 @@ stop playback."
 	  ;; Magit commit message
 	  (add-to-list 'evil-buffer-regexps '("COMMIT_EDITMSG" . emacs))
 
+	  ;; Reset *Messages* buffer state
+	  (evil-change-to-initial-state (messages-buffer))
+
 	  ;; Picture mode
 	  (add-hook 'picture-mode-hook
 				(lambda () (evil-emacs-state)))
@@ -1208,7 +1297,8 @@ stop playback."
 	  (evil-set-leader 'normal (kbd "SPC"))
 
 	  ;; Use previous substitute flags by default when repeating using &
-	  (define-key evil-normal-state-map (kbd "&") 'evil-ex-repeat-substitute-with-flags)
+	  (define-key evil-normal-state-map (kbd "&")
+		'evil-ex-repeat-substitute-with-flags)
 
 	  ;; Swap ' and ` in normal state
 	  (define-key evil-normal-state-map (kbd "'") 'evil-goto-mark)
@@ -1284,8 +1374,11 @@ the context."
 	  (define-key evil-normal-state-map (kbd "M-.")
 		'my-maybe-evil-repeat-pop-next)
 
-	  ;; C-r invokes undo-propose (since we do not use undo-tree)
-	  (define-key evil-normal-state-map (kbd "C-r") 'undo-propose)
+	  ;; C-r invokes undo-redo (since we do not use undo-tree)
+	  (if (< emacs-major-version 28)
+		  ;; C-r invokes undo-propose in versions without undo-redo
+		  (define-key evil-normal-state-map (kbd "C-r") 'undo-propose)
+		(define-key evil-normal-state-map (kbd "C-r") 'undo-redo))
 
 
 	  ;; TODO this is most likely unnecessary
@@ -1379,6 +1472,7 @@ the context."
   (global-set-key (kbd "C-x b")	'ivy-switch-buffer)
   (global-set-key (kbd "C-x 4 b") 'ivy-switch-buffer-other-window)
 
+  ;; Resume Ivy dispatch (C-c r)
   (define-key mode-specific-map (kbd "r") 'ivy-resume)
 
   (when (functionp 'swiper)
@@ -2030,7 +2124,7 @@ on if a Solarized variant is currently active."
 	(toggle-background)))
 
 (defun toggle-indent-tabs-mode ()
-  "Toggle `indent-tabs-mode'."
+  "Toggle `indent-tabs-mode' and re-tabify."
   (interactive)
   (if (eq indent-tabs-mode nil)
 	  (progn
@@ -2038,6 +2132,20 @@ on if a Solarized variant is currently active."
 		(tabify (point-min) (point-max)))
 	(setq indent-tabs-mode nil)
 	(untabify (point-min) (point-max))))
+
+(defun toggle-font-lock-mode ()
+  "Toggle Font-Lock mode."
+  (interactive)
+  (if (eq global-font-lock-mode nil)
+	  (global-font-lock-mode 1)
+	(global-font-lock-mode 0)))
+
+(defun toggle-subword-mode ()
+  "Toggle Subword mode."
+  (interactive)
+  (if (eq global-subword-mode nil)
+	  (global-subword-mode 1)
+	(global-subword-mode 0)))
 
 (if (functionp 'pixel-scroll-mode)
 	(defun toggle-pixel-scroll-mode ()
@@ -2057,6 +2165,13 @@ on if a Solarized variant is currently active."
   (if (eq flyspell-mode nil)
 	  (flyspell-mode 1)
 	(flyspell-mode 0)))
+
+(defun toggle-ede-mode ()
+  "Toggle EDE mode."
+  (interactive)
+  (if (eq global-ede-mode nil)
+	  (global-ede-mode 1)
+	(global-ede-mode 0)))
 
 (if (functionp 'global-num3-mode)
 	(defun toggle-global-num3-mode ()
@@ -2132,6 +2247,12 @@ on if a Solarized variant is currently active."
 ;; Find file at point (C-c f)
 (define-key mode-specific-map (kbd "f") 'find-file-at-point)
 
+;; Repeat complex command (C-c z)
+(define-key mode-specific-map (kbd "z") 'repeat-complex-command)
+
+;; undo-only (C-c u)
+(define-key mode-specific-map (kbd "u") 'undo-only)
+
 ;; Better expanding
 (global-set-key (kbd "M-/") 'hippie-expand)
 
@@ -2141,6 +2262,7 @@ on if a Solarized variant is currently active."
 
 ;; Like dt or df in Vim
 (global-set-key (kbd "M-z") 'zap-up-to-char)
+;; Zap to char (C-c x z)
 (define-key mode-specific-map (kbd "z") 'zap-to-char)
 
 ;; Swap literal and regex isearch
@@ -2161,14 +2283,26 @@ on if a Solarized variant is currently active."
 ;; Toggle showing whitespace (C-c t w)
 (define-key my-toggle-map (kbd "w") 'toggle-show-whitespace)
 
+;; Toggle font-lock (C-c t c)
+(define-key my-toggle-map (kbd "c") 'toggle-font-lock-mode)
+
+;; Toggle subword movement (C-c t W)
+(define-key my-toggle-map (kbd "W") 'toggle-subword-mode)
+
 ;; Toggle pixel-scrolling (C-c t p)
 (define-key my-toggle-map (kbd "p") 'toggle-pixel-scroll-mode)
 
 ;; Toggle auto fill mode (C-c t F)
 (define-key my-toggle-map (kbd "F") 'auto-fill-mode)
 
+;; Toggle truncation of long lines (C-c t L)
+(define-key my-toggle-map (kbd "L") 'toggle-truncate-lines)
+
 ;; Toggle Flyspell mode (C-c t s)
 (define-key my-toggle-map (kbd "s") 'toggle-flyspell-mode)
+
+;; Toggle EDE mode (C-c t e)
+(define-key my-toggle-map (kbd "e") 'toggle-ede-mode)
 
 ;; Toggle Num3 mode (C-c t N)
 (define-key my-toggle-map (kbd "N") 'toggle-global-num3-mode)
@@ -2244,8 +2378,14 @@ on if a Solarized variant is currently active."
 ;; Open Proced (C-c x p)
 (define-key my-extended-map (kbd "p") 'proced)
 
-;; Enter shell (C-c x s)
-(define-key my-extended-map (kbd "s") 'shell)
+;; Enter shell (C-c x S)
+(define-key my-extended-map (kbd "S") 'shell)
+
+;; Enter eshell (C-c x s)
+(define-key my-extended-map (kbd "s") 'eshell)
+
+;; Grep (C-c x G)
+(define-key my-extended-map (kbd "G") 'grep)
 
 ;; Enter EWW (C-c x w)
 (define-key my-extended-map (kbd "w") 'eww)

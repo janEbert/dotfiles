@@ -42,6 +42,58 @@ gitig() {
     echo "" >> "$localgitignore"
 }
 
+nofj() {
+    args=( "$@" )
+    num_args="${#args[@]}"
+    args_after_2=( "${args[@]:1:$num_args}" )
+
+    executable="$1"
+    executable_path="/usr/bin/$executable"
+
+    # TODO follow original link; only if it's firejail, do the following
+    if [ -x "$executable_path" ]; then
+        "$executable_path" "${args_after_2[@]}"
+    else
+        # TODO try different path locations instead until a non-firejail link is found
+        echo "Could not find $executable_path; please fix the $0 function."
+    fi
+}
+
+github_release_download() {
+    if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+        echo "Syntax: $0 <path/to/update> <github/release/url> <github_release_name>"
+        echo "  Release URLs are of the form"
+        echo "  https://api.github.com/repos/<organization>/<repo>/releases/latest"
+        return 0
+    fi
+
+    path_to_update=$1
+    github_release_url=$2
+    # TODO If not given, get this from the url
+    github_release_name=$3
+
+    release_json=$(wget -qO - "$github_release_url" \
+                       | jq '.assets[] | select(.name == "$github_release_name")')
+    release_download_url=$(echo "$release_json" | jq -r '.browser_download_url')
+
+    if ![ -f "$path_to_update" ]; then
+        # TODO If necessary, uncomment below or take extra arg for the ignore folder
+        # firejail --ignore='read-only ${HOME}/.local/bin'
+        wget -O "$path_to_update" "$github_release_url"
+        return 0;
+    fi
+
+    local_last_modified=$(date -uI's' -r "$path_to_update")
+    release_last_modified=$(date -uI's' -d \
+                                       $(echo "$release_json" | jq -r '.updated_at'))
+
+    if [ "$local_last_modified" \< "$release_last_modified" ]; then
+        # TODO If necessary, uncomment below or take extra arg for the ignore folder
+        # firejail --ignore='read-only ${HOME}/.local/bin'
+        wget -O "$path_to_update" "$github_release_url"
+    fi
+}
+
 change_monitor_brightness() {
     xrandr --output HDMI-1-2 --brightness $1
 }

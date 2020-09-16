@@ -33,6 +33,9 @@ case "$1" in
 	*.tar.zst|*.tzst)
 		exec tar xf --zstd "$1" -O
 		;;
+	*.gz)
+		exec gunzip -c "$1"
+		;;
 	*)
 		case $(file "$1") in
 			*Zstandard*)

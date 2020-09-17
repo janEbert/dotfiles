@@ -432,7 +432,7 @@ remove this function from `after-make-frame-functions'."
 
 
 ;; Dired
-(add-hook 'dired-after-readin-hook 'toggle-show-whitespace)
+(add-hook 'dired-after-readin-hook 'dont-show-whitespace)
 
 ;; Icomplete
 ;; (icomplete-mode 1)
@@ -548,7 +548,7 @@ remove this function from `after-make-frame-functions'."
 (add-hook 'latex-mode-hook 'turn-on-reftex)
 
 (with-eval-after-load "reftex"
-  (add-hook 'reftex-select-bib-mode-hook 'toggle-show-whitespace)
+  (add-hook 'reftex-select-bib-mode-hook 'dont-show-whitespace)
   (add-to-list 'reftex-include-file-commands "includeonly"))
 
 ;; Tramp

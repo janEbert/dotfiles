@@ -1,5 +1,6 @@
-;; -*- mode: emacs-lisp; lexical-binding: t; no-byte-compile: t -*-
+;;; init.el --- Personal Emacs configuration  -*- mode: emacs-lisp; lexical-binding: t; no-byte-compile: t; -*-
 
+;;; Commentary:
 ;; Build with:
 ;;    ./autogen.sh
 ;;    ./configure --with-modules [--with-xwidgets] \
@@ -14,7 +15,7 @@
 ;;    # possibly also M-x package-initialize
 ;;    M-x eval-expression (M-:)
 ;;    (byte-recompile-directory package-user-dir nil t)
-
+;;
 ;; Link target "~/.emacs.d/.gnus.el" to name "~/.gnus.el"
 ;; (optional) Create "~/.emacs.d/.private_config.el"
 ;;
@@ -23,6 +24,7 @@
 ;; Put etags configurations into "~/.emacs.d/etags".
 ;;
 ;; External plugins to download:
+;;   - [constants](https://github.com/cdominik/constants-for-Emacs)
 ;;   - [ats2-mode](https://github.com/githwxi/ATS-Postiats) (in utils/emacs)
 ;;   - [flymake-ats2](https://github.com/githwxi/ATS-Postiats) (in utils/emacs)
 ;;   - [lsp-julia](https://github.com/non-Jedi/lsp-julia) (optional)
@@ -44,6 +46,8 @@
 ;;    ./configure --with-universal-ctags=<ctagsbin> [--prefix=...]
 ;;    make
 ;;    [sudo] make install
+
+;;; Code:
 
 (defconst my-emacs-dir "~/.emacs.d")
 (defconst my-backup-dir (expand-file-name "backups" my-emacs-dir))
@@ -84,13 +88,13 @@ hooks for eglot.")
 	  file-name-handler-alist nil)
 
 ;; Restore (better) GC defaults afterwards
-(add-hook 'after-init-hook ;; or 'emacs-startup-hook
+(add-hook 'after-init-hook				; or 'emacs-startup-hook
 		  (lambda ()
 			(setq gc-cons-threshold 16777216
 				  gc-cons-percentage 0.1
 				  file-name-handler-alist my-tmp-file-name-handler-alist)))
 
-;; Windows performance improvements (?)
+;; Windows performance improvements TODO (?)
 (when (eq system-type 'windows-nt)
 	(setq-default w32-pipe-read-delay 0
 				  inhibit-compacting-font-caches t
@@ -251,7 +255,7 @@ hooks for eglot.")
 (setq package-check-signature t)
 
 (defun add-dir-tree-to-front-of-load-path (dir)
-  "Add `dir' and all of its subdirectories to the front of `load-path'.
+  "Add DIR and all of its subdirectories to the front of `load-path'.
 This way, the newly added directories have priority over old ones."
   (let ((default-directory dir))
 	(if (file-exists-p dir)
@@ -337,27 +341,6 @@ This way, the newly added directories have priority over old ones."
   (add-to-list 'desktop-path my-desktop-dir))
 ;; TODO Configure `frameset-filter-alist' so the stored session is more clean.
 
-;; Eshell
-
-;; Do not suggest aliasing
-(setq eshell-bad-command-tolerance 1.0e+INF)
-
-;; More Eshell visual commands
-(with-eval-after-load "em-term"
-  (setq eshell-visual-commands
-		(append eshell-visual-commands
-				'("vim" "vimdiff" "nvim" "tmux" "joe" "nano" "mg" "cmus" "mpsyt"
-				  "htop" "ncdu" "nethack" "crawl" "jstar" "jmacs" "rjoe" "jpico"
-				  "zile" "zemacs" "zi")))
-  (setq eshell-visual-options
-		(append eshell-visual-options
-				'(("git" "--help" "--paginate")
-				  ("emacs" "-nw" "--no-window-system")
-				  ("emacsclient" "-nw" "--no-window-system"))))
-  (setq eshell-visual-subcommands
-		(append eshell-visual-subcommands
-				'(("git" "diff" "help" "log" "reflog" "show")))))
-
 ;; Set backup directory
 (setq backup-directory-alist `(("." . ,my-backup-dir)))
 
@@ -373,6 +356,19 @@ This way, the newly added directories have priority over old ones."
 ;; Shorten yes/no prompts
 (fset 'yes-or-no-p 'y-or-n-p)
 
+;; Change font
+(add-to-list 'default-frame-alist
+             '(font . "DejaVu Sans Mono-11"))
+
+;; 😀
+;; (set-fontset-font t 'symbol "Noto Color Emoji")
+;; (set-fontset-font t 'symbol "Noto Color Emoji" nil 'append)
+;; (set-fontset-font t '(#x1f300 . #x1fad0) "Ubuntu Mono Regular")
+;; (set-fontset-font t '(#x1f300 . #x1fad0) "Noto Color Emoji")
+;; (set-fontset-font t '(#x1f600 . #x1f64f)
+;; 				  (font-spec :name "Noto Color Emoji:" :registry "iso10646-1") nil 'prepend)
+;; (set-fontset-font "fontset-default" 'symbol "Noto Color Emoji" nil 'prepend)
+
 ;; Start maximized (does not work with Emacsclient)
 ;; Can use `default-frame-alist', however, then _every_ new frame is maximized;
 ;; that works with Emacsclient.
@@ -385,8 +381,8 @@ This way, the newly added directories have priority over old ones."
   (add-to-list 'default-frame-alist '(fullscreen . maximized))
 
   (defun remove-default-frame-maximized (&optional _frame)
-	"Remove the entry `(fullscreen . maximized)' from `default-frame-alist' and
-remove this function from `after-make-frame-functions'."
+	"Remove the entry (fullscreen . maximized) from `default-frame-alist'.
+Afterwards, remove this hook from `after-make-frame-functions'."
 	(setq default-frame-alist
 		  (delete '(fullscreen . maximized) default-frame-alist))
 	(remove-hook 'after-make-frame-functions 'remove-default-frame-maximized))
@@ -431,10 +427,33 @@ remove this function from `after-make-frame-functions'."
 						(disable-string-face))))
 
 
-;; Dired
+;;;; Built-in packages
+
+;;; Eshell
+
+;; Do not suggest aliasing
+(setq eshell-bad-command-tolerance 1.0e+INF)
+
+;; More Eshell visual commands
+(with-eval-after-load "em-term"
+  (setq eshell-visual-commands
+		(append eshell-visual-commands
+				'("vim" "vimdiff" "nvim" "tmux" "joe" "nano" "mg" "cmus" "mpsyt"
+				  "htop" "ncdu" "nethack" "crawl" "jstar" "jmacs" "rjoe" "jpico"
+				  "zile" "zemacs" "zi")))
+  (setq eshell-visual-options
+		(append eshell-visual-options
+				'(("git" "--help" "--paginate")
+				  ("emacs" "-nw" "--no-window-system")
+				  ("emacsclient" "-nw" "--no-window-system"))))
+  (setq eshell-visual-subcommands
+		(append eshell-visual-subcommands
+				'(("git" "diff" "help" "log" "reflog" "show")))))
+
+;;; Dired
 (add-hook 'dired-after-readin-hook 'dont-show-whitespace)
 
-;; Icomplete
+;;; Icomplete
 ;; (icomplete-mode 1)
 ;; (fido-mode 1)
 
@@ -452,17 +471,37 @@ remove this function from `after-make-frame-functions'."
 ;; (setq icomplete-prospects-height 2)
 ;; (setq icomplete-prospects-height 10)  ;; like ivy
 
-;; Ido
+;;; Ido
 ;; (ido-mode 1)
 ;; (add-hook 'ido-make-buffer-list-hook 'ido-summary-buffers-to-end)
 ;; TODO ido-everywhere seems to be removed
 
-;; EWW
+;;; ERC
+(with-eval-after-load "erc"
+  (setq erc-default-server "chat.freenode.net")
+  (when (gnutls-available-p)
+	;; Use TLS by default.
+	(setq erc-default-port erc-default-port-tls)
+	(setq erc-server-connect-function 'erc-open-tls-stream)))
+
+;;; Rcirc
+;; freenode.net default port is 6667; 6697 for TLS connections
+(with-eval-after-load "rcirc"
+  (if (gnutls-available-p)
+	  (add-to-list 'rcirc-server-alist
+				   '("chat.freenode.net"
+					 :port 6697 :encryption tls))
+	(add-to-list 'rcirc-server-alist
+				 '("chat.freenode.net"	; :channels ("#rcirc")
+				   ;; Don't use the TLS port by default, in case gnutls is not available.
+				   :port 6667))))
+
+;;; EWW
 ;; TODO instead of this, try to request the generated website with a slightly
 ;; TODO smaller screen size
 (add-hook 'eww-mode-hook (lambda () (setq-local display-line-numbers nil)))
 
-;; xwidgets webkit
+;;; xwidgets webkit
 (when (functionp 'xwidget-webkit-browse-url)
   (add-hook 'xwidget-webkit-mode-hook
 			(lambda ()
@@ -474,13 +513,16 @@ remove this function from `after-make-frame-functions'."
   ;; FIXME False sense of security; in xwidget buffers, we can still follow
   ;; non-local links.
   (defun xwidget-webkit-goto-uri--allow-files-only (orig-fun &rest args)
-	"Only allow local files (using \"file://\" as the filter pattern)."
+	"Only allow local files when visiting URIs via xwidget webkit.
+Local file are filtered using \"^file://\" as the filter pattern.
+Advice around ORIG-FUN, called with ARGS."
 	(if (eq (string-match "^file://" (nth 1 args)) 0)
 		(apply orig-fun args)
 	  (message "currently only allowing local files; disable `allow-files-only' advice on `xwidget-webkit-goto-uri'")
 	  (apply orig-fun
 			 (cons (car args)
 				   (cons
+					;; Can we do "about:blank"?
 					(concat "file://"
 							(expand-file-name
 							 "only-files-error.html" my-emacs-dir))
@@ -491,7 +533,8 @@ remove this function from `after-make-frame-functions'."
 
   ;; FIXME analyze and fix (better to fix below depending on values of `proc' and `arg')
   (defun xwidget-webkit-callback--allow-files-only (orig-fun &rest args)
-	"Only allow local files on script callbacks."
+	"Only allow local files on script callbacks.
+Advice around ORIG-FUN, called with ARGS."
 	(message (format "xwidget-event-type %s" (nth 1 args)))
 	(message (format "proc %s" (nth 3 last-input-event)))
 	(message (format "arg %s" (nth 4 last-input-event))))
@@ -500,17 +543,19 @@ remove this function from `after-make-frame-functions'."
 			  '((name . "allow-files-only")))
 
   ;; FIXME analyze and fix
-  ;; (defun xwidget-webkit-execute-script--allow-files-only (orig-fun &rest args)
-  ;; 	"Only allow local files on script callbacks."
-  ;; 	(message (format "xwidget-event-type %s" (nth 1 args)))
-  ;; 	(message (format "proc %s" (nth 3 last-input-event)))
-  ;; 	(message (format "arg %s" (nth 4 last-input-event))))
-  ;; (advice-add 'xwidget-webkit-execute-script :around
-  ;; 			  #'xwidget-webkit-execute-script--allow-files-only
-  ;; 			  '((name . "allow-files-only")))
+;;   (defun xwidget-webkit-execute-script--allow-files-only (orig-fun &rest args)
+;; 	"Only allow local files on script callbacks.
+;; Advice around ORIG-FUN, called with ARGS."
+;; 	(message (format "xwidget-event-type %s" (nth 1 args)))
+;; 	(message (format "proc %s" (nth 3 last-input-event)))
+;; 	(message (format "arg %s" (nth 4 last-input-event))))
+;;   (advice-add 'xwidget-webkit-execute-script :around
+;; 			  #'xwidget-webkit-execute-script--allow-files-only
+;; 			  '((name . "allow-files-only")))
 
   (defun xwidget-webkit-open-file (file &optional new-session)
-	"Open a local file from the xwidget webkit browser."
+	"Open a local FILE from the xwidget webkit browser.
+If NEW-SESSION is non-nil, start a new session."
 	(interactive "fxwidget-webkit File: ")
 	(xwidget-webkit-browse-url
 	 (concat "file://"
@@ -522,27 +567,14 @@ remove this function from `after-make-frame-functions'."
 (when (functionp 'global-so-long-mode)
   (global-so-long-mode 1))
 
-;; Ediff
+;;; Ediff
 (setq ediff-window-setup-function 'ediff-setup-windows-plain)
 (setq ediff-split-window-function 'split-window-horizontally)
 
 ;; Use EDE everywhere
-(global-ede-mode 1) ;; conflicts with org-mode binding
+(global-ede-mode 1)					 ; conflicts with org-mode binding
 
-;; Change font
-(add-to-list 'default-frame-alist
-             '(font . "DejaVu Sans Mono-11"))
-
-;; 😀
-;; (set-fontset-font t 'symbol "Noto Color Emoji")
-;; (set-fontset-font t 'symbol "Noto Color Emoji" nil 'append)
-;; (set-fontset-font t '(#x1f300 . #x1fad0) "Ubuntu Mono Regular")
-;; (set-fontset-font t '(#x1f300 . #x1fad0) "Noto Color Emoji")
-;; (set-fontset-font t '(#x1f600 . #x1f64f)
-;; 				  (font-spec :name "Noto Color Emoji:" :registry "iso10646-1") nil 'prepend)
-;; (set-fontset-font "fontset-default" 'symbol "Noto Color Emoji" nil 'prepend)
-
-;; RefTeX
+;;; RefTeX
 ;; (require 'reftex)
 (autoload 'turn-on-reftex "reftex")
 (add-hook 'latex-mode-hook 'turn-on-reftex)
@@ -551,7 +583,7 @@ remove this function from `after-make-frame-functions'."
   (add-hook 'reftex-select-bib-mode-hook 'dont-show-whitespace)
   (add-to-list 'reftex-include-file-commands "includeonly"))
 
-;; Tramp
+;;; Tramp
 (when (require 'tramp nil t)
   ;; Load Eshell extensions
   ;; Maybe named "em-tramp"
@@ -608,8 +640,10 @@ remove this function from `after-make-frame-functions'."
 
 	(defun tramp-completion-handle-file-name-all-completions--docker-containers
 		(orig-fun &rest args)
-	  "(tramp-completion-handle-file-name-all-completions \"\" \"/docker:\"
-returns a list of active Docker container names, followed by colons."
+	  "Return a list of active Docker container names concatenated with colons.
+Activated when
+`tramp-completion-handle-file-name-all-completions' is called
+with second argument \"/docker:\"."
 	  (if (equal (nth 1 args) "/docker:")
 		  (let* ((dockernames-raw
 				  (shell-command-to-string
@@ -637,13 +671,25 @@ returns a list of active Docker container names, followed by colons."
 	;; 	ad-do-it))
   )
 
-;; Flymake
+;;; Flymake
 (when (and (>= emacs-major-version 26)
 		   (require 'flymake nil t))
   (remove-hook 'flymake-diagnostic-functions 'flymake-proc-legacy-flymake)
   (add-hook 'prog-mode-hook #'flymake-mode)
   (define-key flymake-mode-map (kbd "M-n") 'flymake-goto-next-error)
   (define-key flymake-mode-map (kbd "M-p") 'flymake-goto-prev-error)
+
+  ;; Do not give byte-compile warnings in Emacs Lisp files when we don't want
+  ;; it byte-compiled.
+  ;; Does not work for the mode hook because the file-local variables haven't
+  ;; been initialized.
+  (add-hook 'find-file-hook
+			(lambda ()
+			  (when (and (derived-mode-p 'emacs-lisp-mode)
+						 (cdr
+						  (assq 'no-byte-compile file-local-variables-alist)))
+				(remove-hook 'flymake-diagnostic-functions
+							 'elisp-flymake-byte-compile t))))
 
   (defun toggle-flymake-mode ()
 	"Toggle Flymake mode."
@@ -655,7 +701,7 @@ returns a list of active Docker container names, followed by colons."
   ;; Toggle Flymake mode (C-c t f)
   (define-key my-toggle-map (kbd "f") 'toggle-flymake-mode))
 
-;; Org mode
+;;;; Org mode
 
 (setq org-directory (expand-file-name "org" my-emacs-dir))
 (setq org-publish-timestamp-directory
@@ -766,10 +812,11 @@ returns a list of active Docker container names, followed by colons."
 (setq org-html-doctype "html5")
 (setq org-html-html5-fancy t)
 
-;; Org Babel
+;;; Org Babel
 
 (setq org-confirm-babel-evaluate nil)
-;; FIXME do we need this or the line below?
+;; Lexical binding by default
+(setcdr (assq :lexical org-babel-default-header-args:emacs-lisp) "yes")
 (setq org-src-preserve-indentation t)
 ;; (setq org-edit-src-content-indentation 0)
 
@@ -797,8 +844,8 @@ returns a list of active Docker container names, followed by colons."
 	(setq org-default-notes-file (car org-agenda-files)))
 
   (defun org-beamer-mode-or-select-beamer-environment ()
-	"Activate `org-beamer-mode' or `org-beamer-select-environment' if it is
-already active."
+	"Call function `org-beamer-mode' or `org-beamer-select-environment'.
+The choice is made depending on if variable `org-beamer-mode' is non-nil."
 	(interactive)
 	(if (eq org-beamer-mode nil)
 		(org-beamer-mode)
@@ -806,8 +853,8 @@ already active."
 
   ;; Show agenda when opening Emacs
   (defun open-monthly-agenda-deselected (&optional span)
-	"Open the agenda for the next `span' days (default 30) and switch to the
-previous window."
+	"Open the agenda for the next SPAN days (default 30).
+Afterwards, switch to the previous window."
 	;; (org-agenda-list nil nil (if span span 30))
 	(org-agenda-run-series "Agenda and all TODOs" `(((agenda "" ((org-agenda-span (quote ,(if span span 30))))) (alltodo ""))))
 	;; Delete other window so we always open it vertically.
@@ -818,8 +865,8 @@ previous window."
   (if (not (daemonp))
 	  (add-hook 'window-setup-hook 'open-monthly-agenda-deselected)
 	(defun open-monthly-agenda-deselected-and-remove (&optional _frame)
-	  "Run `open-monthly-agenda-deselected' and remove it from
-`after-make-frame-functions'."
+	  "Run `open-monthly-agenda-deselected'.
+Afterwards, remove it from `after-make-frame-functions'."
 	  (open-monthly-agenda-deselected)
 	  (remove-hook 'after-make-frame-functions
 				   'open-monthly-agenda-deselected-and-remove))
@@ -878,37 +925,70 @@ previous window."
 				   ("\\cc{%s}")
 				   ("\\encl{%s}"))))
 
+  (defun my-org-plain-text-filter (to-replace
+								   mode-replacement-alist
+								   text backend info
+								   &optional fixedcase literal subexp start)
+	"Filter TO-REPLACE in TEXT using replacements in MODE-REPLACEMENT-ALIST.
+The replacement for TO-REPLACE is given by the entry in
+MODE-REPLACEMENT-ALIST for BACKEND.
+MODE-REPLACEMENT-ALIST should contain entries of the form (MODE . REPLACEMENT),
+where MODE is a potential parent backend symbol of BACKEND and REPLACEMENT
+is a string.
+INFO is the export communication channel.
+
+For FIXEDCASE, LITERAL, SUBEXP and START, see `replace-match'."
+	(let ((replacement
+		   (cdr (seq-some (lambda (elem)
+							(org-export-derived-backend-p backend (car elem)))
+						  mode-replacement-alist))))
+	  (when replacement
+		(replace-regexp-in-string to-replace replacement text
+								  fixedcase literal subexp start))))
+
   (defun my-org-plain-text-filter-no-break-space (text backend info)
-	"Ensure non-breaking spaces (\" \") are properly handled in Org export."
-	(let* ((nbsp " ")
-		   (replacement
-			(cond ((org-export-derived-backend-p backend 'latex) "~")
-				  ((org-export-derived-backend-p backend 'html) "&nbsp;")
-				  (t nbsp))))
-	  (unless (string= nbsp replacement)
-		(replace-regexp-in-string
-		 nbsp
-		 replacement
-		 text t t))))
+	"Ensure non-breaking spaces (\" \") are properly handled in Org export.
+TEXT is the text to be exported, BACKEND is the export backend
+and INFO the export communication channel."
+	(my-org-plain-text-filter " " '((latex . "~")
+									(html . "&nbsp;"))
+							  text backend info t t))
 
   (defun my-org-plain-text-filter-zero-width-space (text backend info)
-	"Ensure zero-width spaces (\"​\") are properly handled in Org export."
-	(let* ((zwsp "​")
-		   (replacement
-			(cond ((org-export-derived-backend-p backend 'latex) "\\hspace{0pt}")
-				  ((org-export-derived-backend-p backend 'html) "&#8203;")
-				  (t zwsp))))
-	  (unless (string= zwsp replacement)
-		(replace-regexp-in-string
-		 zwsp
-		 replacement
-		 text t t))))
+	"Ensure zero-width spaces (\"​\") are properly handled in Org export.
+TEXT is the text to be exported, BACKEND is the export backend
+and INFO the export communication channel."
+	(my-org-plain-text-filter "​" '((latex . "\\hspace{0pt}")
+								   (html . "&#8203;"))
+							  text backend info t t))
+
+  (defun my-org-plain-text-filter-zero-width-no-break-space (text backend info)
+	"Ensure zero-width no-break spaces are properly handled in Org export.
+Zero-width no-break spaces (\"﻿\") are deprecated and should only be treated as
+such when not at the start of a file.
+TEXT is the text to be exported, BACKEND is the export backend
+and INFO the export communication channel."
+	;; FIXME Should only be treated this way if not at the start of the _file_.
+	;; We currently ignore the first char of the given text for simplicity.
+	(concat (substring text 0 1)
+			(my-org-plain-text-filter "﻿" '((latex . "\\nobreak{}")
+										   (html . "&#65279;"))
+									  text backend info t t nil 1)))
+
+  (defun my-org-plain-text-filter-word-joiner (text backend info)
+	"Ensure word joiners (\"⁠\") are properly handled in Org export.
+TEXT is the text to be exported, BACKEND is the export backend
+and INFO the export communication channel."
+	(my-org-plain-text-filter "⁠" '((latex . "\\nolinebreak{}")
+								   (html . "&#8288;"))
+							  text backend info t t))
 
   (with-eval-after-load 'ox
 	(setq org-export-filter-plain-text-functions
 		  (append org-export-filter-plain-text-functions
 				  '(my-org-plain-text-filter-no-break-space
-					my-org-plain-text-filter-zero-width-space))))
+					my-org-plain-text-filter-zero-width-space
+					my-org-plain-text-filter-word-joiner))))
 
 
   ;; TODO only load languages when they're in path; don't load shell on windows
@@ -916,7 +996,9 @@ previous window."
 		(append my-org-babel-load-languages
 				'((emacs-lisp . t)
 				  (shell . t)
-				  (python . t)))))
+				  (python . t)
+				  (C . t)
+				  (js . t)))))
 
 
 ;; load-theme "fixes"
@@ -927,7 +1009,8 @@ previous window."
 			'((name . "theme-dont-propagate")))
 
 (defun load-theme--restore-scroll-bar-mode (orig-fun &rest args)
-  "Restore `scroll-bar-mode' after theme switch."
+  "Restore variable `scroll-bar-mode' after theme switch.
+Adice around ORIG-FUN, called with ARGS."
   (let ((current-scroll-bar-mode (get-scroll-bar-mode)))
 	(progn
 	  (apply orig-fun args)
@@ -935,7 +1018,7 @@ previous window."
 (advice-add 'load-theme :around #'load-theme--restore-scroll-bar-mode)
 
 (defun safe-load-theme (theme default-theme)
-  "Load the given theme but if it is not available, load the given default."
+  "Load THEME but if it is not available, load DEFAULT-THEME."
   (condition-case nil
 	  (load-theme theme t)
 	(error (load-theme default-theme t))))
@@ -946,9 +1029,12 @@ previous window."
 
 (defun load-theme-getenv (light-theme dark-theme default-theme
 									  envvar dark-pattern)
-  "Load either the given light, dark, or default theme depending on if the given
-environment variable is equal to the given pattern which activates the dark
-theme variant."
+  "Load either the given light, dark, or default theme.
+The themes are respectively defined by LIGHT-THEME, DARK-THEME
+and DEFAULT-THEME.
+The choice depends on if the given environment variable ENVVAR is
+equal to the given pattern DARK-PATTERN for choosing a dark theme
+which activates the dark theme variant."
   ;; Set frame background and fix defaults if not available.
   (if (not (equal (getenv envvar) ""))
 	  (if (equal (getenv envvar) dark-pattern)
@@ -1042,31 +1128,31 @@ theme variant."
 		  'face (list :background (match-string-no-properties 0)))))))
   (font-lock-flush))
 
-;; HTML indentation
-(setq sgml-basic-offset 4)
-
-;; Ripgrep
+;;; Ripgrep
 (if (executable-find "rg")
 	(setq grep-command
 		  "rg --color always -nH --null --no-heading --smart-case -e "))
 
+;;; Indentation
+;; HTML indentation
+(setq sgml-basic-offset 4)
+
 ;; Built-in modes
 (add-hook 'sh-mode-hook
 		  (lambda () (setq indent-tabs-mode nil)))
-
 (add-hook 'picture-mode-hook
 		  (lambda () (setq indent-tabs-mode nil)))
 
 
-;; Package config
+;;;; Package config
 
-;; GNU Global
+;;; GNU Global
 (add-to-list 'load-path my-gtags-dir)
 (autoload 'gtags-mode "gtags" "" t)
 
 (add-hook 'prog-mode-hook (lambda () (gtags-mode 1)))
 
-;; Ggtags
+;;; Ggtags
 (add-hook 'c-mode-common-hook
 		  (lambda ()
 			(when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
@@ -1076,7 +1162,18 @@ theme variant."
 							(cons 'ggtags-try-complete-tag
 								  hippie-expand-try-functions-list))))))
 
-;; AUCTeX
+;;; Constants
+(autoload 'constants-insert "constants" "Insert constants into source." t)
+(autoload 'constants-get "constants" "Get the value of a constant." t)
+(autoload 'constants-replace "constants" "Replace name of a constant." t)
+(define-prefix-command 'my-constants-map)
+;; Commands for constants (C-c x C)
+(define-key 'my-extended-map "C" 'my-constants-map)
+(define-key 'my-constants-map "i" 'constants-insert)
+(define-key 'my-constants-map "g" 'constants-get)
+(define-key 'my-constants-map "r" 'constants-replace)
+
+;;; AUCTeX
 (setq TeX-auto-save t)
 (setq TeX-parse-self t)
 (setq-default TeX-master nil)
@@ -1124,15 +1221,15 @@ theme variant."
 (add-hook 'LaTeX-mode-hook 'turn-on-reftex)
 (add-hook 'LaTeX-mode-hook 'latex-electric-env-pair-mode)
 
-;; Num3 mode
+;;; Num3 mode
 (global-num3-mode)
 ;; (setq num3-threshold 4)
 
-;; Dumb Jump
+;;; Dumb Jump
 (when (functionp 'dumb-jump-mode)
 	(dumb-jump-mode))
 
-;; Magit
+;;; Magit
 (when (and (>= emacs-major-version 26)
 		   (require 'magit nil t))
   ;; Always wants to save all files whenever we save anything in the repo
@@ -1145,7 +1242,7 @@ theme variant."
   (define-key my-magit-map (kbd "G") 'magit-dispatch-popup)
   (define-key magit-file-mode-map (kbd "C-c g f") 'magit-file-dispatch))
 
-;; EMMS
+;;; EMMS
 (if (require 'emms-setup nil t)
 	(progn
 	  (emms-all)
@@ -1172,8 +1269,8 @@ theme variant."
 
 	  ;; Start EMMS right away
 	  (defun init-emms ()
-		"Load the playlist emms-music in 'my-music-dir, go to a random track and
-stop playback."
+		"Prepare playing a random track in playlist \"emms-music\".
+The playlist must be in `my-music-dir'."
 		(interactive)
 		(let ((playlist-file (expand-file-name "emms-music" my-music-dir)))
 		  (if (file-exists-p playlist-file)
@@ -1198,20 +1295,23 @@ stop playback."
 	  (define-key my-music-map (kbd "i") 'init-emms)
 	  (define-key my-music-map (kbd "+") 'emms-volume-raise)
 	  (define-key my-music-map (kbd "-") 'emms-volume-lower))
+
+  ;; TODO remove when hook is added
   (defun update-emms-faces ()
-	"No op." ;; TODO remove when hook is added
+	"No op."
 	()))
 
 
-;; dired-git-info
+;;; dired-git-info
 (with-eval-after-load 'dired
   (define-key dired-mode-map ")" 'dired-git-info-mode))
 
-;; Undohist
+;;; Undohist
+
 (require 'undohist)
 (undohist-initialize)
 
-;; Evil mode
+;;;; Evil mode
 (setq evil-flash-delay 20)
 (setq evil-want-Y-yank-to-eol t)
 (setq evil-want-change-word-to-end nil)
@@ -1356,8 +1456,8 @@ stop playback."
 	  (define-key evil-normal-state-map (kbd "C-l") 'evil-ex-nohighlight)
 
 	  (defun my-maybe-evil-repeat-pop ()
-		"Execute `evil-repeat-pop' or `flyspell-auto-correct-word' depending on
-the context."
+		"Execute `evil-repeat-pop' or `flyspell-auto-correct-word'.
+The choice depends on the whether `evil-repeat-pop' makes sense to call."
 		(interactive)
 		(condition-case err
 			(call-interactively 'evil-repeat-pop)
@@ -1370,8 +1470,8 @@ the context."
 											   '(my-maybe-evil-repeat-pop-next)))
 
 	  (defun my-maybe-evil-repeat-pop-next ()
-		"Execute `evil-repeat-pop-next' or `xref-find-definitions' depending on
-the context."
+		"Execute `evil-repeat-pop-next' or `xref-find-definitions'.
+The choice depends on the whether `evil-repeat-pop-next' makes sense to call."
 		(interactive)
 		(condition-case nil
 			(call-interactively 'evil-repeat-pop-next)
@@ -1396,15 +1496,16 @@ the context."
 	  ;; ;; Toggle global Evil mode (C-c t v) (also toggle undo-tree-mode).
 	  ;; ;; Does not disable evil-magit.
 	  ;; ;; TODO what about evil minor modes?
-	  ;; (defun toggle-global-evil ()
-	  ;;   "Toggle global Evil mode. Also toggle undo-tree-mode."
-	  ;;   (interactive)
-	  ;;   (if (eq evil-mode t)
-	  ;; 	  (progn (evil-mode 0)
-	  ;; 			 (global-undo-tree-mode 0))
-	  ;; 	(progn (evil-mode 1)
-	  ;; 		   (global-undo-tree-mode 0))))
-	  ;; (define-key my-toggle-map (kbd "v") 'toggle-global-evil)
+;; 	  (defun toggle-global-evil ()
+;; 	    "Toggle global Evil mode.
+;; Also toggle undo-tree-mode."
+;; 	    (interactive)
+;; 	    (if (eq evil-mode t)
+;; 		  (progn (evil-mode 0)
+;; 				 (global-undo-tree-mode 0))
+;; 		(progn (evil-mode 1)
+;; 			   (global-undo-tree-mode 0))))
+;; 	  (define-key my-toggle-map (kbd "v") 'toggle-global-evil)
 
 	  ;; Evil-snipe
 	  (when (require 'evil-snipe nil t)
@@ -1421,7 +1522,7 @@ the context."
 	  (define-key evil-normal-state-map (kbd "C-S-s") 'evil-change-whole-line)))
 
 
-;; Company
+;;; Company
 (when (functionp 'global-company-mode)
 	  (add-hook 'after-init-hook 'global-company-mode)
 	  ;; Faster auto completion
@@ -1459,18 +1560,18 @@ the context."
 						  (setq-local company-minimum-prefix-length 3)
 						  (setq-local company-idle-delay 0.5)))))))
 
-;; Company quickhelp
+;;; Company quickhelp
 (when (functionp 'company-quickhelp-mode)
   (company-quickhelp-mode)
   (setq company-quickhelp-delay 0.65)
   (define-key company-active-map
 	(kbd "M-h") #'company-quickhelp-manual-begin))
 
-;; Company-lsp
+;;; Company-lsp
 ;; (if (require 'company-lsp nil t)
 ;; 	(push 'company-lsp company-backends))
 
-;; Ivy
+;;; Ivy
 (when (and (functionp 'ivy-mode) t)
   (ivy-mode 1)
   (setq ivy-use-virtual-buffers t)
@@ -1505,7 +1606,7 @@ the context."
   )
 
 
-;; Helm
+;;; Helm
 (when (and nil (>= emacs-major-version 26)
 		   (require 'helm-config nil t))
   ;;(global-set-key (kbd "M-x") #'helm-M-x)
@@ -1528,14 +1629,14 @@ the context."
   ;; 	   (define-key eshell-mode-map (kbd "M-p") 'helm-esh-history))))
   )
 
-;; Projectile
+;;; Projectile
 (when (functionp 'projectile-mode)
   (projectile-mode 1)
   ;; Projectile keybindings (C-c p)
   ;; (define-key mode-specific-map (kbd "p") 'projectile-command-map)
   (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map))
 
-;; YASnippet
+;;; YASnippet
 (when (require 'yasnippet nil t)
   (yas-global-mode 1)
   ;; or (next two)
@@ -1549,12 +1650,13 @@ the context."
 	(define-key keymap (kbd "TAB") nil)
 	(define-key keymap (kbd "<tab>") nil)))
 
+;;; Expand-region
 ;; (require 'expand-region)
 (autoload 'er/expand-region "expand-region")
 ;; Expand region (C-c x e)
 (define-key my-extended-map (kbd "e") 'er/expand-region)
 
-;; PDF-Tools
+;;; PDF-Tools
 (when (functionp 'pdf-tools-install)
   (pdf-tools-install)
   ;; or (pdf-loader-install)
@@ -1576,7 +1678,7 @@ the context."
 						   :store 'org-pdfview-store-link)
 
   (defun org-pdfview-export (link description format)
-	"Export a pdfview link from Org files."
+	"Export a pdfview LINK with DESCRIPTION in FORMAT from Org files."
 	(let ((path (if (string-match "\\(.*?\\)\\(?:::\\([0-9]+\\)\\)?$" link)
 					(match-string 1 link)
 				  link))
@@ -1596,7 +1698,7 @@ the context."
 		 (t path)))))
 
   (defun org-pdfview-open (link)
-	"Open a pdfview link from an Org file."
+	"Open a pdfview LINK from an Org file."
 	(string-match "\\(.*?\\)\\(?:::\\([0-9]+\\)\\)?$" link)
 	(let ((path (match-string 1 link))
 		  (page (and (match-beginning 2)
@@ -1623,7 +1725,7 @@ the context."
 		 :description title))))
 
   (defun org-pdfview-complete-link ()
-	"Use the existing file name completion for file.
+	"Complete file names for pdfview links.
 Links to get the file name, then asks the user for the page number
 and append it."
 	(concat (replace-regexp-in-string "^file:" "docview:"
@@ -1632,7 +1734,7 @@ and append it."
 			(read-from-minibuffer "Page:" "1")))
   )
 
-;; Emacs libvterm
+;;; Emacs libvterm
 
 ;; Disable whitespace and string face in VTerm mode
 ;; TODO these do not work
@@ -1649,12 +1751,12 @@ and append it."
   ;; Enter terminal (C-c x t)
   (define-key my-extended-map (kbd "t") 'term))
 
-;; toc-org
+;;; toc-org
 (when (require 'toc-org nil t)
   (add-hook 'org-mode-hook 'toc-org-mode)
   (add-to-list 'org-tag-alist '("TOC" . ?T)))
 
-;; Jupyter
+;;; Jupyter
 (when (>= emacs-major-version 26)
   (setq exec-path (append exec-path (list (expand-file-name my-jupyter-dir))))
   (when (functionp 'org-babel-jupyter-scratch-buffer)
@@ -1664,10 +1766,10 @@ and append it."
 					;; (julia . t)  TODO needs upstream fix; is too old
 					(jupyter . t))))))
 
-;; Emacs IPython Notebook
+;;; Emacs IPython Notebook
 (setq ein:polymode t)
 
-;; form-feed (display  as horizontal line)
+;;; form-feed (display  as horizontal line)
 (when (functionp 'form-feed-mode)
   (setq form-feed-line-width 72)
   (add-hook 'Info-mode-hook 'form-feed-mode)
@@ -1675,29 +1777,32 @@ and append it."
   (add-hook 'text-mode-hook 'form-feed-mode)
   (add-hook 'prog-mode-hook 'form-feed-mode))
 
-;; TeXfrag
+;;; TeXfrag
 ;; TODO fix PreviewLaTeX in AuCTeX
 ;; (texfrag-global-mode)
 ;; (add-hook 'eww-mode-hook 'texfrag-mode)
 
+;; Load Babel languages
 (when (functionp 'org-babel-do-load-languages)
   (org-babel-do-load-languages 'org-babel-load-languages
 							   my-org-babel-load-languages))
 
 
-;; JavaScript Mode
+;;;; Programming mode-specific configuration
+
+;;; JavaScript Mode
 (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
 (add-to-list 'interpreter-mode-alist '("node" . js2-mode))
 (add-to-list 'interpreter-mode-alist '("nodejs" . js2-mode))
 
-;; PHP mode
+;;; PHP mode
 (autoload 'php-mode-hook "php-mode")
 (add-hook 'php-mode-hook
 		  (lambda ()
 			(setq indent-tabs-mode t)
 			(setq-local whitespace-line-column 120)))
 
-;; Web mode
+;;; Web mode
 (when (require 'web-mode nil t)
   (add-to-list 'auto-mode-alist '("\\.php\\'" . web-mode))
 
@@ -1713,39 +1818,39 @@ and append it."
   )
 
 
-;; Python mode
+;;; Python mode
 (add-hook 'python-mode-hook
 		  (lambda ()
 			(kill-local-variable 'tab-width)
 			(kill-local-variable 'python-indent-offset)))
 
 
-;; Julia mode
+;;; Julia mode
 ;; (require 'julia-mode)
 (autoload 'julia-mode-hook "julia-mode")
 (setq julia-program my-julia-bin)
 (add-hook 'julia-mode-hook
 		  (lambda () (setq-local whitespace-line-column 92)))
 
-;; ess
+;;; ESS
 ;; deactivate automatic loading of `ess-julia-mode'
 (setq auto-mode-alist
 	  (delete (rassoc 'ess-julia-mode auto-mode-alist) auto-mode-alist))
 (setq inferior-julia-program my-julia-bin)
 (setq inferior-julia-args "--color=yes")
 
-;; julia-repl
+;;; julia-repl
 (add-hook 'julia-mode-hook
 		  (lambda () (if (buffer-file-name) (julia-repl-mode))))
 (setq julia-repl-executable-records
 	  '((default "julia")
 		(new "julian")))
 
-;; SLIME
+;;; SLIME
 (setq inferior-lisp-program "sbcl")
 
 
-;; Rust mode
+;;; Rust mode
 ;; (require 'rust-mode)
 (autoload 'rust-mode-hook "rust-mode")
 (add-hook 'rust-mode-hook
@@ -1755,7 +1860,7 @@ and append it."
 ;; Run rustfmt on save
 ;; (setq rust-format-on-save t)
 
-;; GDScript mode
+;;; GDScript mode
 (autoload 'gdscript-mode-hook "gdscript-mode")
 ;; (setq gdscript-godot-executable my-godot-bin)
 (add-hook 'gdscript-mode-hook
@@ -1763,21 +1868,23 @@ and append it."
 			(setq-local whitespace-line-column 100)))
 
 
-;; ATS2 (Postiats)
+;;; ATS2 (Postiats)
 (require 'ats-mode "ats2-mode" t)
 (autoload 'flymake-ats2-load "flymake-ats2")
 (add-hook 'ats-mode-hook 'flymake-ats2-load)
 (add-hook 'c/ats-mode-hook 'flymake-ats2-load)
 
 
-;; lsp-mode
+;;;; Language Server modes
+
+;;; lsp-mode
 ;; LSP Prefix (C-c l)
 (setq lsp-keymap-prefix "C-c l")
 
 (when (and (or (eq my-lsp-package 'lsp-mode) (eq my-lsp-package 'all))
 		   (require 'lsp-mode nil t))
   (unless (eq my-lsp-package 'all)
-	(add-hook 'prog-mode-hook #'lsp))  ;; or #'lsp-deferred
+	(add-hook 'prog-mode-hook #'lsp))	; or #'lsp-deferred
 
   (setq lsp-before-save-edits nil)
   (setq lsp-completion-enable-additional-text-edit nil)
@@ -1793,7 +1900,7 @@ and append it."
   ;; Parallel jobs for the LSP and store index in file
   (setq lsp-clients-clangd-args '("-j=4" "-background-index"))
 
-  ;; (setq lsp-pyls-plugins-pylint-enabled t) ;; source also disables this
+  ;; (setq lsp-pyls-plugins-pylint-enabled t) ; source also disables this
   ;; (setq lsp-pyls-plugins-pycodestyle-max-line-length 100)
   ;; (setq lsp-pyls-plugins-pycodestyle-max-line-length 100)
   ;; (setq lsp-pyls-plugins-flake8-max-line-length 100)
@@ -1804,7 +1911,7 @@ and append it."
 
   ;; lsp-julia
   (setq lsp-julia-default-environment my-julia-default-environment)
-  ;; ;; If we don't want to use the included Language Server:
+  ;; If we don't want to use the included Language Server:
   ;; (setq lsp-julia-package-dir nil)
   (when (require 'lsp-julia nil t)
 	nil
@@ -1826,7 +1933,7 @@ and append it."
   )
 
 
-;; Eglot
+;;; Eglot
 ;; Use company-capf backend whenever `M-x eglot' connects
 ;; TODO Maybe redundant as this is always forced
 ;; (add-hook 'eglot-connect-hook
@@ -1899,11 +2006,12 @@ and append it."
   (when (executable-find "digestif")
 	(add-hook 'tex-mode-hook 'eglot-ensure))
 
-  (add-to-list 'eglot-server-programs '((gd-script-mode) "localhost" 6008 "tls")) ;; or "starttls" or nil
+  (add-to-list 'eglot-server-programs '((gd-script-mode) "localhost"
+										6008 "tls")) ; or "starttls" or nil
   (add-hook 'gd-script-mode-hook 'eglot-ensure)
 
   (defun my-julia-get-project-root (dir)
-	"Get the Julia project root directory of the given `dir'."
+	"Return the Julia project root directory of DIR."
 	(expand-file-name (if dir
 						  (or (locate-dominating-file
 							   dir "JuliaProject.toml")
@@ -1912,7 +2020,7 @@ and append it."
 						my-julia-default-environment)))
 
   (defun my-julia-lsp-command (_arg)
-	"Command to start the Julia language server."
+	"Return a shell command to start the Julia language server."
 	(let ((project-root-dir (my-julia-get-project-root (buffer-file-name))))
 	  `("julia" "--startup-file=no" "--history-file=no"
 		,(concat "--project=" project-root-dir)
@@ -1955,7 +2063,7 @@ and append it."
   )
 
 
-;; Load private configurations
+;;; Load private configurations
 (load (expand-file-name ".private_config.el" my-emacs-dir) t)
 ;; ---
 ;; ;; Calendar Location and Time
@@ -1990,7 +2098,7 @@ and append it."
 ;; ---
 
 
-;; Custom commands
+;;;; Custom commands
 
 (defun kill-other-buffers ()
   "Kill all other buffers."
@@ -1999,8 +2107,9 @@ and append it."
 	(mapc 'kill-buffer (delq (current-buffer) (buffer-list)))))
 
 (defun minibuffer-insert (obtain-text-function)
-  "Insert text obtained by calling `obtain-text-function (current-buffer)' into
-the minibuffer."
+  "Insert text obtained by calling OBTAIN-TEXT-FUNCTION into the minibuffer.
+OBTAIN-TEXT-FUNCTION is called with the result of calling function
+`current-buffer' as its sole argument."
   (let ((text
 		 (with-current-buffer (window-buffer (minibuffer-selected-window))
 		   (funcall obtain-text-function (current-buffer)))))
@@ -2008,13 +2117,13 @@ the minibuffer."
 	  (insert text))))
 
 (defun minibuffer-insert-abbreviated-buffer-file-name ()
-  "Insert the current, abbreviated `buffer-file-name' into the minibuffer."
+  "Insert the current, abbreviated variable `buffer-file-name' into the minibuffer."
   (interactive)
   (minibuffer-insert
    (lambda (&rest _args) (abbreviate-file-name buffer-file-name))))
 
 (defun minibuffer-insert-buffer-file-name ()
-  "Insert the current `buffer-file-name' into the minibuffer."
+  "Insert the current variable `buffer-file-name' into the minibuffer."
   (interactive)
   (minibuffer-insert
    (lambda (&rest _args) buffer-file-name)))
@@ -2040,7 +2149,9 @@ the minibuffer."
 
 
 (defun insert-arbitrary-pair (beginning ending)
-  "Insert a pair of any two characters."
+  "Insert a pair of any two strings.
+The strings BEGINNING and ENDING are respectively inserted before
+and after point or the region if active."
   (if (region-active-p)
 	  (let ((beg (region-beginning)))
 		(save-excursion
@@ -2053,34 +2164,37 @@ the minibuffer."
 	  (insert ending))))
 
 (defun insert-char-pair (char)
-  "Insert the given `char' before and after point or the region if active."
+  "Insert the given CHAR before and after point or the region if active."
   (interactive "cSurrounding character: ")
   (insert-arbitrary-pair char char))
 
 (defun insert-same-pair (text)
-  "Insert the given `text'  before and after point or the region if active."
+  "Insert the given TEXT before and after point or the region if active."
   (interactive "sSurrounding text: ")
   (insert-arbitrary-pair text text))
 
 (defun insert-differing-pair (beginning ending)
-  "Insert the given `beginning' before point or the region if active and the
-given `ending' after."
+  "Insert a pair of any two strings.
+The strings BEGINNING and ENDING are respectively inserted before
+and after point or the region if active."
   (interactive "sBeginning text: \nsEnding text: ")
   (insert-arbitrary-pair beginning ending))
 
 (defun insert-reversed-pair (text)
-  "Insert the given `beginning' before point or the region if active and the
-given `ending' after, but reversed ('[a' -> 'a[')."
+  "Insert a pair of TEXT, where the insertion at the end is reversed.
+TEXT is inserted before and the reversed version after point or
+ the region if active.
+TEXT is reversed literally ('[a' -> 'a[')."
   (interactive "sUnreversed beginning: ")
   (insert-arbitrary-pair text (reverse text)))
 
 (defun insert-tag-pair (tag)
-  "Insert the given HTML `tag' before and after point or the region if active."
+  "Insert the given HTML TAG before and after point or the region if active."
   (interactive "sTag: ")
   (insert-arbitrary-pair (concat "<" tag ">") (concat "</" tag ">")))
 
 (defun delete-around (count)
-  "Delete `count' characters before and after point or the region if active."
+  "Delete COUNT characters before and after point or the region if active."
   (interactive "p")
   (if (region-active-p)
 	  (let ((beg (region-beginning)))
@@ -2123,8 +2237,9 @@ given `ending' after, but reversed ('[a' -> 'a[')."
 	(update-emms-faces)))
 
 (defun toggle-theme-brightness-or-background ()
-  "Toggle either Solarized light and dark or the background brightness depending
-on if a Solarized variant is currently active."
+  "Toggle either the theme or background brightness.
+The choice depends on whether a user-configured theme variant is
+currently active."
   (interactive)
   (if (or
 	   (eq (car custom-enabled-themes) my-graphic-light-theme)
@@ -2162,7 +2277,7 @@ on if a Solarized variant is currently active."
 
 (if (functionp 'pixel-scroll-mode)
 	(defun toggle-pixel-scroll-mode ()
-	  "Toggle `pixel-scroll-mode'."
+	  "Toggle Pixel-Scroll mode'."
 	  (interactive)
 	  (if (eq pixel-scroll-mode nil)
 		  (pixel-scroll-mode 1)
@@ -2252,7 +2367,7 @@ on if a Solarized variant is currently active."
   (my-julia-repl))
 
 
-;; Key bindings
+;;;; Key bindings
 
 ;; Do not untabify before backspacing
 (global-set-key (kbd "DEL") 'backward-delete-char)

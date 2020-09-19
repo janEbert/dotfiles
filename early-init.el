@@ -1,5 +1,12 @@
-;; -*- mode: emacs-lisp; lexical-binding: t; no-byte-compile: t -*-
+;;; early-init.el --- Early initialization options  -*- mode: emacs-lisp; lexical-binding: t; no-byte-compile: t; -*-
 
+;;; Commentary:
+;; Personal customization that has to be run at the early initialization step.
+;; Mostly performance-related improvements.
+
+;;; Code:
+
+;; Less GC during initialization (reset in init.el)
 (setq gc-cons-threshold 402653184
 	  gc-cons-percentage 0.6)
 

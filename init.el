@@ -989,12 +989,20 @@ and INFO the export communication channel."
 								   (html . "&#8288;"))
 							  text backend info t t))
 
+  (defun my-org-plain-text-filter-cpp (text backend info)
+	"Ensure the word 'C++' looks good.
+TEXT is the text to be exported, BACKEND is the export backend
+and INFO the export communication channel."
+	(my-org-plain-text-filter "C++" '((latex . "C\\texttt{++}"))
+							  text backend info t t))
+
   (with-eval-after-load 'ox
 	(setq org-export-filter-plain-text-functions
 		  (append org-export-filter-plain-text-functions
 				  (list #'my-org-plain-text-filter-no-break-space
 						#'my-org-plain-text-filter-zero-width-space
-						#'my-org-plain-text-filter-word-joiner))))
+						#'my-org-plain-text-filter-word-joiner
+						#'my-org-plain-text-filter-cpp))))
 
 
   ;; TODO only load languages when they're in path; don't load shell on windows

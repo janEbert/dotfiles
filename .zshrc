@@ -157,7 +157,11 @@ fi
 
 stty -ixon
 
-export PATH="$HOME/local/bin:/usr/lib/ccache:$PATH"
+# Smart case search for Less
+export LESS="${LESS}i"
+
+# Local binaries
+export PATH="$HOME/local/bin:$PATH"
 
 [ -f ~/.emacs.d/bin/doom ] && export PATH="$HOME/.emacs.d/bin:$PATH"
 
@@ -176,6 +180,8 @@ export EDITOR="vim"
 export VISUAL="emacsclient -c -a ''"
 
 # CCache
+# Disabled as libgccjit fails with it.
+# export PATH="/usr/lib/ccache:$PATH"
 export CCACHE_DIR=/tmp/ccache
 
 # CVS

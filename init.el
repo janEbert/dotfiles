@@ -200,7 +200,7 @@ hooks for eglot.")
  '(package-menu-hide-low-priority t)
  '(package-quickstart t)
  '(package-selected-packages
-   '(project so-long xref undohist browse-at-remote mines magit julia-repl counsel swiper projectile rust-mode slime jsonrpc d-mode cider gdscript-mode disk-usage dart-mode gnuplot web-mode ada-ref-man docker dockerfile-mode dired-du dired-git-info purescript-mode js2-mode markdown-mode typescript-mode realgud dap-mode cobol-mode csharp-mode fsharp-mode go-mode num3-mode php-mode sed-mode smalltalk-mode stan-mode swift-mode zig-mode elixir-mode erlang clojure-mode cmake-mode haskell-snippets caml sml-mode haskell-mode lsp-julia nasm-mode yaml-mode ada-mode chess csv-mode json-mode vterm lua-mode python nov ein yasnippet-snippets texfrag eglot undo-propose ess form-feed nim-mode evil-collection evil-commentary evil-lion evil-magit evil-matchit evil-snipe evil-surround evil-visualstar landmark auctex zotxt company-quickhelp dumb-jump expand-region jupyter use-package gotham-theme zenburn-theme toc-org flymake org tramp ivy ggtags pdf-tools yasnippet solarized-theme rainbow-delimiters julia-mode helm gnu-elpa-keyring-update forge evil emms darkroom company))
+   '(extempore-mode org lsp-mode project so-long xref undohist browse-at-remote mines magit julia-repl counsel swiper projectile rust-mode slime jsonrpc d-mode cider gdscript-mode disk-usage dart-mode gnuplot web-mode ada-ref-man docker dockerfile-mode dired-du dired-git-info purescript-mode js2-mode markdown-mode typescript-mode realgud dap-mode cobol-mode csharp-mode fsharp-mode go-mode num3-mode php-mode sed-mode smalltalk-mode stan-mode swift-mode zig-mode elixir-mode erlang clojure-mode cmake-mode haskell-snippets caml sml-mode haskell-mode lsp-julia nasm-mode yaml-mode ada-mode chess csv-mode json-mode vterm lua-mode python nov ein yasnippet-snippets texfrag eglot undo-propose ess form-feed nim-mode evil-collection evil-commentary evil-lion evil-magit evil-matchit evil-snipe evil-surround evil-visualstar landmark auctex zotxt company-quickhelp dumb-jump expand-region jupyter use-package gotham-theme zenburn-theme toc-org flymake tramp ivy ggtags pdf-tools yasnippet solarized-theme rainbow-delimiters julia-mode helm gnu-elpa-keyring-update forge evil emms darkroom company))
  '(password-cache-expiry 1200)
  '(prettify-symbols-unprettify-at-point 'right-edge)
  '(read-buffer-completion-ignore-case t)
@@ -482,7 +482,7 @@ Afterwards, remove this hook from `after-make-frame-functions'."
   (when (gnutls-available-p)
 	;; Use TLS by default.
 	(setq erc-default-port erc-default-port-tls)
-	(setq erc-server-connect-function 'erc-open-tls-stream)))
+	(setq erc-server-connect-function #'erc-open-tls-stream)))
 
 ;;; Rcirc
 ;; freenode.net default port is 6667; 6697 for TLS connections
@@ -518,7 +518,8 @@ Local file are filtered using \"^file://\" as the filter pattern.
 Advice around ORIG-FUN, called with ARGS."
 	(if (eq (string-match "^file://" (nth 1 args)) 0)
 		(apply orig-fun args)
-	  (message "currently only allowing local files; disable `allow-files-only' advice on `xwidget-webkit-goto-uri'")
+	  (message "currently only allowing local files; \
+disable `allow-files-only' advice on `xwidget-webkit-goto-uri'")
 	  (apply orig-fun
 			 (cons (car args)
 				   (cons
@@ -568,8 +569,8 @@ If NEW-SESSION is non-nil, start a new session."
   (global-so-long-mode 1))
 
 ;;; Ediff
-(setq ediff-window-setup-function 'ediff-setup-windows-plain)
-(setq ediff-split-window-function 'split-window-horizontally)
+(setq ediff-window-setup-function #'ediff-setup-windows-plain)
+(setq ediff-split-window-function #'split-window-horizontally)
 
 ;; Use EDE everywhere
 (global-ede-mode 1)					 ; conflicts with org-mode binding
@@ -650,7 +651,7 @@ with second argument \"/docker:\"."
 				   "docker ps | awk '$NF != \"NAMES\" { print $NF \":\" }'"))
 				 (dockernames
 				  (cl-remove-if-not
-				   #'(lambda (dockerline) (string-match ":$" dockerline))
+				   (lambda (dockerline) (string-match ":$" dockerline))
 				   (split-string dockernames-raw "\n"))))
 			dockernames)
 		(apply orig-fun args)))
@@ -665,7 +666,7 @@ with second argument \"/docker:\"."
 	;;   (if (equal (ad-get-arg 1) "/docker:")
 	;; 	  (let* ((dockernames-raw (shell-command-to-string "docker ps | awk '$NF != \"NAMES\" { print $NF \":\" }'"))
 	;; 			 (dockernames (cl-remove-if-not
-	;; 						   #'(lambda (dockerline) (string-match ":$" dockerline))
+	;; 						   (lambda (dockerline) (string-match ":$" dockerline))
 	;; 						   (split-string dockernames-raw "\n"))))
 	;; 		(setq ad-return-value dockernames))
 	;; 	ad-do-it))
@@ -675,7 +676,7 @@ with second argument \"/docker:\"."
 (when (and (>= emacs-major-version 26)
 		   (require 'flymake nil t))
   (remove-hook 'flymake-diagnostic-functions 'flymake-proc-legacy-flymake)
-  (add-hook 'prog-mode-hook #'flymake-mode)
+  (add-hook 'prog-mode-hook 'flymake-mode)
   (define-key flymake-mode-map (kbd "M-n") 'flymake-goto-next-error)
   (define-key flymake-mode-map (kbd "M-p") 'flymake-goto-prev-error)
 
@@ -711,7 +712,7 @@ with second argument \"/docker:\"."
 ;; Keys
 (setq org-disputed-keys
 	  (quote
-	   (;; these are the defaults (changed bindings)
+	   (;; these are the defaults (but with changed bindings)
 		;; org-shiftup C-S-p
 		([(shift up)] . [(control shift p)])
 		;; alternatively default M-p
@@ -736,8 +737,13 @@ with second argument \"/docker:\"."
 		([(control shift left)] . [(control meta shift b)])
 		;; alternatively C-M--
 		;; ([(control shift left)] . [(control meta -)])
+		;; org-backward-paragraph M-p
+		([(control up)] . [(meta p)])
+		;; org-forward-paragraph M-n
+		([(control down)] . [(meta n)])
 
 		;; these are custom
+
 		;; TODO do these even exist?
 		;; ;; TODO C-M-S-b (C-M-B)
 		;; ([(control meta shift left)] . [(control meta shift b)])
@@ -986,9 +992,9 @@ and INFO the export communication channel."
   (with-eval-after-load 'ox
 	(setq org-export-filter-plain-text-functions
 		  (append org-export-filter-plain-text-functions
-				  '(my-org-plain-text-filter-no-break-space
-					my-org-plain-text-filter-zero-width-space
-					my-org-plain-text-filter-word-joiner))))
+				  (list #'my-org-plain-text-filter-no-break-space
+						#'my-org-plain-text-filter-zero-width-space
+						#'my-org-plain-text-filter-word-joiner))))
 
 
   ;; TODO only load languages when they're in path; don't load shell on windows
@@ -1025,7 +1031,7 @@ Adice around ORIG-FUN, called with ARGS."
 
 (defun update-frame-background-mode ()
   "Update `frame-background-mode' for all frames."
-  (mapc 'frame-set-background-mode (frame-list)))
+  (mapc #'frame-set-background-mode (frame-list)))
 
 (defun load-theme-getenv (light-theme dark-theme default-theme
 									  envvar dark-pattern)
@@ -1255,7 +1261,7 @@ which activates the dark theme variant."
 
 	  (if (eq system-type 'gnu/linux)
 		  (setq emms-source-file-directory-tree-function
-				'emms-source-file-directory-tree-find))
+				#'emms-source-file-directory-tree-find))
 
 	  (defun update-emms-faces ()
 		"Change EMMS faces to be consistent with the rest of Emacs."
@@ -1565,7 +1571,7 @@ The choice depends on the whether `evil-repeat-pop-next' makes sense to call."
   (company-quickhelp-mode)
   (setq company-quickhelp-delay 0.65)
   (define-key company-active-map
-	(kbd "M-h") #'company-quickhelp-manual-begin))
+	(kbd "M-h") 'company-quickhelp-manual-begin))
 
 ;;; Company-lsp
 ;; (if (require 'company-lsp nil t)
@@ -1581,7 +1587,7 @@ The choice depends on the whether `evil-repeat-pop-next' makes sense to call."
   (define-key ivy-mode-map (kbd "M-.")
 	(lambda () (interactive) (message "not allowed here")))
 
-  (global-set-key (kbd "C-x b")	'ivy-switch-buffer)
+  (global-set-key (kbd "C-x b")   'ivy-switch-buffer)
   (global-set-key (kbd "C-x 4 b") 'ivy-switch-buffer-other-window)
 
   ;; Resume Ivy dispatch (C-c r)
@@ -1609,12 +1615,12 @@ The choice depends on the whether `evil-repeat-pop-next' makes sense to call."
 ;;; Helm
 (when (and nil (>= emacs-major-version 26)
 		   (require 'helm-config nil t))
-  ;;(global-set-key (kbd "M-x") #'helm-M-x)
-  ;;(global-set-key (kbd "C-x C-f") #'helm-find-files)
-  ;;(global-set-key (kbd "C-x C-b") #'helm-mini) ; or helm-buffers-list
-  ;;(global-set-key (kbd "C-x r b") #'helm-filtered-bookmarks)
-  ;;(global-set-key (kbd "C-s") #'helm-swoop) ; external package
-  ;;(global-set-key (kbd "M-s o") #'helm-occur)
+  ;;(global-set-key (kbd "M-x") 'helm-M-x)
+  ;;(global-set-key (kbd "C-x C-f") 'helm-find-files)
+  ;;(global-set-key (kbd "C-x C-b") 'helm-mini) ; or helm-buffers-list
+  ;;(global-set-key (kbd "C-x r b") 'helm-filtered-bookmarks)
+  ;;(global-set-key (kbd "C-s") 'helm-swoop) ; external package
+  ;;(global-set-key (kbd "M-s o") 'helm-occur)
   (setq helm-buffers-fuzzy-matching t)
   (setq helm-recentf-fuzzy-match t)
   (setq helm-lisp-fuzzy-completion t)
@@ -1641,7 +1647,7 @@ The choice depends on the whether `evil-repeat-pop-next' makes sense to call."
   (yas-global-mode 1)
   ;; or (next two)
   ;; (yas-reload-all)
-  ;; (add-hook 'prog-mode-hook #'yas-minor-mode)
+  ;; (add-hook 'prog-mode-hook 'yas-minor-mode)
 
   ;; This resolves YASnippet problems with company-tng.
   (define-key yas-minor-mode-map (kbd "C-c e") 'yas-expand)
@@ -1673,9 +1679,9 @@ The choice depends on the whether `evil-repeat-pop-next' makes sense to call."
   (require 'ol)
 
   (org-link-set-parameters "pdfview"
-						   :follow 'org-pdfview-open
-						   :export 'org-pdfview-export
-						   :store 'org-pdfview-store-link)
+						   :follow #'org-pdfview-open
+						   :export #'org-pdfview-export
+						   :store #'org-pdfview-store-link)
 
   (defun org-pdfview-export (link description format)
 	"Export a pdfview LINK with DESCRIPTION in FORMAT from Org files."
@@ -1849,6 +1855,9 @@ and append it."
 ;;; SLIME
 (setq inferior-lisp-program "sbcl")
 
+;;; Extempore
+(setq extempore-path "~/Downloads/extempore")
+
 
 ;;; Rust mode
 ;; (require 'rust-mode)
@@ -1856,6 +1865,9 @@ and append it."
 (add-hook 'rust-mode-hook
 		  (lambda ()
 			(setq indent-tabs-mode nil)
+			;; For comments; not perfect though since indentation
+			;; should be ignored.
+			(setq-local fill-column 80)
 			(setq-local whitespace-line-column 100)))
 ;; Run rustfmt on save
 ;; (setq rust-format-on-save t)
@@ -1884,7 +1896,7 @@ and append it."
 (when (and (or (eq my-lsp-package 'lsp-mode) (eq my-lsp-package 'all))
 		   (require 'lsp-mode nil t))
   (unless (eq my-lsp-package 'all)
-	(add-hook 'prog-mode-hook #'lsp))	; or #'lsp-deferred
+	(add-hook 'prog-mode-hook 'lsp))	; or 'lsp-deferred
 
   (setq lsp-before-save-edits nil)
   (setq lsp-completion-enable-additional-text-edit nil)
@@ -1895,7 +1907,13 @@ and append it."
   (when (executable-find "rust-analyzer")
 	(setq lsp-rust-server 'rust-analyzer)
 	(autoload 'lsp-rust-analyzer-inlay-hints-mode "lsp-rust")
-	(lsp-rust-analyzer-inlay-hints-mode 1))
+	(lsp-rust-analyzer-inlay-hints-mode 1)
+	;; Config for rustc development (maybe use as .dir-locals.el)
+	;; (setq lsp-rust-analyzer-cargo-override-command
+	;; 	  ["./x.py" "check" "--json-output"])
+	;; (setq lsp-rust-analyzer-rustfmt-override-command
+	;; 	  ["./build/TARGET_TRIPLE/stage0/bin/rustfmt"])
+	)
 
   ;; Parallel jobs for the LSP and store index in file
   (setq lsp-clients-clangd-args '("-j=4" "-background-index"))
@@ -1915,8 +1933,8 @@ and append it."
   ;; (setq lsp-julia-package-dir nil)
   (when (require 'lsp-julia nil t)
 	nil
-	;; (add-hook 'julia-mode-hook #'lsp-mode)
-	;; (add-hook 'julia-mode-hook #'lsp)
+	;; (add-hook 'julia-mode-hook 'lsp-mode)
+	;; (add-hook 'julia-mode-hook 'lsp)
 	)
 
 
@@ -2104,7 +2122,7 @@ and append it."
   "Kill all other buffers."
   (interactive)
   (when (y-or-n-p "Kill all other buffers? ")
-	(mapc 'kill-buffer (delq (current-buffer) (buffer-list)))))
+	(mapc #'kill-buffer (delq (current-buffer) (buffer-list)))))
 
 (defun minibuffer-insert (obtain-text-function)
   "Insert text obtained by calling OBTAIN-TEXT-FUNCTION into the minibuffer.
@@ -2184,7 +2202,7 @@ and after point or the region if active."
   "Insert a pair of TEXT, where the insertion at the end is reversed.
 TEXT is inserted before and the reversed version after point or
  the region if active.
-TEXT is reversed literally ('[a' -> 'a[')."
+TEXT is reversed literally (\"[a\" -> \"a[\")."
   (interactive "sUnreversed beginning: ")
   (insert-arbitrary-pair text (reverse text)))
 
@@ -2207,14 +2225,15 @@ TEXT is reversed literally ('[a' -> 'a[')."
 	(delete-char count)))
 
 
-(defun toggle-background ()
+(defun toggle-background-brightness ()
   "Toggle background brightness and reload theme."
   (interactive)
   (if (eq frame-background-mode 'dark)
 	  (setq frame-background-mode 'light)
 	(setq frame-background-mode 'dark))
   (update-frame-background-mode)
-  (load-theme (car custom-enabled-themes) t)
+  (when custom-enabled-themes
+	(load-theme (car custom-enabled-themes) t))
   (update-emms-faces))
 
 (defun toggle-theme-brightness ()
@@ -2249,7 +2268,7 @@ currently active."
 	   (eq (car custom-enabled-themes) my-fallback-light-theme)
 	   (eq (car custom-enabled-themes) my-fallback-dark-theme))
 	  (toggle-theme-brightness)
-	(toggle-background)))
+	(toggle-background-brightness)))
 
 (defun toggle-indent-tabs-mode ()
   "Toggle `indent-tabs-mode' and re-tabify."
@@ -2277,7 +2296,7 @@ currently active."
 
 (if (functionp 'pixel-scroll-mode)
 	(defun toggle-pixel-scroll-mode ()
-	  "Toggle Pixel-Scroll mode'."
+	  "Toggle Pixel-Scroll mode."
 	  (interactive)
 	  (if (eq pixel-scroll-mode nil)
 		  (pixel-scroll-mode 1)

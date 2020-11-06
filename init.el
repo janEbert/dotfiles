@@ -200,7 +200,7 @@ hooks for eglot.")
  '(package-menu-hide-low-priority t)
  '(package-quickstart t)
  '(package-selected-packages
-   '(extempore-mode org lsp-mode project so-long xref undohist browse-at-remote mines magit julia-repl counsel swiper projectile rust-mode slime jsonrpc d-mode cider gdscript-mode disk-usage dart-mode gnuplot web-mode ada-ref-man docker dockerfile-mode dired-du dired-git-info purescript-mode js2-mode markdown-mode typescript-mode realgud dap-mode cobol-mode csharp-mode fsharp-mode go-mode num3-mode php-mode sed-mode smalltalk-mode stan-mode swift-mode zig-mode elixir-mode erlang clojure-mode cmake-mode haskell-snippets caml sml-mode haskell-mode lsp-julia nasm-mode yaml-mode ada-mode chess csv-mode json-mode vterm lua-mode python nov ein yasnippet-snippets texfrag eglot undo-propose ess form-feed nim-mode evil-collection evil-commentary evil-lion evil-magit evil-matchit evil-snipe evil-surround evil-visualstar landmark auctex zotxt company-quickhelp dumb-jump expand-region jupyter use-package gotham-theme zenburn-theme toc-org flymake tramp ivy ggtags pdf-tools yasnippet solarized-theme rainbow-delimiters julia-mode helm gnu-elpa-keyring-update forge evil emms darkroom company))
+   '(htmlize extempore-mode org lsp-mode project so-long xref undohist browse-at-remote mines magit julia-repl counsel swiper projectile rust-mode slime jsonrpc d-mode cider gdscript-mode disk-usage dart-mode gnuplot web-mode ada-ref-man docker dockerfile-mode dired-du dired-git-info purescript-mode js2-mode markdown-mode typescript-mode realgud dap-mode cobol-mode csharp-mode fsharp-mode go-mode num3-mode php-mode sed-mode smalltalk-mode stan-mode swift-mode zig-mode elixir-mode erlang clojure-mode cmake-mode haskell-snippets caml sml-mode haskell-mode lsp-julia nasm-mode yaml-mode ada-mode chess csv-mode json-mode vterm lua-mode python nov ein yasnippet-snippets texfrag eglot undo-propose ess form-feed nim-mode evil-collection evil-commentary evil-lion evil-magit evil-matchit evil-snipe evil-surround evil-visualstar landmark auctex zotxt company-quickhelp dumb-jump expand-region jupyter use-package gotham-theme zenburn-theme toc-org flymake tramp ivy ggtags pdf-tools yasnippet solarized-theme rainbow-delimiters julia-mode helm gnu-elpa-keyring-update forge evil emms darkroom company))
  '(password-cache-expiry 1200)
  '(prettify-symbols-unprettify-at-point 'right-edge)
  '(read-buffer-completion-ignore-case t)
@@ -211,6 +211,7 @@ hooks for eglot.")
  '(recentf-mode t)
  '(register-separator 43)
  '(require-final-newline t)
+ '(rmail-movemail-flags '("--tls"))
  '(save-place-mode t)
  '(savehist-additional-variables
    '(tablist-named-filter command-history search-ring regexp-search-ring kill-ring extended-command-history compile-command))
@@ -616,6 +617,11 @@ If NEW-SESSION is non-nil, start a new session."
   ;; or
   ;; (setq vc-handled-backends '(Git))
 
+  ;; TODO Not sure if sftp works as default method
+  (let ((method (seq-find (lambda (x) (executable-find x)) '("rsync" "sftp"))))
+	(when method
+	  (setq tramp-default-method method)))
+
   (defun remote-shell ()
 	"Start a remote shell with the correct TERM environment variable."
 	(interactive)
@@ -629,7 +635,7 @@ If NEW-SESSION is non-nil, start a new session."
   ;; 				 "/ssh:%u@my.domain.org:"))
 
   ;; Docker integration on Linux ("/docker:")
-  (when (eq system-type 'gnu/linux)
+  (when (and (not (package-installed-p 'docker)) (eq system-type 'gnu/linux))
 	(push
 	 (cons
 	  "docker"
@@ -737,10 +743,12 @@ with second argument \"/docker:\"."
 		([(control shift left)] . [(control meta shift b)])
 		;; alternatively C-M--
 		;; ([(control shift left)] . [(control meta -)])
+
+		;; TODO these do not work; we manually bind them later
 		;; org-backward-paragraph M-p
-		([(control up)] . [(meta p)])
+		;; ([(control up)] . [(meta p)])
 		;; org-forward-paragraph M-n
-		([(control down)] . [(meta n)])
+		;; ([(control down)] . [(meta n)])
 
 		;; these are custom
 
@@ -853,7 +861,7 @@ with second argument \"/docker:\"."
 	"Call function `org-beamer-mode' or `org-beamer-select-environment'.
 The choice is made depending on if variable `org-beamer-mode' is non-nil."
 	(interactive)
-	(if (eq org-beamer-mode nil)
+	(if (or (not (boundp 'org-beamer-mode)) (eq org-beamer-mode nil))
 		(org-beamer-mode)
 	  (org-beamer-select-environment)))
 
@@ -894,10 +902,16 @@ Afterwards, remove it from `after-make-frame-functions'."
   (define-key my-org-map (kbd "o") 'org-switchb)
   (define-key my-org-map (kbd "c") 'org-capture)
 
-  ;; Activate beamer mode or select beamer environment (C-c o b)
+  ;; Non-disputed keybindings
+  (with-eval-after-load 'org
+	(define-key org-mode-map (kbd "M-p") 'org-backward-paragraph)
+	(define-key org-mode-map (kbd "M-n") 'org-forward-paragraph))
+
   ;; Use C-c C-b for navigation like always
-  (add-hook 'org-beamer-mode-hook
-			(lambda () (define-key org-beamer-mode-map (kbd "C-c C-b") nil)))
+  (with-eval-after-load 'ox-beamer
+			(define-key org-beamer-mode-map (kbd "C-c C-b") nil))
+
+  ;; Activate beamer mode or select beamer environment (C-c o b)
   (define-key my-org-map (kbd "b")
 	'org-beamer-mode-or-select-beamer-environment)
 
@@ -945,7 +959,7 @@ INFO is the export communication channel.
 
 For FIXEDCASE, LITERAL, SUBEXP and START, see `replace-match'."
 	(let ((replacement
-		   (cdr (seq-some (lambda (elem)
+		   (cdr (seq-find (lambda (elem)
 							(org-export-derived-backend-p backend (car elem)))
 						  mode-replacement-alist))))
 	  (when replacement
@@ -993,7 +1007,14 @@ and INFO the export communication channel."
 	"Ensure the word 'C++' looks good.
 TEXT is the text to be exported, BACKEND is the export backend
 and INFO the export communication channel."
-	(my-org-plain-text-filter "C++" '((latex . "C\\texttt{++}"))
+	(my-org-plain-text-filter "C\\+\\+" '((latex . "C\\texttt{++}"))
+							  text backend info t t))
+
+  (defun my-org-plain-text-filter-big-o (text backend info)
+	"Ensure 𝒪 is properly exported.
+TEXT is the text to be exported, BACKEND is the export backend
+and INFO the export communication channel."
+	(my-org-plain-text-filter "𝒪" '((latex . "\\mathcal{O}"))
 							  text backend info t t))
 
   (with-eval-after-load 'ox
@@ -1002,7 +1023,8 @@ and INFO the export communication channel."
 				  (list #'my-org-plain-text-filter-no-break-space
 						#'my-org-plain-text-filter-zero-width-space
 						#'my-org-plain-text-filter-word-joiner
-						#'my-org-plain-text-filter-cpp))))
+						#'my-org-plain-text-filter-cpp
+						#'my-org-plain-text-filter-big-o))))
 
 
   ;; TODO only load languages when they're in path; don't load shell on windows
@@ -1081,6 +1103,11 @@ which activates the dark theme variant."
 
 ;; TODO write toggle
 ;; (setq compilation-scroll-output t)
+(with-eval-after-load 'compile
+  (define-key compilation-mode-map (kbd "M-p") 'backward-paragraph)
+  (define-key compilation-mode-map (kbd "M-n") 'forward-paragraph))
+
+
 ;; Fix colors in compilation mode
 (autoload 'ansi-color-apply-on-region "ansi-color")
 (defun ansi-colorize-buffer ()
@@ -1238,10 +1265,17 @@ which activates the dark theme variant."
 ;;; Num3 mode
 (global-num3-mode)
 ;; (setq num3-threshold 4)
+;; TODO set num3-face-even to '((t :underline t :weight bold ; :slant italic
+;;))
+(face-spec-set 'num3-face-even '((t :underline t
+									:weight bold
+									;; :slant italic
+									))
+			   'face-defface-spec)
 
 ;;; Dumb Jump
-(when (functionp 'dumb-jump-mode)
-	(dumb-jump-mode))
+(when (functionp 'dumb-jump-xref-activate)
+	(add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
 
 ;;; Magit
 (when (and (>= emacs-major-version 26)
@@ -1322,7 +1356,7 @@ The playlist must be in `my-music-dir'."
 
 ;;; Undohist
 
-(require 'undohist)
+(autoload 'undohist-initialize "undohist")
 (undohist-initialize)
 
 ;;;; Evil mode
@@ -1349,8 +1383,10 @@ The playlist must be in `my-music-dir'."
 	(progn
 	  (evil-mode 1)
 
-	  ;; Disable undo-tree-mode to prevent bugs
-	  (global-undo-tree-mode 0)
+	  ;; TODO Only for backwards compatibility
+	  (when (package-installed-p 'undo-tree)
+		;; Disable undo-tree-mode to prevent bugs
+		(global-undo-tree-mode 0))
 
 	  ;; Setup Evil Collection (also uncomment above to use)
 	  ;; (when (require 'evil-collection nil t)
@@ -1399,8 +1435,11 @@ The playlist must be in `my-music-dir'."
 	  (evil-set-initial-state 'picture-mode  'emacs)
 	  (evil-set-initial-state 'compilation-mode 'emacs)
 
-	  ;; Magit commit message
-	  (add-to-list 'evil-buffer-regexps '("COMMIT_EDITMSG" . emacs))
+	  ;; Magit message editing
+	  (add-to-list 'evil-buffer-regexps '("^[^_]*_EDITMSG$" . emacs))
+
+	  ;; Jupyter notebooks
+	  (add-to-list 'evil-buffer-regexps '("^ein: .*\\[.*\\]$" . emacs))
 
 	  ;; Reset *Messages* buffer state
 	  (evil-change-to-initial-state (messages-buffer))
@@ -1480,8 +1519,9 @@ The choice depends on the whether `evil-repeat-pop' makes sense to call."
 						(signal (car err) (cdr err))))))
 
 	  ;; Prepare Xref
-	  (setq xref-prompt-for-identifier (append xref-prompt-for-identifier
-											   '(my-maybe-evil-repeat-pop-next)))
+	  ;; FIXME throws error for some reason
+	  ;; (setq xref-prompt-for-identifier (append xref-prompt-for-identifier
+	  ;; 										   '(my-maybe-evil-repeat-pop-next)))
 
 	  (defun my-maybe-evil-repeat-pop-next ()
 		"Execute `evil-repeat-pop-next' or `xref-find-definitions'.
@@ -1504,22 +1544,6 @@ The choice depends on the whether `evil-repeat-pop-next' makes sense to call."
 		  ;; C-r invokes undo-propose in versions without undo-redo
 		  (define-key evil-normal-state-map (kbd "C-r") 'undo-propose)
 		(define-key evil-normal-state-map (kbd "C-r") 'undo-redo))
-
-
-	  ;; TODO this is most likely unnecessary
-	  ;; ;; Toggle global Evil mode (C-c t v) (also toggle undo-tree-mode).
-	  ;; ;; Does not disable evil-magit.
-	  ;; ;; TODO what about evil minor modes?
-;; 	  (defun toggle-global-evil ()
-;; 	    "Toggle global Evil mode.
-;; Also toggle undo-tree-mode."
-;; 	    (interactive)
-;; 	    (if (eq evil-mode t)
-;; 		  (progn (evil-mode 0)
-;; 				 (global-undo-tree-mode 0))
-;; 		(progn (evil-mode 1)
-;; 			   (global-undo-tree-mode 0))))
-;; 	  (define-key my-toggle-map (kbd "v") 'toggle-global-evil)
 
 	  ;; Evil-snipe
 	  (when (require 'evil-snipe nil t)
@@ -1592,7 +1616,7 @@ The choice depends on the whether `evil-repeat-pop-next' makes sense to call."
   (setq ivy-count-format "(%d/%d) ")
 
   ;; Cannot quit `visit-tags-table'; disable it
-  (define-key ivy-mode-map (kbd "M-.")
+  (define-key ivy-minibuffer-map (kbd "M-.")
 	(lambda () (interactive) (message "not allowed here")))
 
   (global-set-key (kbd "C-x b")   'ivy-switch-buffer)
@@ -1761,7 +1785,11 @@ and append it."
 					(dont-show-whitespace)
 					(disable-string-face))
 				  '((name . "vterm-disable-special-visuals")))
-	  (define-key my-extended-map (kbd "t") 'vterm))
+	  (define-key my-extended-map (kbd "t") 'vterm)
+
+	  (with-eval-after-load "vterm"
+		;; Allow to send C-z easily
+		(define-key vterm-mode-map (kbd "C-c C-z") 'vterm-send-C-z)))
   ;; Enter terminal (C-c x t)
   (define-key my-extended-map (kbd "t") 'term))
 
@@ -1781,7 +1809,11 @@ and append it."
 					(jupyter . t))))))
 
 ;;; Emacs IPython Notebook
+;; Polymode for highlighting and editing
+;; TODO deprecated: Is always enabled, so not necessary anymore.
 (setq ein:polymode t)
+;; Inline images
+(setq ein:output-area-inlined-images t)
 
 ;;; form-feed (display  as horizontal line)
 (when (functionp 'form-feed-mode)
@@ -1904,7 +1936,10 @@ and append it."
 (when (and (or (eq my-lsp-package 'lsp-mode) (eq my-lsp-package 'all))
 		   (require 'lsp-mode nil t))
   (unless (eq my-lsp-package 'all)
-	(add-hook 'prog-mode-hook 'lsp))	; or 'lsp-deferred
+	(add-hook 'prog-mode-hook
+			  (lambda ()
+				(unless (eq major-mode 'ein:ipynb-mode)
+				  (lsp)))))	; or 'lsp-deferred
 
   (setq lsp-before-save-edits nil)
   (setq lsp-completion-enable-additional-text-edit nil)

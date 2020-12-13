@@ -107,6 +107,13 @@ change_monitor_gamma_brightness() {
 }
 
 
+source-nvm() {
+    # Load nvm
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    # Load nvm bash_completion
+    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+}
+
 closure-compile() {
     if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
         echo "Syntax: $0 [[--compilation_level ADVANCED_OPTIMIZATIONS] ...]" \

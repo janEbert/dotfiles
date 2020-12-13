@@ -211,7 +211,9 @@ fi
 export GTAGSFORCECPP=false
 
 # Node.js
-export PATH="$HOME/Downloads/node-v13.6.0-linux-x64/bin:$PATH"
+export NVM_DIR="$HOME/.nvm"
+# We do not source because it makes startup slow
+# See `source-nvm` in .bash_aliases
 
 # Lua
 export PATH="$HOME/.luarocks/bin:$PATH"

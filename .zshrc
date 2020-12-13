@@ -275,24 +275,31 @@ _gen_fzf_default_opts() {
     local green="64"
 
     if [[ "$SOLARIZED_THEME" = "dark" ]]; then
-        # Solarized Light color scheme for fzf
-        export FZF_DEFAULT_OPTS="
-            --color fg:-1,bg:-1,hl:$blue,fg+:$base02,bg+:$base2,hl+:$blue
-            --color info:$yellow,prompt:$yellow,pointer:$base03,marker:$base03,spinner:$yellow
-        "
-    else
-        # Solarized Dark color scheme for fzf
-        export FZF_DEFAULT_OPTS="
+        # Solarized Dark color scheme for FZF
+        export FZF_DEFAULT_OPTS="\
             --color fg:-1,bg:-1,hl:$blue,fg+:$base2,bg+:$base02,hl+:$blue
-            --color info:$yellow,prompt:$yellow,pointer:$base3,marker:$base3,spinner:$yellow
-        "
+            --color info:$yellow,prompt:$yellow,pointer:$base3,marker:$base3,spinner:$yellow"
+    else
+        # Solarized Light color scheme for FZF
+        export FZF_DEFAULT_OPTS="\
+            --color fg:-1,bg:-1,hl:$blue,fg+:$base02,bg+:$base2,hl+:$blue
+            --color info:$yellow,prompt:$yellow,pointer:$base03,marker:$base03,spinner:$yellow"
     fi
 }
 _gen_fzf_default_opts
 
 # Choose best grep program
 if ! [ -x "$(command -v rg)" ]; then
-    export FZF_DEFAULT_COMMANDS='rg --files --hidden --follow --color never --smart-case'
+    # From current README
+    INITIAL_QUERY=""
+    RG_PREFIX="rg --column --line-number --no-heading --color=always --smart-case "
+    FZF_DEFAULT_COMMAND="$RG_PREFIX '$INITIAL_QUERY'" \
+                       fzf --bind "change:reload:$RG_PREFIX {q} || true" \
+                       --ansi --phony --query "$INITIAL_QUERY" \
+                       --height=50% --layout=reverse
+
+    # Previous version
+    # export FZF_DEFAULT_COMMANDS='rg --files --hidden --follow --color never --smart-case'
 elif ! [ -x "$(command -v ag)" ]; then
     export FZF_DEFAULT_COMMANDS='ag -l --hidden --nocolor -g ""'
 elif ! [ -x "$(command -v ack)" ]; then

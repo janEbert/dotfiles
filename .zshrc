@@ -25,8 +25,8 @@ fi
 # load a random theme each time oh-my-zsh is loaded, in which case,
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/robbyrussell/oh-my-zsh/wiki/Themes
-if ([ "x$INSIDE_EMACS" = x ] || [ "$INSIDE_EMACS" = vterm ]) \
-        && [ -f $ZSH/oh-my-zsh.sh ]; then
+if ([ "x$INSIDE_EMACS" = x ] || [ -n "$(echo "$INSIDE_EMACS" | grep term)" ]) \
+       && [ -f $ZSH/oh-my-zsh.sh ]; then
     export ZSH_THEME="agnoster"
 else
     export ZSH_THEME=""
@@ -334,6 +334,15 @@ if [[ "$INSIDE_EMACS" = 'vterm' ]]; then
         vterm_printf "51;A$(whoami)@$(hostname):$(pwd)";
     }
     PROMPT=$PROMPT'%{$(vterm_prompt_end)%}'
+elif [[ -n "$(echo "$INSIDE_EMACS" | grep term)" ]]; then
+    # Emacs Term
+    printf '\033AnSiTh %s\n' "$(uname -n)"
+    printf '\033AnSiTu %s\n' "$(whoami)"
+    printf '\033AnSiTc %s\n' "$PWD"
+
+    cd()    { builtin cd "$@";    printf '\033AnSiTc %s\n' "$PWD"; }
+    pushd() { builtin pushd "$@"; printf '\033AnSiTc %s\n' "$PWD"; }
+    popd()  { builtin popd "$@";  printf '\033AnSiTc %s\n' "$PWD"; }
 fi
 
 # Emacs TRAMP fix (keep this at the very end!)

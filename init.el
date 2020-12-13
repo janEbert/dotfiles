@@ -68,14 +68,17 @@
 (defvar my-fallback-default-theme my-fallback-light-theme)
 
 (defconst my-gtags-dir "/usr/local/share/gtags")
+(defconst my-docsets-path "~/.local/share/Zeal/Zeal/docsets")
 (defconst my-julia-bin "~/local/bin/julia")
 (defconst my-julia-default-environment "~/.julia/environments/v1.3")
 (defconst my-jupyter-dir "~/anaconda3/bin")
 ;; (defconst my-godot-bin "~/local/bin/godot")
 
 (defconst my-lsp-package 'lsp-mode "Which LSP package to use.
-Can be a symbol in `(lsp-mode eglot all)'. If it is `all', only activate the
-hooks for eglot.")
+Can be a symbol in (lsp-mode eglot all). If it is \"all\", only activate the
+hooks for `my-autostart-lsp-package'.")
+(defconst my-autostart-lsp-package 'eglot
+  "Which LSP package to autostart if `my-lsp-package' is \"all\".")
 ;; (defconst my-rls-bin "~/.cargo/bin/rls")
 
 (defconst my-line-number-format 'relative)
@@ -200,7 +203,7 @@ hooks for eglot.")
  '(package-menu-hide-low-priority t)
  '(package-quickstart t)
  '(package-selected-packages
-   '(htmlize extempore-mode org lsp-mode project so-long xref undohist browse-at-remote mines magit julia-repl counsel swiper projectile rust-mode slime jsonrpc d-mode cider gdscript-mode disk-usage dart-mode gnuplot web-mode ada-ref-man docker dockerfile-mode dired-du dired-git-info purescript-mode js2-mode markdown-mode typescript-mode realgud dap-mode cobol-mode csharp-mode fsharp-mode go-mode num3-mode php-mode sed-mode smalltalk-mode stan-mode swift-mode zig-mode elixir-mode erlang clojure-mode cmake-mode haskell-snippets caml sml-mode haskell-mode lsp-julia nasm-mode yaml-mode ada-mode chess csv-mode json-mode vterm lua-mode python nov ein yasnippet-snippets texfrag eglot undo-propose ess form-feed nim-mode evil-collection evil-commentary evil-lion evil-magit evil-matchit evil-snipe evil-surround evil-visualstar landmark auctex zotxt company-quickhelp dumb-jump expand-region jupyter use-package gotham-theme zenburn-theme toc-org flymake tramp ivy ggtags pdf-tools yasnippet solarized-theme rainbow-delimiters julia-mode helm gnu-elpa-keyring-update forge evil emms darkroom company))
+   '(counsel-dash dash-docs htmlize extempore-mode org lsp-mode project so-long xref undohist browse-at-remote mines magit julia-repl counsel swiper projectile rust-mode slime jsonrpc d-mode cider gdscript-mode disk-usage dart-mode gnuplot web-mode ada-ref-man docker dockerfile-mode dired-du dired-git-info purescript-mode js2-mode markdown-mode typescript-mode realgud dap-mode cobol-mode csharp-mode fsharp-mode go-mode num3-mode php-mode sed-mode smalltalk-mode stan-mode swift-mode zig-mode elixir-mode erlang clojure-mode cmake-mode haskell-snippets caml sml-mode haskell-mode lsp-julia nasm-mode yaml-mode ada-mode chess csv-mode json-mode vterm lua-mode python nov ein yasnippet-snippets texfrag eglot undo-propose ess form-feed nim-mode evil-collection evil-commentary evil-lion evil-magit evil-matchit evil-snipe evil-surround evil-visualstar landmark auctex zotxt company-quickhelp dumb-jump expand-region jupyter use-package gotham-theme zenburn-theme toc-org flymake tramp ivy ggtags pdf-tools yasnippet solarized-theme rainbow-delimiters julia-mode helm gnu-elpa-keyring-update forge evil emms darkroom company))
  '(password-cache-expiry 1200)
  '(prettify-symbols-unprettify-at-point 'right-edge)
  '(read-buffer-completion-ignore-case t)
@@ -221,6 +224,7 @@ hooks for eglot.")
  '(send-mail-function 'smtpmail-send-it)
  '(sentence-end-double-space nil)
  '(set-mark-command-repeat-pop t)
+ '(shell-command-prompt-show-cwd t)
  '(shell-prompt-pattern "^\\(?:###\\)?[^#$%>
 ]*[#$%>] *")
  '(show-paren-mode t)
@@ -229,6 +233,8 @@ hooks for eglot.")
  '(show-paren-when-point-inside-paren t)
  '(show-trailing-whitespace t)
  '(size-indication-mode t)
+ '(tab-bar-history-mode t)
+ '(tab-bar-show 1)
  '(tab-width 4)
  '(time-stamp-time-zone t)
  '(tool-bar-mode nil)
@@ -242,6 +248,7 @@ hooks for eglot.")
  '(vc-follow-symlinks t)
  '(vc-make-backup-files t)
  '(version-control t)
+ '(view-read-only t)
  '(wdired-allow-to-change-permissions t)
  '(which-function-mode t)
  '(whitespace-style '(face trailing lines-tail tab-mark))
@@ -303,6 +310,10 @@ This way, the newly added directories have priority over old ones."
   "Disable the string face."
   (setq-local font-lock-string-face nil))
 
+(defun disable-line-numbers ()
+  "Disable display of line numbers."
+  (setq-local display-line-numbers nil))
+
 
 (define-prefix-command 'my-extended-map)
 ;; Extended custom commands (C-c x)
@@ -319,6 +330,16 @@ This way, the newly added directories have priority over old ones."
 (define-prefix-command 'my-mode-map)
 ;; Actual mode specific commands (C-c y)
 (define-key mode-specific-map (kbd "y") 'my-mode-map)
+
+
+;; Fix `read-passwd' being recorded in lossage.
+(defun execute-without-recording (orig-fun &rest args)
+  "Execute ORIG-FUN on ARGS without recording input characters."
+  (let ((inhibit--record-char t))
+	(apply orig-fun args)))
+
+(advice-add 'read-passwd :around
+			#'execute-without-recording)
 
 ;; Use more flexible completion styles
 (setq completion-styles (append completion-styles
@@ -352,7 +373,7 @@ This way, the newly added directories have priority over old ones."
 (setq tooltip-resize-echo-area t)
 
 ;; Display line numbers
-(setq-default display-line-numbers my-line-number-format)
+;; (setq-default display-line-numbers my-line-number-format)
 
 ;; Shorten yes/no prompts
 (fset 'yes-or-no-p 'y-or-n-p)
@@ -424,11 +445,22 @@ Afterwards, remove this hook from `after-make-frame-functions'."
 (dolist (mode-hook
 		 '(eshell-mode-hook comint-mode-hook shell-mode-hook term-mode-hook))
   (add-hook mode-hook (lambda ()
+						(disable-line-numbers)
 						(dont-show-whitespace)
 						(disable-string-face))))
 
 
 ;;;; Built-in packages
+
+;;; Xref
+(with-eval-after-load "xref"
+  ;; Do not prompt for `xref-find-references'
+  (push 'xref-find-references (cdr xref-prompt-for-identifier)))
+
+;;; Image-Mode
+;; Horizontal scrolling does not work with line numbers enabled
+(add-hook 'image-mode-new-window-functions
+		  (lambda (&optional _winprops) (disable-line-numbers)))
 
 ;;; Eshell
 
@@ -450,6 +482,29 @@ Afterwards, remove this hook from `after-make-frame-functions'."
   (setq eshell-visual-subcommands
 		(append eshell-visual-subcommands
 				'(("git" "diff" "help" "log" "reflog" "show")))))
+
+;;; Term
+
+(defun term-watch-for-password-prompt--always (string &rest _args)
+  "Prompt in the minibuffer for password and send without echoing.
+Checks if STRING contains a password prompt as defined by
+`comint-password-prompt-regexp'."
+  (when (let ((case-fold-search t))
+		  (string-match comint-password-prompt-regexp string))
+	(let ((password (read-passwd string)))
+	  (term-send-invisible password)
+	  (clear-string password))))
+
+(advice-add 'term-watch-for-password-prompt :override
+			#'term-watch-for-password-prompt--always)
+
+(with-eval-after-load "term"
+  ;; We'd rather keep `ctrl-x-map' than be able to send raw C-x.
+  (define-key term-raw-map (kbd "C-x") nil)
+  ;; We'd rather keep `help-map' than be able to send raw C-h.
+  (define-key term-raw-map (kbd "C-h") nil)
+  ;; We'd rather keep `execute-extended-command' than be able to send raw M-x.
+  (define-key term-raw-map (kbd "M-x") nil))
 
 ;;; Dired
 (add-hook 'dired-after-readin-hook 'dont-show-whitespace)
@@ -500,12 +555,17 @@ Afterwards, remove this hook from `after-make-frame-functions'."
 ;;; EWW
 ;; TODO instead of this, try to request the generated website with a slightly
 ;; TODO smaller screen size
-(add-hook 'eww-mode-hook (lambda () (setq-local display-line-numbers nil)))
+(add-hook 'eww-mode-hook
+		  (lambda ()
+			(disable-line-numbers)
+			(dont-show-whitespace)))
 
 ;;; xwidgets webkit
-(when (functionp 'xwidget-webkit-browse-url)
+(when (and (featurep 'xwidget-internal)
+		   (functionp 'xwidget-webkit-browse-url))
   (add-hook 'xwidget-webkit-mode-hook
 			(lambda ()
+			  (disable-line-numbers)
 			  (local-set-key (kbd "<mouse-4>") 'xwidget-webkit-scroll-down)
 			  (local-set-key (kbd "<mouse-5>") 'xwidget-webkit-scroll-up)
 			  ))
@@ -558,12 +618,37 @@ Advice around ORIG-FUN, called with ARGS."
   (defun xwidget-webkit-open-file (file &optional new-session)
 	"Open a local FILE from the xwidget webkit browser.
 If NEW-SESSION is non-nil, start a new session."
-	(interactive "fxwidget-webkit File: ")
+	(interactive "fxwidget-webkit file: ")
 	(xwidget-webkit-browse-url
 	 (concat "file://"
 			 (and (memq system-type '(windows-nt ms-dos)) "/")
 			 (expand-file-name file))
 	 new-session)))
+
+;;; Lynx wrapper
+(defun lynx-browse-url (url)
+  "Browse URL using the Lynx browser."
+  (interactive
+   (let* ((uris (eww-suggested-uris))
+		  (prompt (concat "lynx URL or keywords"
+						  (if uris (format " (default %s)" (car uris)) "")
+						  ": ")))
+	 (list (read-string prompt nil 'eww-prompt-history uris))))
+  (if (not (executable-find "lynx"))
+	  (user-error "The lynx executable could not be found.")
+	(set-buffer (make-term "lynx" "lynx" nil url))
+	(term-mode)
+	(term-char-mode)
+	(switch-to-buffer "*lynx*")))
+
+(defun lynx-open-file (file)
+  "Open FILE using the Lynx browser."
+  (interactive "flynx file: ")
+  (lynx-browse-url
+   (concat "file://"
+		   (and (memq system-type '(windows-nt ms-dos))
+				"/")
+		   (expand-file-name file))))
 
 ;; Avoid performance issues in files with very long lines.
 (when (functionp 'global-so-long-mode)
@@ -574,7 +659,7 @@ If NEW-SESSION is non-nil, start a new session."
 (setq ediff-split-window-function #'split-window-horizontally)
 
 ;; Use EDE everywhere
-(global-ede-mode 1)					 ; conflicts with org-mode binding
+;; (global-ede-mode 1)					 ; conflicts with org-mode binding
 
 ;;; RefTeX
 ;; (require 'reftex)
@@ -819,6 +904,11 @@ with second argument \"/docker:\"."
 (setq org-clock-persist t)
 (org-clock-persistence-insinuate)
 
+;; Pretty symbols
+(setq org-pretty-entities t)
+;; No subscript/superscript formatting
+;; (setq org-pretty-entities-include-sub-superscripts nil)
+
 ;; Export settings
 
 (setq org-export-with-smart-quotes t)
@@ -843,7 +933,7 @@ with second argument \"/docker:\"."
 ;; (setq ob-async-no-async-languages-alist
 ;; 	  '("jupyter-python" "jupyter-julia"))
 
-(setq my-org-babel-load-languages '())
+(defvar my-org-babel-load-languages '())
 
 ;; Other settings and keybindings
 ;; TODO org-install is obsolete; remove it when backward compatibility
@@ -934,6 +1024,11 @@ Afterwards, remove it from `after-make-frame-functions'."
   ;; Open PDFs in Emacs
   (setcdr (assoc "\\.pdf\\'" org-file-apps) 'emacs)
 
+  ;; Include babel or polyglossia for better LaTeX language settings.
+  (add-to-list 'org-latex-packages-alist
+			   '("AUTO" "babel" t ("pdflatex")))
+  (add-to-list 'org-latex-packages-alist
+			   '("AUTO" "polyglossia" t ("xelatex" "lualatex")))
 
   ;; Enable LaTeX letter class
   (with-eval-after-load 'ox-latex
@@ -1278,6 +1373,9 @@ which activates the dark theme variant."
 	(add-hook 'xref-backend-functions #'dumb-jump-xref-activate))
 
 ;;; Magit
+;; Do not set global bindings
+;; (setq magit-define-global-key-bindings nil)
+
 (when (and (>= emacs-major-version 26)
 		   (require 'magit nil t))
   ;; Always wants to save all files whenever we save anything in the repo
@@ -1287,8 +1385,16 @@ which activates the dark theme variant."
   (define-prefix-command 'my-magit-map)
   (define-key mode-specific-map (kbd "g") 'my-magit-map)
   (define-key my-magit-map (kbd "g") 'magit-status)
-  (define-key my-magit-map (kbd "G") 'magit-dispatch-popup)
-  (define-key magit-file-mode-map (kbd "C-c g f") 'magit-file-dispatch))
+  (define-key my-magit-map (kbd "G") 'magit-dispatch)
+  (define-key my-magit-map (kbd "M-g") 'magit-dispatch)
+  (define-key my-magit-map (kbd "f") 'magit-file-dispatch)
+  (define-key my-magit-map (kbd "M-G") 'magit-file-dispatch)
+
+  ;; Setup fill column
+  (add-hook 'git-commit-setup-hook
+			(lambda ()
+			  (setq-local fill-column 72)
+			  (setq-local whitespace-line-column 72))))
 
 ;;; EMMS
 (if (require 'emms-setup nil t)
@@ -1439,7 +1545,8 @@ The playlist must be in `my-music-dir'."
 	  (add-to-list 'evil-buffer-regexps '("^[^_]*_EDITMSG$" . emacs))
 
 	  ;; Jupyter notebooks
-	  (add-to-list 'evil-buffer-regexps '("^ein: .*\\[.*\\]$" . emacs))
+	  (add-to-list 'evil-buffer-regexps
+				   '("^ ?\\*ein: .*\\*\\(?:\\[.*\\]\\)?$" . emacs))
 
 	  ;; Reset *Messages* buffer state
 	  (evil-change-to-initial-state (messages-buffer))
@@ -1518,11 +1625,6 @@ The choice depends on the whether `evil-repeat-pop' makes sense to call."
 						  (call-interactively 'flyspell-auto-correct-word)
 						(signal (car err) (cdr err))))))
 
-	  ;; Prepare Xref
-	  ;; FIXME throws error for some reason
-	  ;; (setq xref-prompt-for-identifier (append xref-prompt-for-identifier
-	  ;; 										   '(my-maybe-evil-repeat-pop-next)))
-
 	  (defun my-maybe-evil-repeat-pop-next ()
 		"Execute `evil-repeat-pop-next' or `xref-find-definitions'.
 The choice depends on the whether `evil-repeat-pop-next' makes sense to call."
@@ -1530,6 +1632,10 @@ The choice depends on the whether `evil-repeat-pop-next' makes sense to call."
 		(condition-case nil
 			(call-interactively 'evil-repeat-pop-next)
 		  (user-error (call-interactively 'xref-find-definitions))))
+
+	  ;; Prepare Xref
+	  (with-eval-after-load "xref"
+		(push 'my-maybe-evil-repeat-pop-next (cdr xref-prompt-for-identifier)))
 
 	  ;; C-. executes `flyspell-auto-correct-word' if no prior repetition can
 	  ;; be popped (only if `flyspell-mode' is enabled).
@@ -1606,6 +1712,7 @@ The choice depends on the whether `evil-repeat-pop-next' makes sense to call."
 	(kbd "M-h") 'company-quickhelp-manual-begin))
 
 ;;; Company-lsp
+;; TODO not required anymore; delete?
 ;; (if (require 'company-lsp nil t)
 ;; 	(push 'company-lsp company-backends))
 
@@ -1619,23 +1726,34 @@ The choice depends on the whether `evil-repeat-pop-next' makes sense to call."
   (define-key ivy-minibuffer-map (kbd "M-.")
 	(lambda () (interactive) (message "not allowed here")))
 
+  ;; default switch-to-buffer
   (global-set-key (kbd "C-x b")   'ivy-switch-buffer)
+  ;; default switch-to-buffer-other-window
   (global-set-key (kbd "C-x 4 b") 'ivy-switch-buffer-other-window)
 
   ;; Resume Ivy dispatch (C-c r)
   (define-key mode-specific-map (kbd "r") 'ivy-resume)
 
   (when (functionp 'swiper)
+	;; default isearch-forward (becomes isearch-forward-regexp on our setup)
 	(global-set-key (kbd "C-s")	'swiper))
 
   (when (functionp 'counsel-M-x)
+	;; default execute-extended-command
 	(global-set-key (kbd "M-x")	'counsel-M-x)
+	;; default find-file
 	(global-set-key (kbd "C-x C-f") 'counsel-find-file)
+	;; default dired
 	(global-set-key (kbd "C-x d")	'counsel-dired)
+	;; default bookmark-jump
 	(global-set-key (kbd "C-x r b") 'counsel-bookmark)
+	;; default describe-function
 	(global-set-key (kbd "<f1> f")	'counsel-describe-function)
+	;; default describe-variable
 	(global-set-key (kbd "<f1> v")	'counsel-describe-variable)
+	;; default view-lossage
 	(global-set-key (kbd "<f1> l")	'counsel-find-library)
+	;; default (on <f1>) info
 	(global-set-key (kbd "<f2> i")	'counsel-info-lookup-symbol)
 	(global-set-key (kbd "<f2> u")	'counsel-unicode-char)
 
@@ -1667,6 +1785,23 @@ The choice depends on the whether `evil-repeat-pop-next' makes sense to call."
   ;; 	   (define-key eshell-mode-map (kbd "M-p") 'helm-esh-history))))
   )
 
+;;; Dash-docs
+(when (functionp 'dash-docs-activate-docset)
+  (setq dash-docs-docsets-path (expand-file-name my-docsets-path))
+  (setq dash-docs-browser-func 'lynx-browse-url)
+
+  ;; Configure buffer-local `dash-docs-docsets' per mode.
+  ;; It's undocumented but inspected from `dash-docs-buffer-local-docsets'.
+  (add-hook 'c-mode-hook (setq-local dash-docs-docsets '("C")))
+  (add-hook 'c++-mode-hook (setq-local dash-docs-docsets '("C++")))
+  (when (functionp 'cmake-mode)
+	(add-hook 'cmake-mode-hook (setq-local dash-docs-docsets '("CMake"))))
+
+  ;; Search docs (C-c d)
+  (define-key mode-specific-map (kbd "d") 'counsel-dash-at-point)
+  ;; Activate docset (C-c x D)
+  (define-key my-extended-map (kbd "D") 'dash-docs-activate-docset))
+
 ;;; Projectile
 (when (functionp 'projectile-mode)
   (projectile-mode 1)
@@ -1696,16 +1831,30 @@ The choice depends on the whether `evil-repeat-pop-next' makes sense to call."
 
 ;;; PDF-Tools
 (when (functionp 'pdf-tools-install)
-  (pdf-tools-install)
-  ;; or (pdf-loader-install)
+  ;; (pdf-tools-install)
+  (pdf-loader-install)					; deferred
 
   ;; Start with fit page
-  (add-hook 'pdf-view-mode-hook 'pdf-view-fit-page-to-window)
+  (setq-default pdf-view-display-size 'fit-page)
+
   (when (functionp 'swiper)
-	(define-key pdf-view-mode-map (kbd "C-s") 'isearch-forward-regexp))
+	(with-eval-after-load "pdf-view"
+	  (define-key pdf-view-mode-map (kbd "C-s") 'isearch-forward-regexp)))
 
   ;; Enable printer
   (setq pdf-misc-print-program "lpr")
+
+  ;; Ability to reset the cursor so it does not bother us.
+  ;; Otherwise, the cursor may dangle behind the picture which is a
+  ;; visual distraction.
+  (defun pdfview-reset-cursor ()
+	"Set point in the selected window to the result of `point-min'."
+	(interactive)
+	(set-window-point (selected-window) (point-min)))
+
+  (with-eval-after-load "pdf-view"
+	;; Reset cursor (C-c y r)
+	(define-key pdf-view-mode-map (kbd "C-c y r") 'pdfview-reset-cursor))
 
   ;; Create better Org mode links
   (require 'ol)
@@ -1784,12 +1933,27 @@ and append it."
 				  (lambda (&rest _args)
 					(dont-show-whitespace)
 					(disable-string-face))
-				  '((name . "vterm-disable-special-visuals")))
+				  '((name . "disable-special-visuals")))
 	  (define-key my-extended-map (kbd "t") 'vterm)
 
 	  (with-eval-after-load "vterm"
 		;; Allow to send C-z easily
-		(define-key vterm-mode-map (kbd "C-c C-z") 'vterm-send-C-z)))
+		(define-key vterm-mode-map (kbd "C-c C-z") 'vterm-send-C-z))
+
+	  (defun vterm--watch-for-password-prompt (process input &rest _args)
+		"Prompt for password and send to PROCESS without echoing.
+Checks if INPUT contains a password prompt as defined by
+`comint-password-prompt-regexp'."
+		(when (let ((case-fold-search t))
+				(string-match comint-password-prompt-regexp input))
+		  (let* ((prompt (match-string 0 input))
+				 (password (read-passwd prompt)))
+			(vterm-send-string password)
+			(clear-string password)
+			(vterm-send-return))))
+
+	  (advice-add 'vterm--filter :after
+				  #'vterm--watch-for-password-prompt))
   ;; Enter terminal (C-c x t)
   (define-key my-extended-map (kbd "t") 'term))
 
@@ -1935,16 +2099,31 @@ and append it."
 
 (when (and (or (eq my-lsp-package 'lsp-mode) (eq my-lsp-package 'all))
 		   (require 'lsp-mode nil t))
-  (unless (eq my-lsp-package 'all)
-	(add-hook 'prog-mode-hook
-			  (lambda ()
-				(unless (eq major-mode 'ein:ipynb-mode)
-				  (lsp)))))	; or 'lsp-deferred
+  (defun my-lsp-mode-autostart-hook ()
+	"Hook to autostart lsp-mode in relevant buffers."
+	(unless (eq major-mode 'ein:ipynb-mode)
+	  (lsp-deferred)))					; lsp or lsp-deferred
+
+  (defvar my-lsp-mode-hooks '(prog-mode-hook))
 
   (setq lsp-before-save-edits nil)
   (setq lsp-completion-enable-additional-text-edit nil)
   (when (< emacs-major-version 27)
 	(setq lsp-completion-styles '(basic)))
+
+  ;; Disable forced automatic installation
+  (defun lsp--completing-read--disable-forced-installation (orig-fun &rest args)
+	"Return nil to `lsp--completing-read' when the query is a certain statement.
+Advice around ORIG-FUN, called with ARGS."
+	(unless
+		(string= (car args)
+				 (concat "Unable to find installed server supporting this "
+						 "file. The following servers could be installed "
+						 "automatically: "))
+	  (apply orig-fun args)))
+  (advice-add 'lsp--completing-read :around
+			  #'lsp--completing-read--disable-forced-installation
+			  '((name . "disable-forced-installation")))
 
 
   (when (executable-find "rust-analyzer")
@@ -2048,28 +2227,34 @@ and append it."
   (define-key my-eglot-help-map (kbd "h") 'eglot-help-at-point)
 
 
+  (defun my-eglot-autostart-hook ()
+	"Hook to autostart eglot in relevant buffers."
+	(eglot-ensure))
+
+  (defvar my-eglot-hooks ())
+
   (when (executable-find "rls")
 	;; (add-to-list 'eglot-server-programs `((rust-mode) eglot-rls ,my-rls-bin))
-	(add-hook 'rust-mode-hook 'eglot-ensure))
+	(push 'rust-mode-hook my-eglot-hooks))
 
   (when (executable-find "javascript-typescript-stdio")
-	(add-hook 'js-mode-hook 'eglot-ensure)
-	(add-hook 'typescript-mode-hook 'eglot-ensure))
+	(push 'js-mode-hook my-eglot-hooks)
+	(push 'typescript-mode-hook my-eglot-hooks))
 
   (when (executable-find "pyls")
-	(add-hook 'python-mode-hook 'eglot-ensure))
+	(push 'python-mode-hook my-eglot-hooks))
 
   (when (executable-find "clangd")
 	(add-to-list 'eglot-server-programs '((c++-mode c-mode) "clangd"))
-	(add-hook 'c-mode-hook 'eglot-ensure)
-	(add-hook 'c++-mode-hook 'eglot-ensure))
+	(push 'c-mode-hook my-eglot-hooks)
+	(push 'c++-mode-hook my-eglot-hooks))
 
   (when (executable-find "digestif")
-	(add-hook 'tex-mode-hook 'eglot-ensure))
+	(push 'tex-mode-hook my-eglot-hooks))
 
   (add-to-list 'eglot-server-programs '((gd-script-mode) "localhost"
 										6008 "tls")) ; or "starttls" or nil
-  (add-hook 'gd-script-mode-hook 'eglot-ensure)
+  (push 'gd-script-mode-hook my-eglot-hooks)
 
   (defun my-julia-get-project-root (dir)
 	"Return the Julia project root directory of DIR."
@@ -2099,7 +2284,7 @@ and append it."
   ;; 	 'eglot-server-programs
   ;; 	 '(julia-mode . my-julia-lsp-command))
 
-  ;; 	(add-hook 'julia-mode-hook 'eglot-ensure)
+  ;; 	(push 'julia-mode-hook my-eglot-hooks)
   ;; 	;; Wait longer due to slow compilation
   ;; 	(add-hook 'julia-mode-hook
   ;; 			  (lambda () (setq-local eglot-connect-timeout 90))))
@@ -2122,6 +2307,40 @@ and append it."
   ;; 												 ))))
   ;; 	 (whitespace-line-column . 100))))
   )
+
+
+;;; All LSP modes
+
+(defvar my-lsp-package-active t)
+
+(defun my-modify-lsp-package-hooks (add-hooks-p)
+  "Add or remove the hooks for `my-lsp-package', depending on ADD-HOOKS-P.
+If ADD-HOOKS-P is non-nil, activate the hooks, otherwise
+deactivate them."
+  (let* ((symbol-string
+		  (symbol-name (if (eq my-lsp-package 'all)
+						   my-autostart-lsp-package
+						 my-lsp-package)))
+		 (package-hooks (symbol-value
+						 (intern (concat "my-" symbol-string "-hooks"))))
+		 (autostart-hook
+		  (intern (concat "my-" symbol-string "-autostart-hook")))
+		 (modify-hook-function (if add-hooks-p #'add-hook #'remove-hook)))
+	(mapc (lambda (elem)
+			(funcall modify-hook-function elem autostart-hook))
+		  package-hooks)
+	(setq my-lsp-package-active add-hooks-p)))
+
+;; Autostart LSP package by default
+(my-modify-lsp-package-hooks t)
+
+(defun my-toggle-lsp-package ()
+  "Toggle whether `my-lsp-package' is activated for each new buffer."
+  (interactive)
+  (my-modify-lsp-package-hooks (not my-lsp-package-active)))
+
+;; Toggle automatic lsp-package activation (C-c t L)
+(define-key my-toggle-map (kbd "L") 'my-toggle-lsp-package)
 
 
 ;;; Load private configurations
@@ -2379,7 +2598,7 @@ currently active."
 	(if (eq mode-line-format nil)
 		(progn
 		  (kill-local-variable 'mode-line-format)
-		  (kill-local-variable 'display-line-numbers)
+		  ;; (kill-local-variable 'display-line-numbers)
 		  (toggle-frame-fullscreen)
 		  (when (eq major-mode 'pdf-view-mode)
 			(local-unset-key (kbd "<mouse-1>"))
@@ -2388,13 +2607,14 @@ currently active."
 			(local-unset-key [down-mouse-3])
 			(pdf-misc-context-menu-minor-mode 1)
 			(pdf-view-fit-page-to-window))
+		  (kill-local-variable 'cursor-type)
 		  (kill-local-variable 'echo-keystrokes)
 		  (kill-local-variable 'inhibit-message)
 		  ;; TODO why does `winner-undo' not work here?
 		  )
 	  (winner-save-unconditionally)
 	  (setq-local mode-line-format nil)
-	  (setq-local display-line-numbers nil)
+	  ;; (setq-local display-line-numbers nil)
 	  (delete-other-windows)
 	  (toggle-frame-fullscreen)
 	  (when (eq major-mode 'pdf-view-mode)
@@ -2405,8 +2625,13 @@ currently active."
 		(pdf-misc-context-menu-minor-mode 0)
 		(sleep-for 0 200) ; sadly necessary
 		(pdf-view-fit-page-to-window))
+	  (set-window-point (selected-window) (point-min))
+	  (setq-local cursor-type nil)
 	  (setq-local echo-keystrokes 0) ; debatable
-	  (setq-local inhibit-message t))))
+	  (setq-local inhibit-message t)))
+
+  ;; Toggle presentation mode (C-c t p)
+  (define-key my-toggle-map (kbd "p") 'toggle-presentation-mode))
 
 
 (defun my-julia-repl ()
@@ -2431,7 +2656,7 @@ currently active."
 
 ;;;; Key bindings
 
-;; Do not untabify before backspacing
+;; Do not untabify before backspacing (default delete-backward-char)
 (global-set-key (kbd "DEL") 'backward-delete-char)
 
 ;; Find file at point (C-c f)
@@ -2443,7 +2668,7 @@ currently active."
 ;; undo-only (C-c u)
 (define-key mode-specific-map (kbd "u") 'undo-only)
 
-;; Better expanding
+;; Better expanding (default dabbrev-expand)
 (global-set-key (kbd "M-/") 'hippie-expand)
 
 ;; Better completion mapping (C-c n)
@@ -2456,7 +2681,7 @@ currently active."
 (define-key mode-specific-map (kbd "z") 'zap-to-char)
 
 ;; Swap literal and regex isearch
-;; (we then don't need (search-default-mode t))
+;; (we then don't need/want (search-default-mode t))
 (unless (functionp 'swiper)
   (global-set-key (kbd "C-s") 'isearch-forward-regexp))
 (global-set-key (kbd "C-r")   'isearch-backward-regexp)
@@ -2466,6 +2691,9 @@ currently active."
 ;; Swap literal and regex query-replace
 (global-set-key (kbd "M-%")   'query-replace-regexp)
 (global-set-key (kbd "C-M-%") 'query-replace)
+
+;; Add more behavior to M-SPC (default just-one-space)
+(global-set-key (kbd "M-SPC") (lambda () (interactive) (cycle-spacing -1)))
 
 ;; Indent using tabs or spaces (C-c t i)
 (define-key my-toggle-map (kbd "i") 'toggle-indent-tabs-mode)
@@ -2479,14 +2707,14 @@ currently active."
 ;; Toggle subword movement (C-c t W)
 (define-key my-toggle-map (kbd "W") 'toggle-subword-mode)
 
-;; Toggle pixel-scrolling (C-c t p)
-(define-key my-toggle-map (kbd "p") 'toggle-pixel-scroll-mode)
+;; Toggle pixel-scrolling (C-c t P)
+(define-key my-toggle-map (kbd "P") 'toggle-pixel-scroll-mode)
 
 ;; Toggle auto fill mode (C-c t F)
 (define-key my-toggle-map (kbd "F") 'auto-fill-mode)
 
-;; Toggle truncation of long lines (C-c t L)
-(define-key my-toggle-map (kbd "L") 'toggle-truncate-lines)
+;; Toggle truncation of long lines (C-c t l)
+(define-key my-toggle-map (kbd "l") 'toggle-truncate-lines)
 
 ;; Toggle Flyspell mode (C-c t s)
 (define-key my-toggle-map (kbd "s") 'toggle-flyspell-mode)
@@ -2565,6 +2793,9 @@ currently active."
 ;; Kill other buffers (C-c x k)
 (define-key my-extended-map (kbd "k") 'kill-other-buffers)
 
+;; View lossage (C-c x K)
+(define-key my-extended-map (kbd "K") 'view-lossage)
+
 ;; Open Proced (C-c x p)
 (define-key my-extended-map (kbd "p") 'proced)
 
@@ -2574,16 +2805,23 @@ currently active."
 ;; Enter eshell (C-c x s)
 (define-key my-extended-map (kbd "s") 'eshell)
 
+;; Enter terminal/program (C-c x T)
+(define-key my-extended-map (kbd "T") 'term)
+
 ;; Grep (C-c x G)
 (define-key my-extended-map (kbd "G") 'grep)
 
-;; Enter EWW (C-c x w)
-(define-key my-extended-map (kbd "w") 'eww)
+(if (executable-find "lynx")
+	(progn
+	  ;; Enter text browser (C-c x w)
+	  (define-key my-extended-map (kbd "w") 'lynx-browse-url)
+	  ;; Open file with text browser (C-c x o)
+	  (define-key my-extended-map (kbd "o") 'lynx-open-file))
+  (define-key my-extended-map (kbd "w") 'eww)
+  (define-key my-extended-map (kbd "o") 'eww-open-file))
 
-;; Open file with EWW (C-c x o)
-(define-key my-extended-map (kbd "o") 'eww-open-file)
-
-(when (functionp 'xwidget-webkit-browse-url)
+(when (and (featurep 'xwidget-internal)
+		   (functionp 'xwidget-webkit-browse-url))
   ;; Enter xwidget webkit (C-c x x)
   (define-key my-extended-map (kbd "x") 'xwidget-webkit-browse-url)
 

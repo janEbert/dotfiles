@@ -143,7 +143,10 @@ hooks for `my-autostart-lsp-package'.")
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(add-log-mailing-address "janpublicebert@posteo.net")
  '(auth-source-save-behavior nil)
+ '(auto-insert t)
+ '(auto-insert-mode t)
  '(backup-by-copying nil)
  '(backup-by-copying-when-linked t)
  '(before-save-hook '(time-stamp))
@@ -164,7 +167,7 @@ hooks for `my-autostart-lsp-package'.")
  '(desktop-restore-eager 10)
  '(dired-always-read-filesystem t)
  '(dired-dwim-target 'dired-dwim-target-recent)
- '(display-battery-mode t)
+ '(display-battery-mode nil)
  '(display-line-numbers-widen t)
  '(display-raw-bytes-as-hex t)
  '(display-time-24hr-format t)
@@ -251,7 +254,7 @@ hooks for `my-autostart-lsp-package'.")
  '(view-read-only t)
  '(wdired-allow-to-change-permissions t)
  '(which-function-mode t)
- '(whitespace-style '(face trailing lines-tail tab-mark))
+ '(whitespace-style '(face trailing lines-tail empty tab-mark))
  '(winner-mode t))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
@@ -335,6 +338,7 @@ This way, the newly added directories have priority over old ones."
 ;; Fix `read-passwd' being recorded in lossage.
 (defun execute-without-recording (orig-fun &rest args)
   "Execute ORIG-FUN on ARGS without recording input characters."
+  ;; Would be even better to set buffer-locally but whatever.
   (let ((inhibit--record-char t))
 	(apply orig-fun args)))
 
@@ -343,7 +347,7 @@ This way, the newly added directories have priority over old ones."
 
 ;; Use more flexible completion styles
 (setq completion-styles (append completion-styles
-								'(substring flex)))
+								'(substring initials flex)))
 
 ;; Do complete .bin files
 (setq completion-ignored-extensions
@@ -508,6 +512,7 @@ Checks if STRING contains a password prompt as defined by
 
 ;;; Dired
 (add-hook 'dired-after-readin-hook 'dont-show-whitespace)
+(add-hook 'dired-load-hook (lambda () (require 'dired-x)))
 
 ;;; Icomplete
 ;; (icomplete-mode 1)
@@ -1024,14 +1029,19 @@ Afterwards, remove it from `after-make-frame-functions'."
   ;; Open PDFs in Emacs
   (setcdr (assoc "\\.pdf\\'" org-file-apps) 'emacs)
 
+  ;; TODO Maybe we don't need this due to the German babel language fix below.
   ;; Include babel or polyglossia for better LaTeX language settings.
-  (add-to-list 'org-latex-packages-alist
-			   '("AUTO" "babel" t ("pdflatex")))
-  (add-to-list 'org-latex-packages-alist
-			   '("AUTO" "polyglossia" t ("xelatex" "lualatex")))
+  ;; (add-to-list 'org-latex-packages-alist
+  ;; 			   '("AUTO" "babel" t ("pdflatex")))
+  ;; (add-to-list 'org-latex-packages-alist
+  ;; 			   '("AUTO" "polyglossia" t ("xelatex" "lualatex")))
+
 
   ;; Enable LaTeX letter class
   (with-eval-after-load 'ox-latex
+	;; Fix German babel language
+	(setcdr (assoc "de" org-latex-babel-language-alist) "ngerman")
+
 	(add-to-list 'org-latex-classes
 				 '("letter" "\\documentclass[11pt]{letter}"
 				   ("\\opening{%s}")
@@ -1269,6 +1279,31 @@ which activates the dark theme variant."
 	(setq grep-command
 		  "rg --color always -nH --null --no-heading --smart-case -e "))
 
+;;; HTML
+(setcdr (assoc 'html-mode auto-insert-alist)
+		'(lambda ()
+		   (insert (concat "<!DOCTYPE html>\n"
+				   "<html lang=\"en\">\n"
+				   "<head>\n"
+				   "<meta charset=\"utf-8\">\n"
+				   "<meta name=\"viewport\" "
+				   "content=\"width=device-width, initial-scale=1\">\n"
+				   "<meta http-equiv=\"Content-Security-Policy\" "
+				   "content=\"default-src 'none'; font-src 'self'; "
+				   "img-src 'self'; object-src 'none'; "
+				   "script-src 'self'; style-src 'self'\">\n"
+				   "<title>" (setq str (read-string "Title: ")) "</title>\n"
+				   "<link href=\"css/css.css\" rel=\"stylesheet\">\n"
+				   "<script src=\"js/js.js\" defer></script>\n"
+				   "</head>\n"
+				   "<body>\n<h1>" str "</h1>\n"
+				   "\n<address>\n<a href=\"mailto:"
+				   user-mail-address
+				   "\">" (user-full-name) "</a>\n</address>\n"
+				   "</body>\n"
+				   "</html>"))
+		   (indent-region (point-min) (point-max))))
+
 ;;; Indentation
 ;; HTML indentation
 (setq sgml-basic-offset 4)
@@ -1447,6 +1482,9 @@ The playlist must be in `my-music-dir'."
 	  (define-key my-music-map (kbd "f") 'emms-seek-forward)
 	  (define-key my-music-map (kbd "l") 'emms)
 	  (define-key my-music-map (kbd "i") 'init-emms)
+	  (define-key my-music-map (kbd "S") 'emms-streams)
+	  (define-key my-music-map (kbd "R") 'emms-play-streamlist)
+	  (define-key my-music-map (kbd "U") 'emms-play-url)
 	  (define-key my-music-map (kbd "+") 'emms-volume-raise)
 	  (define-key my-music-map (kbd "-") 'emms-volume-lower))
 
@@ -1788,7 +1826,7 @@ The choice depends on the whether `evil-repeat-pop-next' makes sense to call."
 ;;; Dash-docs
 (when (functionp 'dash-docs-activate-docset)
   (setq dash-docs-docsets-path (expand-file-name my-docsets-path))
-  (setq dash-docs-browser-func 'lynx-browse-url)
+  (setq dash-docs-browser-func 'eww)
 
   ;; Configure buffer-local `dash-docs-docsets' per mode.
   ;; It's undocumented but inspected from `dash-docs-buffer-local-docsets'.
@@ -2237,7 +2275,8 @@ Advice around ORIG-FUN, called with ARGS."
 	;; (add-to-list 'eglot-server-programs `((rust-mode) eglot-rls ,my-rls-bin))
 	(push 'rust-mode-hook my-eglot-hooks))
 
-  (when (executable-find "javascript-typescript-stdio")
+  ;; TODO replace with tsserver when it's ready
+  (when (executable-find "typescript-language-server")
 	(push 'js-mode-hook my-eglot-hooks)
 	(push 'typescript-mode-hook my-eglot-hooks))
 
@@ -2811,14 +2850,10 @@ currently active."
 ;; Grep (C-c x G)
 (define-key my-extended-map (kbd "G") 'grep)
 
-(if (executable-find "lynx")
-	(progn
-	  ;; Enter text browser (C-c x w)
-	  (define-key my-extended-map (kbd "w") 'lynx-browse-url)
-	  ;; Open file with text browser (C-c x o)
-	  (define-key my-extended-map (kbd "o") 'lynx-open-file))
-  (define-key my-extended-map (kbd "w") 'eww)
-  (define-key my-extended-map (kbd "o") 'eww-open-file))
+;; Enter browser (C-c x w)
+(define-key my-extended-map (kbd "w") 'eww)
+;; Open file with browser (C-c x o)
+(define-key my-extended-map (kbd "o") 'eww-open-file)
 
 (when (and (featurep 'xwidget-internal)
 		   (functionp 'xwidget-webkit-browse-url))

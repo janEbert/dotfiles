@@ -175,4 +175,3 @@ alias emacs="emacsclient -c -a ''"
 alias dex="stack exec dex --"
 alias rgp="rg --pre to_text"
 alias maxcompr="7z a -t7z -mx9 -m0=lzma2 -mmt2 -md1024m"
-

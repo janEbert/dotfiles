@@ -377,11 +377,11 @@ if g:mypluginsexist
                 break
             endif
         endfor
+        unlet folders
         if g:mygutentagsfound == 1
             break
         endif
     endfor
-    unlet folders
     unlet outer_folders
 endif
 

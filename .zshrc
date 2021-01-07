@@ -11,8 +11,8 @@
 if [ -x "$(command -v dconf)" ]; then
     gnome_term_profiles='/org/gnome/terminal/legacy/profiles:/'
     first_profile=$(dconf list $gnome_term_profiles | head -n 1)
-    if [ $(dconf read "$gnome_term_profiles${first_profile}background-color") \
-            = "'rgb(0,43,54)'" ]; then
+    if [[ $(dconf read "$gnome_term_profiles${first_profile}background-color") \
+              = "'rgb(0,43,54)'" ]]; then
         export SOLARIZED_THEME="dark"
     else
         export SOLARIZED_THEME="light"
@@ -288,25 +288,28 @@ _gen_fzf_default_opts() {
 }
 _gen_fzf_default_opts
 
-# Choose best grep program
-if ! [ -x "$(command -v rg)" ]; then
-    # From current README
-    INITIAL_QUERY=""
-    RG_PREFIX="rg --column --line-number --no-heading --color=always --smart-case "
-    FZF_DEFAULT_COMMAND="$RG_PREFIX '$INITIAL_QUERY'" \
-                       fzf --bind "change:reload:$RG_PREFIX {q} || true" \
-                       --ansi --phony --query "$INITIAL_QUERY" \
-                       --height=50% --layout=reverse
+if [ -f ~/.fzf.zsh ]; then
+    source ~/.fzf.zsh
 
-    # Previous version
-    # export FZF_DEFAULT_COMMANDS='rg --files --hidden --follow --color never --smart-case'
-elif ! [ -x "$(command -v ag)" ]; then
-    export FZF_DEFAULT_COMMANDS='ag -l --hidden --nocolor -g ""'
-elif ! [ -x "$(command -v ack)" ]; then
-    export FZF_DEFAULT_COMMANDS='ack -l --nocolor -g ""'
+    # Choose best grep program
+    if [ -x "$(command -v rg)" ]; then
+        # From current README
+        INITIAL_QUERY=""
+        RG_PREFIX="rg --column --line-number --no-heading --color=always --smart-case "
+        # FZF_DEFAULT_COMMAND="$RG_PREFIX '$INITIAL_QUERY'" \
+        #                    fzf --bind "change:reload:$RG_PREFIX {q} || true" \
+        #                    --ansi --phony --query "$INITIAL_QUERY" \
+        #                    --height=50% --layout=reverse
+
+        # Previous version
+        export FZF_DEFAULT_COMMANDS='rg --files --hidden --follow --color never --smart-case'
+    elif [ -x "$(command -v ag)" ]; then
+        export FZF_DEFAULT_COMMANDS='ag -l --hidden --nocolor -g ""'
+    elif [ -x "$(command -v ack)" ]; then
+        export FZF_DEFAULT_COMMANDS='ack -l --nocolor -g ""'
+    fi
 fi
 
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 
 # VTerm

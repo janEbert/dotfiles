@@ -74,7 +74,7 @@
 (defconst my-jupyter-dir "~/anaconda3/bin")
 ;; (defconst my-godot-bin "~/local/bin/godot")
 
-(defconst my-lsp-package 'lsp-mode "Which LSP package to use.
+(defconst my-lsp-package 'eglot "Which LSP package to use.
 Can be a symbol in (lsp-mode eglot all). If it is \"all\", only activate the
 hooks for `my-autostart-lsp-package'.")
 (defconst my-autostart-lsp-package 'eglot

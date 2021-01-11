@@ -1733,14 +1733,15 @@ The choice depends on the whether `evil-repeat-pop-next' makes sense to call."
 	  ;; However, compatibility problem with YASnippet (resolved later).
 	  (company-tng-configure-default)
 
-	  ;; Increase idle delay in remote shell (revert our fast completion config)
+	  ;; Increase idle delay in remote shells (revert our fast completion config)
 	  (when (require 'tramp nil t)
-		(add-hook 'shell-mode-hook
-				  (lambda ()
-					(if (file-remote-p default-directory)
-						(progn
-						  (setq-local company-minimum-prefix-length 3)
-						  (setq-local company-idle-delay 0.5)))))))
+		(dolist (mode-hook '(eshell-mode-hook shell-mode-hook))
+		  (add-hook mode-hook
+					(lambda ()
+					  (if (file-remote-p default-directory)
+						  (progn
+							(setq-local company-minimum-prefix-length 3)
+							(setq-local company-idle-delay 0.5))))))))
 
 ;;; Company quickhelp
 (when (functionp 'company-quickhelp-mode)

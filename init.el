@@ -640,7 +640,7 @@ If NEW-SESSION is non-nil, start a new session."
 						  ": ")))
 	 (list (read-string prompt nil 'eww-prompt-history uris))))
   (if (not (executable-find "lynx"))
-	  (user-error "The lynx executable could not be found.")
+	  (user-error "The lynx executable could not be found")
 	(set-buffer (make-term "lynx" "lynx" nil url))
 	(term-mode)
 	(term-char-mode)

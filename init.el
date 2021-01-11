@@ -2420,6 +2420,8 @@ deactivate them."
 
 ;;;; Custom commands
 
+;;; Extended standard commands
+
 (defun kill-other-buffers ()
   "Kill all other buffers."
   (interactive)
@@ -2467,6 +2469,8 @@ OBTAIN-TEXT-FUNCTION is called with the result of calling function
   (quit-window nil)
   (select-window (previous-window)))
 
+
+;;; Surround
 
 (defun insert-arbitrary-pair (beginning ending)
   "Insert a pair of any two strings.
@@ -2526,6 +2530,8 @@ TEXT is reversed literally (\"[a\" -> \"a[\")."
 	(delete-backward-char count)
 	(delete-char count)))
 
+
+;;; Toggles
 
 (defun toggle-background-brightness ()
   "Toggle background brightness and reload theme."

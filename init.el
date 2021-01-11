@@ -700,10 +700,10 @@ If NEW-SESSION is non-nil, start a new session."
   ;; (setq tramp-completion-reread-directory-timeout nil)
 
   ;; Disable version control
-  ;; (setq vc-ignore-dir-regexp
-  ;; 		(format "\\(%s\\)\\|\\(%s\\)"
-  ;; 				vc-ignore-dir-regexp
-  ;; 				tramp-file-name-regexp))
+  (setq vc-ignore-dir-regexp
+		(format "\\(%s\\)\\|\\(%s\\)"
+				vc-ignore-dir-regexp
+				tramp-file-name-regexp))
   ;; or
   ;; (setq vc-handled-backends '(Git))
 

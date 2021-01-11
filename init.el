@@ -83,6 +83,8 @@ hooks for `my-autostart-lsp-package'.")
 
 (defconst my-line-number-format 'relative)
 (defconst my-music-dir "~/Music/")
+(defconst my-alarms-path (expand-file-name "my-alarms.txt" my-emacs-dir))
+(defconst my-alarm-ring-path nil)
 
 ;; For faster initialization
 (defvar my-tmp-file-name-handler-alist file-name-handler-alist)
@@ -2469,6 +2471,643 @@ OBTAIN-TEXT-FUNCTION is called with the result of calling function
   (select-window (next-window))
   (quit-window nil)
   (select-window (previous-window)))
+
+
+;;; WAV
+
+(require 'bindat)
+
+;; Writing WAV data
+
+(defun wav-pcm-bindat-spec (num-channels num-blocks sample-width)
+  "Return a bindat spec for the WAV PCM format based on the given parameters.
+NUM-CHANNELS controls the number of channels (1 for mono, 2 for stereo),
+NUM-BLOCKS the number of samples per channel,
+SAMPLE-WIDTH the number of bytes per sample."
+  `((ckID str 4)
+	(cksize u32r)
+	(WAVEID str 4)
+	(ckID2 str 4)
+	(cksize2 u32r)
+	(wFormatTag u16r)
+	(nChannels u16r)
+	(nSamplesPerSec u32r)
+	(nAvgBytesPerSec u32r)
+	(nBlockAlign u16r)
+	(wBitsPerSample u16r)
+	(ckID3 str 4)
+	(cksize3 u32r)
+	;; (samples repeat ,(* num-channels num-blocks)
+	;; 		 ())
+	;; (samples vec ,(* sample-width num-channels num-blocks) str)
+	(samples vec ,(* num-channels num-blocks)
+			 ,(alist-get sample-width '((1 . byte) (2 . u16r)
+										(3 . u24r) (4 . u32r))))
+	(align 2)))
+
+(defun wav-pcm-create-struct (num-channels
+							  num-blocks sample-rate sample-width samples)
+  "Create a WAV struct containing the given SAMPLES.
+NUM-CHANNELS controls the number of channels (1 for mono, 2 for stereo),
+NUM-BLOCKS the number of samples per channel,
+SAMPLE-RATE the number of samples per second,
+SAMPLE-WIDTH the number of bytes per sample."
+  `((ckID . "RIFF")
+	(cksize . ,(+ 4 24 8 (* sample-width num-channels num-blocks)
+				  (if (oddp (* sample-width num-channels num-blocks)) 1 0)))
+	(WAVEID . "WAVE")
+	(ckID2 . "fmt ")
+	(cksize2 . 16)
+	(wFormatTag . #x0001)
+	(nChannels . ,num-channels)
+	(nSamplesPerSec . ,sample-rate)
+	(nAvgBytesPerSec . ,(* sample-rate sample-width num-channels))
+	(nBlockAlign . ,(* sample-width num-channels))
+	(wBitsPerSample . ,(* 8 sample-width))
+	(ckID3 . "data")
+	(cksize3 . ,(* sample-width num-channels num-blocks))
+	;; `(* num-channels num-blocks)' channel-interleaved
+	;; `sample-width'-byte samples
+	(samples . ,(vconcat (mapcar #'identity samples)))))
+
+(defun wav-data-to-string (num-channels
+						   num-blocks sample-rate sample-width samples)
+  "Return the WAV string for the given SAMPLES.
+NUM-CHANNELS controls the number of channels (1 for mono, 2 for stereo),
+NUM-BLOCKS the number of samples per channel,
+SAMPLE-RATE the number of samples per second,
+SAMPLE-WIDTH the number of bytes per sample."
+  (let* ((spec (wav-pcm-bindat-spec num-channels num-blocks sample-width))
+		 (struct (wav-pcm-create-struct num-channels num-blocks sample-rate
+										sample-width samples))
+		 (packed (bindat-pack spec struct)))
+	packed))
+
+(defun wav-pack-samples (num-channels
+						 num-blocks sample-rate sample-width samples)
+  "Return SAMPLES as a WAV string, discretized and packed.
+NUM-CHANNELS controls the number of channels (1 for mono, 2 for stereo),
+NUM-BLOCKS the number of samples per channel,
+SAMPLE-RATE the number of samples per second,
+SAMPLE-WIDTH the number of bytes per sample."
+  (let* ((samples (wav-normalize-samples samples))
+		 (samples (wav-discretize-samples samples sample-width))
+		 (packed (wav-data-to-string num-channels num-blocks sample-rate
+									 sample-width samples)))
+	packed))
+
+;;; Sound
+
+;; Parameter handling utilities
+
+(defun wav-max (sample-width)
+  "The maximum value representable for SAMPLE-WIDTH."
+  (if (<= sample-width 1)
+	  (1- (expt 2 (* 8 sample-width)))
+	(1- (expt 2 (1- (* 8 sample-width))))))
+
+(defun wav-min (sample-width)
+  "The maximum value representable for SAMPLE-WIDTH."
+  (if (<= sample-width 1)
+	  0
+	(* -1 (wav-max sample-width))))
+
+(defun wav-map-range (func num-channels num-blocks sample-width)
+  "Return a vector of samples created by mapping FUNC over a range.
+The range goes from 0 to NUM-CHANNELS * NUM-BLOCKS.
+SAMPLE-WIDTH controls the number of bytes per sample."
+  (let* ((num-samples (* num-channels num-blocks))
+		 (samples (make-vector num-samples 0.0)))
+	(dotimes (i num-samples)
+	  (aset samples i (funcall func i num-samples sample-width)))
+	samples))
+
+(defun wav-map-range-rescaled (func
+							   num-channels num-blocks sample-rate sample-width)
+  "Return a vector of samples by mapping FUNC over a range.
+The range goes from 0 to NUM-CHANNELS * NUM-BLOCKS.
+The x values are mapped to the time elapsed in seconds.
+
+NUM-CHANNELS controls the number of channels (1 for mono, 2 for stereo),
+NUM-BLOCKS the number of samples per channel,
+SAMPLE-RATE the number of samples per second,
+SAMPLE-WIDTH the number of bytes per sample."
+  (let ((factor (wav-rescale-factor sample-rate)))
+	(wav-map-range (lambda (x &optional _num-samples _sample-width)
+					 (funcall func (* x factor)))
+				   num-channels num-blocks sample-width)))
+
+(defun wav-map-range-rescaled-hz (func num-channels num-blocks sample-rate
+									   sample-width hertz &optional freq)
+  "Return a vector of samples by mapping FUNC with the given HERTZ over a range.
+The range goes from 0 to NUM-CHANNELS * NUM-BLOCKS.
+The x values are mapped to the time elapsed in seconds.
+
+NUM-CHANNELS controls the number of channels (1 for mono, 2 for stereo),
+NUM-BLOCKS the number of samples per channel,
+SAMPLE-RATE the number of samples per second,
+SAMPLE-WIDTH the number of bytes per sample.
+FREQ is the base frequency (2 pi by default)."
+  (let ((factor (wav-rescale-factor-hz sample-rate hertz freq)))
+	(wav-map-range (lambda (x &optional _num-samples _sample-width)
+					 (funcall func (* x factor)))
+				   num-channels num-blocks sample-width)))
+
+;; Rescaling x values according to time and hertz
+
+;; FIXME do not do this! instead scale the obtained values so
+;; we can combine different frequencies!
+
+(defun wav-rescale-factor (sample-rate)
+  "Return a factor to scale an X value to the time at X seconds.
+SAMPLE-RATE is the number of samples per second."
+  (/ 1 (float sample-rate)))
+;; (* (or base-freq (* 2 float-pi)) hertz)
+
+(defun wav-rescale-x (x sample-rate)
+  "Return X rescaled to the time at X seconds.
+SAMPLE-RATE is the number of samples per second.
+BASE-FREQ is the base frequency of the wave we want to rescale to (2 pi if nil)."
+  (* x (wav-rescale-factor sample-rate)))
+
+(defun wav-rescale-factor-hz (sample-rate hertz &optional base-freq)
+  "Return a factor to scale an X value to the time at X seconds.
+SAMPLE-RATE is the number of samples per second.
+HERTZ is the number of wave frequencies per second to target.
+BASE-FREQ is the base frequency of the wave we want to rescale to (2 pi if nil)."
+  (/ (* (or base-freq (* 2 float-pi)) hertz) (float sample-rate)))
+
+(defun wav-rescale-x-hz (x sample-rate hertz &optional base-freq)
+  "Return X rescaled to the time at X seconds.
+SAMPLE-RATE is the number of samples per second.
+HERTZ is the number of wave frequencies per second to target.
+BASE-FREQ is the base frequency of the wave we want to rescale to (2 pi if nil)."
+  (* x (wav-rescale-factor sample-rate hertz base-freq)))
+
+;; Normalization
+
+(defun wav-normalize-samples (samples &optional abs-maximum)
+  "Return SAMPLES mapped to [-1, 1].
+ABS-MAXIMUM, the absolute maximum value, may be given or will be found if nil."
+  (let ((abs-maximum (or abs-maximum
+						 (reduce (lambda (a b) (max (abs a) (abs b)))
+								 samples))))
+	(dotimes (i (length samples))
+	  (aset samples i (/ (aref samples i) abs-maximum)))
+	samples))
+
+;; Discretization
+
+(defun wav-discretize (sample sample-width)
+  "Return SAMPLE mapped from [-1, 1] to the value range given by SAMPLE-WIDTH.
+The obtained range is [(`wav-min' SAMPLE-WIDTH), (`wav-max' SAMPLE-WIDTH)]."
+  (let ((discretize-max (wav-max sample-width)))
+	(if (<= sample-width 1)
+		(wav-discretize-unsigned-precalc sample discretize-max)
+	  (wav-discretize-signed-precalc sample discretize-max))))
+
+(defun wav-discretize-unsigned-precalc (sample discretize-max)
+  "Discretize SAMPLE according to DISCRETIZE-MAX, assuming unsigned values.
+DISCRETIZE-MAX contains the desired maximum value to discretize to."
+  (round (* (1+ sample) discretize-max 0.5)))
+
+(defun wav-discretize-signed-precalc (sample discretize-max)
+  "Discretize SAMPLE according to DISCRETIZE-MAX, assuming signed values.
+DISCRETIZE-MAX contains the desired maximum value to discretize to."
+  (round (* sample discretize-max)))
+
+(defun wav-discretize-samples (samples sample-width)
+  "Return continuous SAMPLES mapped to the discrete range of SAMPLE-WIDTH.
+SAMPLES are expected to be in [-1, 1].
+The obtained integer range is
+[(`wav-min' SAMPLE-WIDTH), (`wav-max' SAMPLE-WIDTH)]."
+  (let* ((discretize-max (wav-max sample-width))
+		 (discretize-func (if (<= sample-width 1)
+							  'wav-discretize-unsigned-precalc
+							'wav-discretize-signed-precalc)))
+	(dotimes (i (length samples))
+	  (aset samples i (funcall discretize-func (aref samples i)
+							   discretize-max)))
+	samples))
+
+;; Base waveforms
+
+(defun wav-noise-raw (_i _num-samples sample-width)
+  "Return a uniform random number between `wav-min' and `wav-max'.
+Discretized to the given SAMPLE-WIDTH."
+  (* (if (or (<= sample-width 1) (eq (random 1) 1)) 1 -1)
+	 (random (wav-max sample-width))))
+
+(defun wav-create-noise-raw (num-channels num-blocks sample-width &rest _args)
+  "Return a vector of discrete uniform random noise.
+NUM-CHANNELS controls the number of channels (1 for mono, 2 for stereo),
+NUM-BLOCKS the number of samples per channel,
+SAMPLE-WIDTH the number of bytes per sample."
+  (wav-map-range #'wav-noise-raw num-channels num-blocks sample-width))
+
+(defun wav-noise (_i _num-samples sample-width)
+  "Return a uniform random number between `wav-min' and `wav-max'.
+The range is given by SAMPLE-WIDTH."
+  (* (if (or (<= sample-width 1) (eq (random 1) 1)) 1 -1)
+	 (cl-random 1.0)))
+
+(defun wav-create-noise (num-channels num-blocks sample-width &rest _args)
+  "Return a vector of normalized uniform random noise.
+NUM-CHANNELS controls the number of channels (1 for mono, 2 for stereo),
+NUM-BLOCKS the number of samples per channel,
+SAMPLE-WIDTH the number of bytes per sample."
+  (wav-map-range #'wav-noise
+				 num-channels num-blocks sample-width))
+
+(defun wav-sin (x)
+  "Return a sin at X."
+  (sin x))
+
+(defun wav-create-sin (num-channels num-blocks sample-rate sample-width
+									hertz &optional freq)
+  "Return a vector containing a sin wave with the given amount of HERTZ.
+The x values are mapped to the time elapsed in seconds.
+
+NUM-CHANNELS controls the number of channels (1 for mono, 2 for stereo),
+NUM-BLOCKS the number of samples per channel,
+SAMPLE-RATE the number of samples per second,
+SAMPLE-WIDTH the number of bytes per sample."
+  (wav-map-range-rescaled #'wav-sin
+						  num-channels num-blocks sample-rate sample-width
+						  hertz freq))
+
+(defun wav-saw (x &optional freq)
+  "Return a sawtooth wave function at X with frequency FREQ or 2 pi."
+  (let ((freq (or freq (* 2 float-pi))))
+	(1- (* 2 (/ (mod x freq) freq)))))
+
+(defun wav-inv-saw (x &optional freq)
+  "Return an inverted sawtooth wave function at X with frequency FREQ or 2 pi."
+  (- (wav-saw x (or freq (* 2 float-pi)))))
+
+(defun wav-create-saw (num-channels num-blocks sample-rate sample-width
+									hertz &optional freq)
+  "Return a vector containing a sawtooth wave with the given amount of HERTZ.
+The x values are mapped to the time elapsed in seconds.
+FREQ is the base frequency of the wave (2 pi if nil).
+
+NUM-CHANNELS controls the number of channels (1 for mono, 2 for stereo),
+NUM-BLOCKS the number of samples per channel,
+SAMPLE-RATE the number of samples per second,
+SAMPLE-WIDTH the number of bytes per sample."
+  (wav-map-range-rescaled #'wav-saw
+						  num-channels num-blocks sample-rate sample-width
+						  hertz freq))
+
+(defun wav-create-inv-saw (num-channels num-blocks sample-rate sample-width
+										hertz &optional freq)
+  "Return a vector containing an inverse sawtooth wave with the given HERTZ.
+The x values are mapped to the time elapsed in seconds.
+FREQ is the base frequency of the wave (2 pi if nil).
+
+NUM-CHANNELS controls the number of channels (1 for mono, 2 for stereo),
+NUM-BLOCKS the number of samples per channel,
+SAMPLE-RATE the number of samples per second,
+SAMPLE-WIDTH the number of bytes per sample."
+  (wav-map-range-rescaled #'wav-inv-saw
+						  num-channels num-blocks sample-rate sample-width
+						  hertz freq))
+
+(defun wav-square (x &optional freq)
+  "Return a square wave function at X with frequency FREQ or 2 pi."
+  (wav-pulse x 0.5 freq))
+
+(defun wav-create-square (num-channels num-blocks sample-rate sample-width
+									   hertz &optional freq)
+  "Return a vector containing a square wave with the given amount of HERTZ.
+The x values are mapped to the time elapsed in seconds.
+FREQ is the base frequency of the wave (2 pi if nil).
+
+NUM-CHANNELS controls the number of channels (1 for mono, 2 for stereo),
+NUM-BLOCKS the number of samples per channel,
+SAMPLE-RATE the number of samples per second,
+SAMPLE-WIDTH the number of bytes per sample."
+  (wav-map-range-rescaled #'wav-square
+						  num-channels num-blocks sample-rate sample-width
+						  hertz freq))
+
+(defun wav-pulse (x &optional ratio freq)
+  "Return a pulse wave function at X with frequency FREQ or 2 pi.
+RATIO controls the point in the wave at which the pulse is located (0.5 by
+default, giving a square wave)."
+  (let ((freq (or freq (* 2 float-pi))))
+	(if (< (mod x freq) (* freq (or ratio 0.5))) -1.0 1.0)))
+
+(defun wav-create-pulse (num-channels num-blocks sample-rate sample-width
+									  hertz &optional freq)
+  "Return a vector containing a pulse wave with the given amount of HERTZ.
+The x values are mapped to the time elapsed in seconds.
+FREQ is the base frequency of the wave (2 pi if nil).
+
+NUM-CHANNELS controls the number of channels (1 for mono, 2 for stereo),
+NUM-BLOCKS the number of samples per channel,
+SAMPLE-RATE the number of samples per second,
+SAMPLE-WIDTH the number of bytes per sample."
+  (wav-map-range-rescaled #'wav-pulse
+						  num-channels num-blocks sample-rate sample-width
+						  hertz freq))
+
+(defun wav-triangle (x &optional ratio freq)
+  "Return a triangle wave function at X with frequency FREQ or 2 pi.
+RATIO controls the point in the wave at which the peak is
+located (0.5 by default)."
+  (let* ((freq (or freq (* 2 float-pi)))
+		 (ratio (or ratio 0.5))
+		 (pos (mod x freq))
+		 (peak-pos (* freq ratio)))
+	(if (< pos peak-pos)
+		(wav-saw pos peak-pos)
+	  (let ((inv-saw-freq (- freq peak-pos)))
+		(wav-inv-saw (- pos peak-pos) inv-saw-freq)))))
+
+(defun wav-create-triangle (num-channels num-blocks sample-rate sample-width
+									   hertz &optional freq)
+  "Return a vector containing a triangle wave with the given amount of HERTZ.
+The x values are mapped to the time elapsed in seconds.
+FREQ is the base frequency of the wave (2 pi if nil).
+
+NUM-CHANNELS controls the number of channels (1 for mono, 2 for stereo),
+NUM-BLOCKS the number of samples per channel,
+SAMPLE-RATE the number of samples per second,
+SAMPLE-WIDTH the number of bytes per sample."
+  (wav-map-range-rescaled #'wav-triangle
+						  num-channels num-blocks sample-rate sample-width
+						  hertz freq))
+
+;; Playing sound
+
+(defun wav-play-sound (sound-string)
+  "Play the sound contained in SOUND-STRING."
+  (play-sound (list 'sound :data sound-string)))
+
+(defun wav-play-test (&optional num-channels
+								num-blocks sample-rate sample-width wave hertz)
+  "Play an example sound.
+NUM-CHANNELS controls the number of channels (1 for mono, 2 for stereo),
+NUM-BLOCKS the number of samples per channel,
+SAMPLE-RATE the number of samples per second,
+SAMPLE-WIDTH the number of bytes per sample,
+WAVE the waveform to use for the sound,
+HERTZ the amount of hertz in the example sound."
+  (let* ((num-channels (or num-channels 1))
+		 (sample-rate (or sample-rate 41000))
+		 (num-blocks (or num-blocks (* num-channels sample-rate)))
+		 (sample-width (or sample-width 2))
+		 (hertz (or hertz 2000))
+		 (wave-func (intern (concat "wav-create-" (symbol-name wave))))
+		 (samples (funcall
+				   wave-func
+				   num-channels num-blocks sample-rate sample-width hertz))
+		 (packed (wav-pack-samples num-channels num-blocks sample-rate
+								   sample-width samples)))
+	(write-region packed nil (expand-file-name "~/test-elisp-wave.wav"))
+	(wav-play-sound packed)))
+
+(defun wav-play-samples (num-channels
+						 num-blocks sample-rate sample-width samples)
+  "Play the given SAMPLES.
+NUM-CHANNELS controls the number of channels (1 for mono, 2 for stereo),
+NUM-BLOCKS the number of samples per channel,
+SAMPLE-RATE the number of samples per second,
+SAMPLE-WIDTH the number of bytes per sample."
+  (let ((packed (wav-pack-samples num-channels num-blocks sample-rate
+								  sample-width samples)))
+	(wav-play-sound packed)))
+
+(defun wav-create-and-play (func
+							num-channels num-blocks sample-rate sample-width)
+  "Play the sound created by applying FUNC to a range of values.
+
+NUM-CHANNELS controls the number of channels (1 for mono, 2 for stereo),
+NUM-BLOCKS the number of samples per channel,
+SAMPLE-RATE the number of samples per second,
+SAMPLE-WIDTH the number of bytes per sample."
+  (let* ((samples (wav-map-range-rescaled func num-channels num-blocks
+										  sample-rate sample-width))
+		 (packed (wav-pack-samples num-channels num-blocks sample-rate
+								   sample-width samples)))
+	(wav-play-sound packed)))
+
+;; Envelopes
+
+;; (defun wav-held-adsr (x attack decay sustain release hold-length
+;; 						sample-rate)
+;;   ""
+;;   ())
+
+(defun wav-held-adsr-intensities (attack decay sustain release hold-length
+										 num-channels num-blocks sample-rate)
+  "Return values for an ADSR envelope that is held for HOLD-LENGTH seconds.
+ATTACK, DECAY, SUSTAIN and RELEASE control the values with the same name in
+the envelope, where durations are measure in seconds and the intensity is given
+normalized (in [0, 1]).
+HOLD-LENGTH corresponds to the duration of pressing a button on a keyboard.
+
+NUM-CHANNELS controls the number of channels (1 for mono, 2 for stereo),
+NUM-BLOCKS the number of samples per channel,
+SAMPLE-RATE the number of samples per second,
+SAMPLE-WIDTH the number of bytes per sample."
+  (let* ((num-samples (* num-channels num-blocks))
+		 (intensities (make-vector num-samples 0.0)))
+	(dotimes (i num-samples)
+	  (aset intensities i (wav-held-adsr i num-samples sample-width)))
+	intensities))
+
+
+;;; Alarms
+
+(defvar my-alarm-ring nil)
+
+(defun my-alarm-ring-formula (x)
+  "Formula to calculate alarm ringing sound for each X in time."
+  (let* ((xx (* x 2 float-pi))
+		 (xf (* 880 xx))
+		 (harmonics '(1 2 3 4)))
+	(* (1+ (wav-square (* xx 7)))
+	   (reduce #'+ (mapcar (lambda (harmonic) (wav-sin (/ xf harmonic)))
+						   harmonics)))))
+
+(defun my-alarm-ring-packed ()
+  "Return a sound string for an alarm ring."
+  (let* ((num-channels 1)
+		 (num-blocks 30750)
+		 (sample-rate 41000)
+		 (sample-width 2) 			; 1 or 2 – quality and size mostly same
+		 (samples (wav-map-range-rescaled #'my-alarm-ring-formula
+										  num-channels num-blocks
+										  sample-rate sample-width))
+		 (packed (wav-pack-samples num-channels num-blocks sample-rate
+								   sample-width samples)))
+	packed))
+
+(defun setup-alarm-ring ()
+  "Compile the alarm ringing sound and assign it to `my-alarm-ring'.
+Will only happen if `my-alarm-ring' is nil."
+  (unless my-alarm-ring
+	(setq my-alarm-ring (my-alarm-ring-packed)))
+  my-alarm-ring)
+
+(defun ding-with-sound ()
+  "Ring the bell and try to play a sound."
+  (if (or (not (fboundp 'play-sound-internal))
+		  (not my-alarm-ring))
+	  (let ((visible-bell nil))
+		(ding t))
+	(ding t)
+	(make-thread
+	 (lambda () (play-sound (list 'sound :data my-alarm-ring))))))
+
+(defun ding-with-sound-from-path (path)
+  "Ring the bell and try to play the sound located at PATH.
+If playing sound is not available or PATH is not readable, try to ring the bell."
+  (let ((path (expand-file-name path)))
+	(if (or (not (fboundp 'play-sound-internal))
+			(not (file-readable-p path)))
+		(let ((visible-bell nil))
+		  (ding t))
+	  (ding t)
+	  (make-thread
+	   (lambda () (play-sound (list 'sound :file path)))))))
+
+(defvar my-last-alarm nil)
+(defvar my-timer-alist nil)
+
+(defun decoded-time-set-current (time)
+  "Set any nil values in `decoded-time' TIME to current time values."
+  (let ((default-time (decode-time)))
+	(unless (decoded-time-second time)
+	  (setf (decoded-time-second time) (decoded-time-second default-time)))
+	(unless (decoded-time-minute time)
+	  (setf (decoded-time-minute time) (decoded-time-minute default-time)))
+	(unless (decoded-time-hour time)
+	  (setf (decoded-time-hour time) (decoded-time-hour default-time)))
+
+	(unless (decoded-time-day time)
+	  (setf (decoded-time-day time) (decoded-time-day default-time)))
+	(unless (decoded-time-month time)
+	  (setf (decoded-time-month time) (decoded-time-month default-time)))
+	(unless (decoded-time-year time)
+	  (setf (decoded-time-year time) (decoded-time-year default-time)))
+
+	(when (eq (decoded-time-dst time) -1)
+	  (setf (decoded-time-dst time) (decoded-time-dst default-time)))
+
+	(unless (decoded-time-zone time)
+	  (setf (decoded-time-zone time) (decoded-time-zone default-time)))
+	time))
+
+(defun my-decode-time-string (time-string)
+  "Decode the time in TIME-STRING.
+Unknown values are gotten from the current time."
+  (let ((time (parse-time-string time-string)))
+	(decoded-time-set-current time)))
+
+(defun parse-alarm-time-string (time-string)
+  "Parse the time in TIME-STRING, preferring interpreting as a duration."
+  (let ((duration (timer-duration time-string)))
+	(if duration
+		duration
+	  (encode-time (my-decode-time-string time-string)))))
+
+(defun set-alarm (time stop-time repeat-interval)
+  "Set and return an alarm for TIME.
+STOP-TIME is a string indicating when to stop the timer (following the same
+format as TIME, except when prefixed by a plus-symbol ('+')).
+REPEAT-INTERVAL is the number of seconds between each ding.
+
+Both TIME and STOP-TIME do not follow the `run-at-time' format for time strings
+exactly. Instead they use `parse-alarm-time-string' to handle more time formats
+but retain the duration format.
+Be careful as STOP-TIME duration is _not_ relative to TIME but also to the
+current time, unless it is prefix by a +."
+  (interactive
+   (list
+	(read-string
+	 (format
+	  "Set alarm at (ISO format or duration) (default %s): "
+	  "10 mins")
+	 nil nil "10 mins")
+	(read-string (format
+				  (concat "Stop at (ISO format, duration or "
+						  "+duration (relative to start)) (default: %s): ")
+				  "+10 mins")
+				 nil nil "+10 mins")
+	(string-to-number (read-string
+					   (format
+						"Repeat after this many seconds (default %d): "
+						3)
+					   nil nil "3"))))
+
+  ;; TODO save timers to file so we can restore them over sessions
+  ;; and formatting functions (meaning save them directly, not the parameters
+  ;; we called this with)
+  (setup-alarm-ring)
+  (let* ((time (if (stringp time) (parse-alarm-time-string time)
+				 time))
+		 (stop-time (if (stringp stop-time)
+						(if (string-prefix-p "+" stop-time)
+							(time-add time
+									  (parse-alarm-time-string
+									   (substring stop-time 1)))
+						  (parse-alarm-time-string stop-time))
+					  stop-time))
+		 (timer (run-at-time time repeat-interval #'ding-with-sound))
+		 (setter-timer
+		  (run-at-time time repeat-interval #'set-last-alarm timer))
+		 (stop-timer (run-at-time stop-time nil #'cancel-alarm timer)))
+	(push (list timer setter-timer stop-timer) my-timer-alist)
+	(set-last-alarm timer)
+	(apply #'message "Alarm will ring from %s to %s."
+		   (mapcar (lambda (time)
+					 (format-time-string "%F %T"
+										 (if (numberp time)
+											 (time-add nil time)
+										   time)))
+				   (list time stop-time)))
+	timer))
+
+(defun set-last-alarm (timer)
+  "Set `my-last-alarm' to TIMER."
+  (make-thread (lambda () (when (assoc timer my-timer-alist)
+							(setq my-last-alarm timer)))))
+
+(defun cancel-all-alarms ()
+  "Cancel the alarm given by TIMER."
+  (interactive)
+  (mapc (lambda (entry) (cancel-alarm (car entry))) my-timer-alist))
+
+(defun cancel-alarm (timer)
+  "Cancel the alarm given by TIMER."
+  (when timer
+	(mapc #'cancel-timer (assoc timer my-timer-alist))
+	(setq my-timer-alist (assoc-delete-all timer my-timer-alist))
+	(when (equal my-last-alarm timer)
+	  (setq my-last-alarm nil))))
+
+(defun cancel-last-alarm ()
+  "Cancel the alarm that you either set last or which rung last."
+  (interactive)
+  (cancel-alarm my-last-alarm))
+
+;; (defun save-alarm (timer)
+;;   "Save the alarm given by TIMER to `my-alarms-path'.
+;; Will not be saved more than once."
+;;   ())
+
+;; (defun save-alarms ()
+;;   "Save all currently set alarms to `my-alarms-path'."
+;;   ())
+
+;; (defun load-alarms ()
+;;   "Add all alarms from `my-alarms-path' to the active ones.
+;; If they should have rang by now, they are ignored."
+;;   (unless (bla (timer--time alarm))))
+;; if at least one alarm loaded: (setup-alarm-ring)
 
 
 ;;; Surround

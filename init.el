@@ -2069,6 +2069,7 @@ Checks if INPUT contains a password prompt as defined by
 ;;; Python mode
 (add-hook 'python-mode-hook
 		  (lambda ()
+			(setq-local whitespace-line-column 79)
 			(kill-local-variable 'tab-width)
 			(kill-local-variable 'python-indent-offset)))
 

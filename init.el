@@ -3073,8 +3073,8 @@ current time, unless it is prefix by a +."
 
 (defun set-last-alarm (timer)
   "Set `my-last-alarm' to TIMER."
-  (make-thread (lambda () (when (assoc timer my-timer-alist)
-							(setq my-last-alarm timer)))))
+  (when (assoc timer my-timer-alist)
+	(setq my-last-alarm timer)))
 
 (defun cancel-all-alarms ()
   "Cancel the alarm given by TIMER."

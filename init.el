@@ -3051,9 +3051,11 @@ current time, unless it is prefix by a +."
 				 time))
 		 (stop-time (if (stringp stop-time)
 						(if (string-prefix-p "+" stop-time)
-							(time-add time
-									  (parse-alarm-time-string
-									   (substring stop-time 1)))
+							;; Convert from a single number to a cons timestamp
+							(encode-time (decode-time
+										  (time-add time
+													(parse-alarm-time-string
+													 (substring stop-time 1)))))
 						  (parse-alarm-time-string stop-time))
 					  stop-time))
 		 (timer (run-at-time time repeat-interval #'ding-with-sound))

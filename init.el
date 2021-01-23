@@ -3090,12 +3090,16 @@ current time, unless it is prefix by a +."
   (mapc (lambda (entry) (cancel-alarm (car entry))) my-timer-alist))
 
 (defun cancel-alarm (timer)
-  "Cancel the alarm given by TIMER."
+  "Cancel the alarm given by TIMER.
+
+Also set `my-last-alarm' to the first timer in `my-timer-alist' or nil."
   (when timer
 	(mapc #'cancel-timer (assoc timer my-timer-alist))
 	(setq my-timer-alist (assoc-delete-all timer my-timer-alist))
 	(when (equal my-last-alarm timer)
-	  (setq my-last-alarm nil))))
+	  (setq my-last-alarm
+			(and (/= 0 (length my-timer-alist))
+				 (caar my-timer-alist))))))
 
 (defun cancel-last-alarm ()
   "Cancel the alarm that you either set last or which rung last."

@@ -83,7 +83,7 @@ hooks for `my-autostart-lsp-package'.")
 
 (defconst my-line-number-format 'relative)
 (defconst my-music-dir "~/Music/")
-(defconst my-alarms-path (expand-file-name "my-alarms.txt" my-emacs-dir))
+(defconst my-alarms-path (expand-file-name "my-alarms.el" my-emacs-dir))
 (defconst my-alarm-ring-path nil)
 
 ;; For faster initialization
@@ -3051,9 +3051,6 @@ current time, unless it is prefix by a +."
 					   nil nil "3"))
 	(read-string "Alarm message (optional): " nil nil "")))
 
-  ;; TODO save timers to file so we can restore them over sessions
-  ;; and formatting functions (meaning save them directly, not the parameters
-  ;; we called this with)
   (setup-alarm-ring)
   (let* ((time (if (stringp time) (parse-alarm-time-string time) time))
 		 (time (if (numberp time) (time-add nil time) time))
@@ -3072,6 +3069,7 @@ current time, unless it is prefix by a +."
 		  (run-at-time time repeat-interval #'set-last-alarm timer))
 		 (stop-timer (run-at-time stop-time nil #'cancel-alarm timer)))
 	(push (list timer setter-timer stop-timer) my-timer-alist)
+	(save-alarms)
 	(set-last-alarm timer)
 	(apply #'message "Alarm will ring from %s to %s."
 		   (mapcar (lambda (time)
@@ -3096,6 +3094,7 @@ Also set `my-last-alarm' to the first timer in `my-timer-alist' or nil."
   (when timer
 	(mapc #'cancel-timer (assoc timer my-timer-alist))
 	(setq my-timer-alist (assoc-delete-all timer my-timer-alist))
+	(save-alarms)
 	(when (equal my-last-alarm timer)
 	  (setq my-last-alarm
 			(and (/= 0 (length my-timer-alist))
@@ -3106,21 +3105,39 @@ Also set `my-last-alarm' to the first timer in `my-timer-alist' or nil."
   (interactive)
   (cancel-alarm my-last-alarm))
 
-;; (defun save-alarm (timer)
-;;   "Save the alarm given by TIMER to `my-alarms-path'.
-;; Will not be saved more than once."
-;;   ())
+(defun save-alarms ()
+  "Save all currently set alarms to `my-alarms-path'."
+  (if (file-writable-p my-alarms-path)
+	  (with-temp-file my-alarms-path
+		(insert (format ";; %s --- Alarms saved at %s  -*- %s -*-\n\n"
+						(file-name-nondirectory my-alarms-path)
+						(format-time-string "%F %T")
+						"lexical-binding: t; no-byte-compile: t;"))
+		(insert (format "(setq my-timer-alist %s%s)"
+						(if my-timer-alist "'" "")
+						my-timer-alist)))
+	(message (concat "cannot write alarms to " my-alarms-path))))
 
-;; (defun save-alarms ()
-;;   "Save all currently set alarms to `my-alarms-path'."
-;;   ())
+(defun load-alarms ()
+  "Add all alarms from `my-alarms-path' to the active ones."
+  (if (file-readable-p my-alarms-path)
+	  (progn
+		(message "Loading alarms...")
+		(load-file my-alarms-path)
+		(when (/= 0 (length my-timer-alist))
+		  (unless my-last-alarm
+			(setq my-last-alarm (caar my-timer-alist)))
+		  (message "Alarms were loaded; compiling ring sound...")
+		  (setup-alarm-ring)
+		  (message "Sound compiled."))
+		(mapc (lambda (alarms)
+				(mapc #'timer-activate alarms))
+			  my-timer-alist)
+		(message "All alarms activated."))
+	(message (format "cannot read from %s; alarms were not loaded"
+					 my-alarms-path))))
 
-;; (defun load-alarms ()
-;;   "Add all alarms from `my-alarms-path' to the active ones.
-;; If they should have rang by now, they are ignored."
-;;   (unless (bla (timer--time alarm))))
-;; if at least one alarm loaded: (setup-alarm-ring)
-
+(load-alarms)
 
 ;;; Surround
 

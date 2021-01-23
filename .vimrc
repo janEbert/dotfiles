@@ -912,13 +912,13 @@ set textwidth=0
 " set exrc
 " set secure
 
-if has('syntax') && has('eval')
+if has('syntax') && has('eval') && exists('packadd!')
     packadd! matchit
 endif
 
 " bundle plugins
 " --------------
-if g:mypluginsexist
+if g:mypluginsexist && exists('packadd!')
     " packadd! ultisnips
     packadd! vim-snippets
     packadd! VimCompletesMe
@@ -930,9 +930,8 @@ if g:mypluginsexist
     " packadd! ale
 endif
 
-if isdirectory(expand(g:myfzfdir))
+if isdirectory(expand(g:myfzfdir)) && exists('packadd!')
     packadd! fzf.vim
 endif
 
 let g:myvimrcloaded = 1
-

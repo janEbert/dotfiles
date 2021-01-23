@@ -2952,6 +2952,12 @@ Will only happen if `my-alarm-ring' is nil."
 	(setq my-alarm-ring (my-alarm-ring-packed)))
   my-alarm-ring)
 
+(defun alarm-ding (&optional alarm-message)
+  "Ding, play a sound, and display ALARM-MESSAGE."
+  (unless (string-empty-p (or alarm-message ""))
+	(message alarm-message))
+  (ding-with-sound))
+
 (defun ding-with-sound ()
   "Ring the bell and try to play a sound."
   (if (or (not (fboundp 'play-sound-internal))
@@ -3014,11 +3020,12 @@ Unknown values are gotten from the current time."
 		duration
 	  (encode-time (my-decode-time-string time-string)))))
 
-(defun set-alarm (time stop-time repeat-interval)
+(defun set-alarm (time stop-time repeat-interval &optional alarm-message)
   "Set and return an alarm for TIME.
 STOP-TIME is a string indicating when to stop the timer (following the same
 format as TIME, except when prefixed by a plus-symbol ('+')).
 REPEAT-INTERVAL is the number of seconds between each ding.
+ALARM-MESSAGE is a message to display when the alarm rings.
 
 Both TIME and STOP-TIME do not follow the `run-at-time' format for time strings
 exactly. Instead they use `parse-alarm-time-string' to handle more time formats
@@ -3041,7 +3048,8 @@ current time, unless it is prefix by a +."
 					   (format
 						"Repeat after this many seconds (default %d): "
 						3)
-					   nil nil "3"))))
+					   nil nil "3"))
+	(read-string "Alarm message (optional): " nil nil "")))
 
   ;; TODO save timers to file so we can restore them over sessions
   ;; and formatting functions (meaning save them directly, not the parameters
@@ -3059,7 +3067,7 @@ current time, unless it is prefix by a +."
 						  (parse-alarm-time-string stop-time))
 					  stop-time))
 		 (stop-time (if (numberp stop-time) (time-add nil stop-time) stop-time))
-		 (timer (run-at-time time repeat-interval #'ding-with-sound))
+		 (timer (run-at-time time repeat-interval #'alarm-ding alarm-message))
 		 (setter-timer
 		  (run-at-time time repeat-interval #'set-last-alarm timer))
 		 (stop-timer (run-at-time stop-time nil #'cancel-alarm timer)))

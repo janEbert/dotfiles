@@ -3047,8 +3047,8 @@ current time, unless it is prefix by a +."
   ;; and formatting functions (meaning save them directly, not the parameters
   ;; we called this with)
   (setup-alarm-ring)
-  (let* ((time (if (stringp time) (parse-alarm-time-string time)
-				 time))
+  (let* ((time (if (stringp time) (parse-alarm-time-string time) time))
+		 (time (if (numberp time) (time-add nil time) time))
 		 (stop-time (if (stringp stop-time)
 						(if (string-prefix-p "+" stop-time)
 							;; Convert from a single number to a cons timestamp
@@ -3058,6 +3058,7 @@ current time, unless it is prefix by a +."
 													 (substring stop-time 1)))))
 						  (parse-alarm-time-string stop-time))
 					  stop-time))
+		 (stop-time (if (numberp stop-time) (time-add nil stop-time) stop-time))
 		 (timer (run-at-time time repeat-interval #'ding-with-sound))
 		 (setter-timer
 		  (run-at-time time repeat-interval #'set-last-alarm timer))
@@ -3066,10 +3067,7 @@ current time, unless it is prefix by a +."
 	(set-last-alarm timer)
 	(apply #'message "Alarm will ring from %s to %s."
 		   (mapcar (lambda (time)
-					 (format-time-string "%F %T"
-										 (if (numberp time)
-											 (time-add nil time)
-										   time)))
+					 (format-time-string "%F %T" time))
 				   (list time stop-time)))
 	timer))
 

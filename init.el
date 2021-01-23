@@ -1059,6 +1059,7 @@ Afterwards, remove it from `after-make-frame-functions'."
 				   ("\\cc{%s}")
 				   ("\\encl{%s}"))))
 
+  ;; TODO implement latex-derived letter backend
   (defun my-org-plain-text-filter (to-replace
 								   mode-replacement-alist
 								   text backend info

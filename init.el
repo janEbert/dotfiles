@@ -513,8 +513,15 @@ Checks if STRING contains a password prompt as defined by
   (define-key term-raw-map (kbd "M-x") nil))
 
 ;;; Dired
+(defun dired-relist-human-readable ()
+  "Relist the dired buffer with the human-readable switch appended."
+  (interactive)
+  (dired default-directory (concat dired-actual-switches "h")))
 (add-hook 'dired-after-readin-hook 'dont-show-whitespace)
-(add-hook 'dired-load-hook (lambda () (require 'dired-x)))
+(add-hook 'dired-load-hook
+		  (lambda ()
+			(require 'dired-x)
+			(define-key my-mode-map (kbd "h") 'dired-relist-human-readable)))
 
 ;;; Icomplete
 ;; (icomplete-mode 1)

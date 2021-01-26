@@ -3133,7 +3133,6 @@ Also set `my-last-alarm' to the first timer in `my-timer-alist' or nil."
   "Add all alarms from `my-alarms-path' to the active ones."
   (if (file-readable-p my-alarms-path)
 	  (progn
-		(message "Loading alarms...")
 		(load-file my-alarms-path)
 		(when (/= 0 (length my-timer-alist))
 		  (unless my-last-alarm
@@ -3143,8 +3142,7 @@ Also set `my-last-alarm' to the first timer in `my-timer-alist' or nil."
 		  (message "Sound compiled."))
 		(mapc (lambda (alarms)
 				(mapc #'timer-activate alarms))
-			  my-timer-alist)
-		(message "All alarms activated."))
+			  my-timer-alist))
 	(message (format "cannot read from %s; alarms were not loaded"
 					 my-alarms-path))))
 

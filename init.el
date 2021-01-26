@@ -2050,7 +2050,7 @@ Checks if INPUT contains a password prompt as defined by
 ;;;; Programming mode-specific configuration
 
 ;;; Shell mode
-(add-to-list 'auto-mode-alist '("\\.sbatch\\'" . shell-mode))
+(add-to-list 'auto-mode-alist '("\\.sbatch\\'" . sh-mode))
 
 ;;; JavaScript mode
 (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))

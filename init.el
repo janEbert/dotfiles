@@ -3124,7 +3124,7 @@ Also set `my-last-alarm' to the first timer in `my-timer-alist' or nil."
 						(file-name-nondirectory my-alarms-path)
 						(format-time-string "%F %T")
 						"lexical-binding: t; no-byte-compile: t;"))
-		(insert (format "(setq my-timer-alist %s%s)"
+		(insert (format "(setq my-timer-alist %s%S)"
 						(if my-timer-alist "'" "")
 						my-timer-alist)))
 	(message (concat "cannot write alarms to " my-alarms-path))))

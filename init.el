@@ -3673,5 +3673,6 @@ currently active."
 (put 'set-goal-column 'disabled nil)
 (put 'narrow-to-region 'disabled nil)
 (put 'dired-find-alternate-file 'disabled nil)
+(put 'list-timers 'disabled nil)
 
 ;;; init.el ends here

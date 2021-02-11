@@ -1978,12 +1978,14 @@ and append it."
 ;; (add-hook 'vterm-mode-hook 'toggle-show-whitespace)
 (if (functionp 'vterm)
 	(progn
-	  (advice-add 'vterm :after
-				  (lambda (&rest _args)
-					(dont-show-whitespace)
-					(disable-string-face))
-				  '((name . "disable-special-visuals")))
+	  (dolist (start-func '(vterm vterm-other-window))
+		(advice-add start-func :after
+					(lambda (&rest _args)
+					  (dont-show-whitespace)
+					  (disable-string-face))
+					'((name . "disable-special-visuals"))))
 	  (define-key my-extended-map (kbd "t") 'vterm)
+	  (define-key my-extended-map (kbd "4 t") 'vterm-other-window)
 
 	  (with-eval-after-load "vterm"
 		;; Allow to send C-z easily

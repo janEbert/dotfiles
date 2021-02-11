@@ -521,7 +521,9 @@ Checks if STRING contains a password prompt as defined by
 (add-hook 'dired-load-hook
 		  (lambda ()
 			(require 'dired-x)
-			(define-key my-mode-map (kbd "h") 'dired-relist-human-readable)))
+			;; Set human readability (C-c y h)
+			(define-key dired-mode-map (kbd "C-c y h")
+			  'dired-relist-human-readable)))
 
 ;;; Icomplete
 ;; (icomplete-mode 1)
@@ -1988,8 +1990,10 @@ and append it."
 	  (define-key my-extended-map (kbd "4 t") 'vterm-other-window)
 
 	  (with-eval-after-load "vterm"
-		;; Allow to send C-z easily
-		(define-key vterm-mode-map (kbd "C-c C-z") 'vterm-send-C-z))
+		;; Allow to send C-z easily (C-c C-z)
+		(define-key vterm-mode-map (kbd "C-c C-z") 'vterm-send-C-z)
+		;; Allow to send C-z easily (C-c y z)
+		(define-key vterm-mode-map (kbd "C-c y z") 'vterm-send-C-z))
 
 	  (defun vterm--watch-for-password-prompt (process input &rest _args)
 		"Prompt for password and send to PROCESS without echoing.

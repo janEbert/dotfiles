@@ -3156,6 +3156,89 @@ Also set `my-last-alarm' to the first timer in `my-timer-alist' or nil."
 
 (load-alarms)
 
+;; Listing alarms
+;; Based on timer-list.el.gz
+
+(defun list-alarms (&optional _ignore-auto _nonconfirm)
+  "List all alarms in a buffer."
+  (interactive)
+  (pop-to-buffer-same-window (get-buffer-create "*alarm-list*"))
+  (let ((inhibit-read-only t))
+	(erase-buffer)
+	(alarm-list-mode)
+	(dolist (alarm my-timer-alist)
+	  (let ((timer (car alarm)))
+		(insert
+		 (format
+		  "%4s %4s %21s %21s %8s %s"
+		  ;; Idle.
+		  (if (aref timer 7) "*" " ")
+		  ;; Last alarm.
+		  (if (equal timer my-last-alarm) "*" " ")
+		  ;; Start time.
+		  (let ((time (list (aref timer 1)
+							(aref timer 2)
+							(aref timer 3))))
+			(format-time-string "%F %T" time))
+		  ;; Stop time.
+		  (let* ((stop-timer (caddr alarm))
+				 (time (list (aref stop-timer 1)
+							 (aref stop-timer 2)
+							 (aref stop-timer 3))))
+			(format-time-string "%F %T" time))
+		  ;; Repeat.
+		  (let ((repeat (aref timer 4)))
+			(cond
+			 ((numberp repeat)
+			  (format "%.2f" repeat))
+			 ((null repeat)
+			  "-")
+			 (t
+			  (format "%s" repeat))))
+		  ;; Message.
+		  (let ((print-escape-newlines t))
+			(car (aref timer 6)))))
+		(put-text-property (line-beginning-position)
+						   (1+ (line-beginning-position))
+						   'timer timer))
+	  (insert "\n")))
+  (goto-char (point-min)))
+
+(defvar alarm-list-mode-map
+  (let ((map (make-sparse-keymap)))
+	(define-key map "c" 'alarm-list-cancel)
+	(define-key map "n" 'next-line)
+	(define-key map "p" 'previous-line)
+	(easy-menu-define nil map ""
+	  '("Alarms"
+		["Cancel" alarm-list-cancel t]))
+	map))
+
+(define-derived-mode alarm-list-mode special-mode "Alarm-List"
+  "Mode for listing and controlling alarms."
+  (setq bidi-paragraph-direction 'left-to-right)
+  (setq truncate-lines t)
+  (buffer-disable-undo)
+  (setq-local revert-buffer-function #'list-alarms)
+  (setq buffer-read-only t)
+  (setq header-line-format
+		(concat
+		 (propertize " " 'display '(space :align-to 0))
+		 (format "%4s %4s %21s %21s %8s %s"
+				 "Idle" "Last" "Start Time" "Stop Time" "Repeat" "Message"))))
+
+(defun alarm-list-cancel ()
+  "Cancel the alarm on the line under point."
+  (interactive)
+  (let ((timer (get-text-property (line-beginning-position) 'timer))
+		(inhibit-read-only t))
+	(unless timer
+	  (error "No timer on the current line"))
+	(when (y-or-n-p "Really cancel alarm? ")
+	  (cancel-alarm timer)
+	  (delete-region (line-beginning-position)
+					 (line-beginning-position 2)))))
+
 ;;; Surround
 
 (defun insert-arbitrary-pair (beginning ending)

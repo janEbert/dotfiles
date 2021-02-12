@@ -3246,6 +3246,17 @@ Also set `my-last-alarm' to the first timer in `my-timer-alist' or nil."
 	  (delete-region (line-beginning-position)
 					 (line-beginning-position 2)))))
 
+(define-prefix-command 'my-alarms-map)
+;; Alarm commands (C-c x a)
+(define-key my-extended-map (kbd "a") 'my-alarms-map)
+
+;; Set alarm (C-c x a s)
+(define-key my-alarms-map (kbd "s") 'set-alarm)
+;; Cancel last alarm (C-c x a c)
+(define-key my-alarms-map (kbd "c") 'cancel-last-alarm)
+;; List alarms (C-c x a l)
+(define-key my-alarms-map (kbd "l") 'list-alarms)
+
 ;;; Surround
 
 (defun insert-arbitrary-pair (beginning ending)

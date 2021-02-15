@@ -3034,7 +3034,7 @@ Unknown values are gotten from the current time."
 	(user-error "Year needs to be written out"))
   (when (or (string-match-p "^[0-9]?[0-9]-[0-9]?[0-9]" time-string)
 			(string-match-p
-			 "^[0-9]\\{4\\}-[0-9]\\(?:[0-9]-\\|-[0-9]\\)[0-9]" time-string))
+			 "^[0-9]\\{4\\}-[0-9]\\(?:[0-9]-\\|-[0-9]\\)[0-9] " time-string))
 	(user-error "Cannot accept dates without zero-padding"))
   (let ((time (parse-time-string time-string)))
 	(decoded-time-set-current time)))

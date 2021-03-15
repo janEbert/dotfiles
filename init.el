@@ -220,6 +220,7 @@ hooks for `my-autostart-lsp-package'.")
  '(register-separator 43)
  '(require-final-newline t)
  '(rmail-movemail-flags '("--tls"))
+ '(save-interprogram-paste-before-kill t)
  '(save-place-mode t)
  '(savehist-additional-variables
    '(tablist-named-filter command-history search-ring regexp-search-ring kill-ring extended-command-history compile-command))
@@ -340,9 +341,18 @@ This way, the newly added directories have priority over old ones."
 ;; Fix `read-passwd' being recorded in lossage.
 (defun execute-without-recording (orig-fun &rest args)
   "Execute ORIG-FUN on ARGS without recording input characters."
-  ;; Would be even better to set buffer-locally but whatever.
-  (let ((inhibit--record-char t))
-	(apply orig-fun args)))
+  ;; Don't allow kills.
+  ;; For more low-level control, we could copy the kill ring,
+  ;; and afterwards clear-string all its contents and restore it.
+  (advice-add 'kill-new :override #'ignore
+			  '((name . "disable-recording")))
+  (condition-case nil
+	  (progn
+		;; Would be even better to set buffer-locally but whatever.
+		(let ((inhibit--record-char t))
+		  (apply orig-fun args))
+		(advice-remove 'kill-new "disable-recording"))
+	('quit (advice-remove 'kill-new "disable-recording"))))
 
 (advice-add 'read-passwd :around
 			#'execute-without-recording)
@@ -1120,6 +1130,14 @@ and INFO the export communication channel."
 								   (html . "&#8288;"))
 							  text backend info t t))
 
+  (defun my-org-plain-text-filter-thin-no-break-space (text backend info)
+	"Ensure narrow no-break spaces (\" \") are properly handled in Org export.
+TEXT is the text to be exported, BACKEND is the export backend
+and INFO the export communication channel."
+	(my-org-plain-text-filter " " '((latex . "\\,")
+									(html . "&#8239;"))
+							  text backend info t t))
+
   (defun my-org-plain-text-filter-cpp (text backend info)
 	"Ensure the word 'C++' looks good.
 TEXT is the text to be exported, BACKEND is the export backend
@@ -1140,6 +1158,7 @@ and INFO the export communication channel."
 				  (list #'my-org-plain-text-filter-no-break-space
 						#'my-org-plain-text-filter-zero-width-space
 						#'my-org-plain-text-filter-word-joiner
+						#'my-org-plain-text-filter-thin-no-break-space
 						#'my-org-plain-text-filter-cpp
 						#'my-org-plain-text-filter-big-o))))
 
@@ -1498,7 +1517,24 @@ The playlist must be in `my-music-dir'."
 	  (define-key my-music-map (kbd "R") 'emms-play-streamlist)
 	  (define-key my-music-map (kbd "U") 'emms-play-url)
 	  (define-key my-music-map (kbd "+") 'emms-volume-raise)
-	  (define-key my-music-map (kbd "-") 'emms-volume-lower))
+	  (define-key my-music-map (kbd "-") 'emms-volume-lower)
+
+	  ;; Add some more radio stations
+	  (setq emms-streams-built-in-list
+			(append
+			 emms-streams-built-in-list
+			 ((*track* (type . streamlist)
+					   (name . "http://stream.techno.fm/radio1-320k.mp3")
+					   (metadata
+						"TechnoFM: Radio-1 320K MP3"
+						"http://stream.techno.fm/radio1-320k.mp3"
+						1 streamlist))
+			  (*track* (type . streamlist)
+					   (name . "http://stream.techno.fm/radio1-192k.mp3")
+					   (metadata
+						"TechnoFM: Radio-1 192K MP3"
+						"http://stream.techno.fm/radio1-192k.mp3"
+						1 streamlist))))))
 
   ;; TODO remove when hook is added
   (defun update-emms-faces ()
@@ -1745,15 +1781,13 @@ The choice depends on the whether `evil-repeat-pop-next' makes sense to call."
 	  ;; However, compatibility problem with YASnippet (resolved later).
 	  (company-tng-configure-default)
 
-	  ;; Increase idle delay in remote shells (revert our fast completion config)
+	  ;; Disable company-mode in remote shells
 	  (when (require 'tramp nil t)
 		(dolist (mode-hook '(eshell-mode-hook shell-mode-hook))
 		  (add-hook mode-hook
 					(lambda ()
 					  (if (file-remote-p default-directory)
-						  (progn
-							(setq-local company-minimum-prefix-length 3)
-							(setq-local company-idle-delay 0.5))))))))
+						  (company-mode 0)))))))
 
 ;;; Company quickhelp
 (when (functionp 'company-quickhelp-mode)
@@ -1922,7 +1956,7 @@ The choice depends on the whether `evil-repeat-pop-next' makes sense to call."
 				  link))
 		  (page (and (match-beginning 2) (match-string 2 link)))
 		  (desc (or description link)))
-	  (when (strinp path)
+	  (when (stringp path)
 		(setq path (expand-file-name path))
 		(cond
 		 ((eq format 'html)
@@ -1994,6 +2028,8 @@ and append it."
 		(define-key vterm-mode-map (kbd "C-c C-z") 'vterm-send-C-z)
 		;; Allow to send C-z easily (C-c y z)
 		(define-key vterm-mode-map (kbd "C-c y z") 'vterm-send-C-z))
+
+	  (setq vterm-max-scrollback 10000)
 
 	  (defun vterm--watch-for-password-prompt (process input &rest _args)
 		"Prompt for password and send to PROCESS without echoing.
@@ -2460,35 +2496,51 @@ OBTAIN-TEXT-FUNCTION is called with the result of calling function
 	  (insert text))))
 
 (defun minibuffer-insert-abbreviated-buffer-file-name ()
-  "Insert the current, abbreviated variable `buffer-file-name' into the minibuffer."
+  "Insert the abbreviated variable `buffer-file-name' into the minibuffer."
   (interactive)
   (minibuffer-insert
    (lambda (&rest _args) (abbreviate-file-name buffer-file-name))))
 
 (defun minibuffer-insert-buffer-file-name ()
-  "Insert the current variable `buffer-file-name' into the minibuffer."
+  "Insert the variable `buffer-file-name' into the minibuffer."
   (interactive)
   (minibuffer-insert
    (lambda (&rest _args) buffer-file-name)))
 
 (defun minibuffer-insert-abbreviated-default-directory ()
-  "Insert the current, abbreviated `default-directory' into the minibuffer."
+  "Insert the abbreviated `default-directory' into the minibuffer."
   (interactive)
   (minibuffer-insert
    (lambda (&rest _args) (abbreviate-file-name default-directory))))
 
 (defun minibuffer-insert-default-directory ()
-  "Insert the current `default-directory' into the minibuffer."
+  "Insert the `default-directory' into the minibuffer."
   (interactive)
   (minibuffer-insert
    (lambda (&rest _args) default-directory)))
 
+(defun save-file-name ()
+  "Append the current variable `buffer-file-name' to the kill ring.
+If variable `buffer-file-name' is nil, use `default-directory'."
+  (interactive)
+  (kill-new (or buffer-file-name default-directory)))
+
 (defun quit-other-window ()
   "Quit the other (next) window while staying in the selected window."
   (interactive)
-  (select-window (next-window))
-  (quit-window nil)
-  (select-window (previous-window)))
+  (let ((current-window (selected-window)))
+	(select-window (next-window))
+	(quit-window nil)
+	(select-window current-window)))
+
+(defun swap-window-buffers ()
+  "Swap the selected window's buffer with the other (next) one's."
+  (interactive)
+  (let* ((curr-buffer (current-buffer))
+		 (other-window (next-window))
+		 (other-buffer (window-buffer other-window)))
+	(set-window-buffer other-window curr-buffer)
+	(switch-to-buffer other-buffer)))
 
 
 ;;; WAV
@@ -3075,7 +3127,7 @@ current time, unless it is prefix by a +."
 						"Repeat after this many seconds (default %d): "
 						3)
 					   nil nil "3"))
-	(read-string "Alarm message (optional): " nil nil "")))
+	(read-string "Alarm message (optional): " nil nil nil)))
 
   (setup-alarm-ring)
   (let* ((time (if (stringp time) (parse-alarm-time-string time) time))
@@ -3139,9 +3191,12 @@ Also set `my-last-alarm' to the first timer in `my-timer-alist' or nil."
 						(file-name-nondirectory my-alarms-path)
 						(format-time-string "%F %T")
 						"lexical-binding: t; no-byte-compile: t;"))
-		(insert (format "(setq my-timer-alist %s%S)"
-						(if my-timer-alist "'" "")
-						my-timer-alist)))
+		(insert
+		 (let ((print-quoted t)
+			   (print-circle t))
+		   (format "(setq my-timer-alist %s%S)"
+				   (if my-timer-alist "'" "")
+				   my-timer-alist))))
 	(message (concat "cannot write alarms to " my-alarms-path))))
 
 (defun load-alarms ()
@@ -3527,6 +3582,15 @@ currently active."
 
 ;; Add more behavior to M-SPC (default just-one-space)
 (global-set-key (kbd "M-SPC") (lambda () (interactive) (cycle-spacing -1)))
+;; Same on C-c x SPC for accessibility (M-SPC is an OS command)
+(define-key my-extended-map (kbd "SPC")
+  (lambda () (interactive) (cycle-spacing -1)))
+
+;; Don't use arrow keys for indent-rigidly
+(define-key indent-rigidly-map (kbd "C-b") 'indent-rigidly-left)
+(define-key indent-rigidly-map (kbd "C-f") 'indent-rigidly-right)
+(define-key indent-rigidly-map (kbd "M-b") 'indent-rigidly-left-to-tab-stop)
+(define-key indent-rigidly-map (kbd "M-f") 'indent-rigidly-right-to-tab-stop)
 
 ;; Indent using tabs or spaces (C-c t i)
 (define-key my-toggle-map (kbd "i") 'toggle-indent-tabs-mode)
@@ -3575,7 +3639,8 @@ currently active."
 (define-key my-window-map (kbd "r") 'windmove-right)
 
 (define-key my-window-map (kbd "s") 'speedbar)
-(define-key my-window-map (kbd "o") 'window-swap-states)
+(define-key my-window-map (kbd "o") 'swap-window-buffers)
+(define-key my-window-map (kbd "O") 'window-swap-states)
 (define-key my-window-map (kbd "w") 'toggle-frame-fullscreen)
 (define-key my-window-map (kbd "m") 'toggle-frame-maximized)
 (define-key my-window-map (kbd "c") 'switch-to-completions)

@@ -933,7 +933,7 @@ with second argument \"/docker:\"."
 ;; Pretty symbols
 (setq org-pretty-entities t)
 ;; No subscript/superscript formatting
-;; (setq org-pretty-entities-include-sub-superscripts nil)
+(setq org-pretty-entities-include-sub-superscripts nil)
 
 ;; Export settings
 

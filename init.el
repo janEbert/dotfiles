@@ -1958,6 +1958,10 @@ The choice depends on the whether `evil-repeat-pop-next' makes sense to call."
 	(set-window-point (selected-window) (point-min)))
 
   (with-eval-after-load "pdf-view"
+	;; Ignore mouse
+	(define-key pdf-view-mode-map (kbd "<mouse-1>") 'ignore)
+	(define-key pdf-view-mode-map (kbd "<mouse-2>") 'ignore)
+
 	;; Reset cursor (C-c y r)
 	(define-key pdf-view-mode-map (kbd "C-c y r") 'pdfview-reset-cursor))
 

@@ -346,13 +346,11 @@ This way, the newly added directories have priority over old ones."
   ;; and afterwards clear-string all its contents and restore it.
   (advice-add 'kill-new :override #'ignore
 			  '((name . "disable-recording")))
-  (condition-case nil
-	  (progn
-		;; Would be even better to set buffer-locally but whatever.
-		(let ((inhibit--record-char t))
-		  (apply orig-fun args))
-		(advice-remove 'kill-new "disable-recording"))
-	('quit (advice-remove 'kill-new "disable-recording"))))
+  (unwind-protect
+	  ;; Would be even better to set buffer-locally but whatever.
+	  (let ((inhibit--record-char t))
+		(apply orig-fun args))
+	(advice-remove 'kill-new "disable-recording")))
 
 (advice-add 'read-passwd :around
 			#'execute-without-recording)
@@ -1520,21 +1518,22 @@ The playlist must be in `my-music-dir'."
 	  (define-key my-music-map (kbd "-") 'emms-volume-lower)
 
 	  ;; Add some more radio stations
+	  (defconst my-emms-streams
+		'((*track* (type . streamlist)
+				   (name . "http://stream.techno.fm/radio1-320k.mp3")
+				   (metadata
+					"TechnoFM: Radio-1 320K MP3"
+					"http://stream.techno.fm/radio1-320k.mp3"
+					1 streamlist))
+		  (*track* (type . streamlist)
+				   (name . "http://stream.techno.fm/radio1-192k.mp3")
+				   (metadata
+					"TechnoFM: Radio-1 192K MP3"
+					"http://stream.techno.fm/radio1-192k.mp3"
+					1 streamlist))))
+
 	  (setq emms-streams-built-in-list
-			(append
-			 emms-streams-built-in-list
-			 '((*track* (type . streamlist)
-						(name . "http://stream.techno.fm/radio1-320k.mp3")
-						(metadata
-						 "TechnoFM: Radio-1 320K MP3"
-						 "http://stream.techno.fm/radio1-320k.mp3"
-						 1 streamlist))
-			   (*track* (type . streamlist)
-						(name . "http://stream.techno.fm/radio1-192k.mp3")
-						(metadata
-						 "TechnoFM: Radio-1 192K MP3"
-						 "http://stream.techno.fm/radio1-192k.mp3"
-						 1 streamlist))))))
+			(append emms-streams-built-in-list my-emms-streams)))
 
   ;; TODO remove when hook is added
   (defun update-emms-faces ()
@@ -1928,6 +1927,27 @@ The choice depends on the whether `evil-repeat-pop-next' makes sense to call."
 
   ;; Enable printer
   (setq pdf-misc-print-program "lpr")
+
+  (with-eval-after-load "pdf-view"
+	;; Add some color filters
+	;; TODO add selector menu
+
+	;; Dark filters
+	;; (setq pdf-view-midnight-colors '("white" . "black"))
+	;; solarized-dark-high-contrast (base0 and base03)
+	(setq pdf-view-midnight-colors '("#8d9fa1" . "#002732"))
+	;; solarized-light-high-contrast (base0 and base03)
+	;; (setq pdf-view-midnight-colors '("#88999b" . "#00212b"))
+
+	;; Light filters
+	;; (setq pdf-view-midnight-colors '("black" . "white"))
+	;; solarized-light (base00 and base3)
+	;; (setq pdf-view-midnight-colors '("#657b83" . "#fdf6e3"))
+	;; solarized-light-high-contrast (base00 and base3)
+	;; (setq pdf-view-midnight-colors '("#596e76" . "#fffce9"))
+	;; solarized-dark-high-contrast (base00 and base3)
+	;; (setq pdf-view-midnight-colors '("#60767e" . "#ffffee"))
+	)
 
   ;; Ability to reset the cursor so it does not bother us.
   ;; Otherwise, the cursor may dangle behind the picture which is a

@@ -1523,18 +1523,18 @@ The playlist must be in `my-music-dir'."
 	  (setq emms-streams-built-in-list
 			(append
 			 emms-streams-built-in-list
-			 ((*track* (type . streamlist)
-					   (name . "http://stream.techno.fm/radio1-320k.mp3")
-					   (metadata
-						"TechnoFM: Radio-1 320K MP3"
-						"http://stream.techno.fm/radio1-320k.mp3"
-						1 streamlist))
-			  (*track* (type . streamlist)
-					   (name . "http://stream.techno.fm/radio1-192k.mp3")
-					   (metadata
-						"TechnoFM: Radio-1 192K MP3"
-						"http://stream.techno.fm/radio1-192k.mp3"
-						1 streamlist))))))
+			 '((*track* (type . streamlist)
+						(name . "http://stream.techno.fm/radio1-320k.mp3")
+						(metadata
+						 "TechnoFM: Radio-1 320K MP3"
+						 "http://stream.techno.fm/radio1-320k.mp3"
+						 1 streamlist))
+			   (*track* (type . streamlist)
+						(name . "http://stream.techno.fm/radio1-192k.mp3")
+						(metadata
+						 "TechnoFM: Radio-1 192K MP3"
+						 "http://stream.techno.fm/radio1-192k.mp3"
+						 1 streamlist))))))
 
   ;; TODO remove when hook is added
   (defun update-emms-faces ()

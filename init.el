@@ -1519,18 +1519,18 @@ The playlist must be in `my-music-dir'."
 
 	  ;; Add some more radio stations
 	  (defconst my-emms-streams
-		'((*track* (type . streamlist)
+		'((*track* (type . url)
 				   (name . "http://stream.techno.fm/radio1-320k.mp3")
 				   (metadata
 					"TechnoFM: Radio-1 320K MP3"
 					"http://stream.techno.fm/radio1-320k.mp3"
-					1 streamlist))
-		  (*track* (type . streamlist)
+					1 url))
+		  (*track* (type . url)
 				   (name . "http://stream.techno.fm/radio1-192k.mp3")
 				   (metadata
 					"TechnoFM: Radio-1 192K MP3"
 					"http://stream.techno.fm/radio1-192k.mp3"
-					1 streamlist))))
+					1 url))))
 
 	  (setq emms-streams-built-in-list
 			(append emms-streams-built-in-list my-emms-streams)))

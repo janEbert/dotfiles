@@ -86,6 +86,8 @@ hooks for `my-autostart-lsp-package'.")
 (defconst my-alarms-path (expand-file-name "my-alarms.el" my-emacs-dir))
 (defconst my-alarm-ring-path nil)
 
+(defconst my-start-time (current-time))
+
 ;; For faster initialization
 (defvar my-tmp-file-name-handler-alist file-name-handler-alist)
 (setq gc-cons-threshold 402653184
@@ -124,19 +126,19 @@ hooks for `my-autostart-lsp-package'.")
 ;; Query whether to kill Emacs server (C-c k)
 (define-key mode-specific-map (kbd "k") 'query-kill-emacs)
 
-
 ;; Added by Package.el.  This must come before configurations of
 ;; installed packages.  Don't delete this line.  If you don't want it,
 ;; just comment it out by adding a semicolon to the start of the line.
 ;; You may delete these explanatory comments.
-(when (< emacs-major-version 27)
-  (package-initialize))
+(when (or (< emacs-major-version 27) (and (fboundp 'native-comp-available-p)
+                                          (native-comp-available-p)))
+    (package-initialize))
 
 ;; Add package lists
-(add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/"))
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
 (add-to-list 'package-archives
 			 '("melpa-stable" . "https://stable.melpa.org/packages/"))
+(add-to-list 'package-archives '("nongnu" . "https://elpa.nongnu.org/nongnu/"))
 (add-to-list 'package-archives '("gnu" . "https://elpa.gnu.org/packages/"))
 
 ;; Customized variables
@@ -201,14 +203,14 @@ hooks for `my-autostart-lsp-package'.")
  '(nnmail-expiry-wait 'never)
  '(org-agenda-files '("~/Documents/life.org"))
  '(package-archive-priorities
-   '(("org" . 9)
-	 ("gnu" . 7)
+   '(("gnu" . 9)
+	 ("nongnu" . 7)
 	 ("melpa" . 5)
 	 ("melpa-stable" . 3)))
  '(package-menu-hide-low-priority t)
  '(package-quickstart t)
  '(package-selected-packages
-   '(counsel-dash dash-docs htmlize extempore-mode org lsp-mode project so-long xref undohist browse-at-remote mines magit julia-repl counsel swiper projectile rust-mode slime jsonrpc d-mode cider gdscript-mode disk-usage dart-mode gnuplot web-mode ada-ref-man docker dockerfile-mode dired-du dired-git-info purescript-mode js2-mode markdown-mode typescript-mode realgud dap-mode cobol-mode csharp-mode fsharp-mode go-mode num3-mode php-mode sed-mode smalltalk-mode stan-mode swift-mode zig-mode elixir-mode erlang clojure-mode cmake-mode haskell-snippets caml sml-mode haskell-mode lsp-julia nasm-mode yaml-mode ada-mode chess csv-mode json-mode vterm lua-mode python nov ein yasnippet-snippets texfrag eglot undo-propose ess form-feed nim-mode evil-collection evil-commentary evil-lion evil-magit evil-matchit evil-snipe evil-surround evil-visualstar landmark auctex zotxt company-quickhelp dumb-jump expand-region jupyter use-package gotham-theme zenburn-theme toc-org flymake tramp ivy ggtags pdf-tools yasnippet solarized-theme rainbow-delimiters julia-mode helm gnu-elpa-keyring-update forge evil emms darkroom company))
+   '(markdown-toc org-gcal vlf counsel-dash dash-docs htmlize extempore-mode org lsp-mode project so-long xref undohist browse-at-remote mines magit julia-repl counsel swiper projectile rust-mode slime jsonrpc d-mode cider gdscript-mode disk-usage dart-mode gnuplot web-mode ada-ref-man docker dockerfile-mode dired-du dired-git-info purescript-mode js2-mode markdown-mode typescript-mode realgud dap-mode cobol-mode csharp-mode fsharp-mode go-mode num3-mode php-mode sed-mode smalltalk-mode stan-mode swift-mode zig-mode elixir-mode erlang clojure-mode cmake-mode haskell-snippets caml sml-mode haskell-mode lsp-julia nasm-mode yaml-mode ada-mode chess csv-mode json-mode vterm lua-mode python nov ein yasnippet-snippets texfrag eglot undo-propose ess form-feed nim-mode evil-collection evil-commentary evil-lion evil-magit evil-matchit evil-snipe evil-surround evil-visualstar landmark auctex zotxt company-quickhelp dumb-jump expand-region jupyter use-package gotham-theme zenburn-theme toc-org flymake tramp ivy ggtags pdf-tools yasnippet solarized-theme rainbow-delimiters julia-mode helm gnu-elpa-keyring-update forge evil emms darkroom company))
  '(password-cache-expiry 1200)
  '(prettify-symbols-unprettify-at-point 'right-edge)
  '(read-buffer-completion-ignore-case t)
@@ -450,6 +452,18 @@ Afterwards, remove this hook from `after-make-frame-functions'."
 (unless (functionp 'company-complete)
   (setq tab-always-indent 'complete))
 
+;; Deactive subword mode for transposing words.
+(defun dont-transpose-subwords (orig-fun &rest args)
+  "Disable function `subword-mode' when transposing words.
+Advice around ORIG-FUN, called with ARGS."
+  (if (eq subword-mode nil)
+	  (apply orig-fun args)
+	(subword-mode 0)
+	(apply orig-fun args)
+	(subword-mode 1)))
+
+(advice-add 'transpose-words :around #'dont-transpose-subwords)
+
 ;; Autoclose blocks in LaTeX mode
 (add-hook 'latex-mode-hook 'latex-electric-env-pair-mode)
 ;; Auto-fill in TeX mode
@@ -512,6 +526,36 @@ Checks if STRING contains a password prompt as defined by
 (advice-add 'term-watch-for-password-prompt :override
 			#'term-watch-for-password-prompt--always)
 
+(defun term-ssh (program host)
+  "Start `term' and instantly SSH to HOST.
+PROGRAM is the terminal program to start."
+  (term program)
+  (term-send-string (get-buffer-process (current-buffer))
+					(concat "ssh " host "\n")))
+
+(defun term-tramp (program)
+  "Optionally SSH to the current remote when starting `term'.
+PROGRAM is the terminal program to start."
+  (interactive
+   (list (read-from-minibuffer
+		  (concat "Run "
+				  (and (file-remote-p default-directory) "remote ")
+				  "program: ")
+		  (or explicit-shell-file-name
+			  (getenv "ESHELL")
+			  shell-file-name))))
+  (let ((host (file-remote-p default-directory 'host))
+		(user (file-remote-p default-directory 'user)))
+	(if host
+		(let ((full-host (concat (when user (concat user "@")) host)))
+		  (term-ssh program full-host)
+		  (term-send-string
+		   (get-buffer-process (current-buffer))
+		   (concat "cd "
+				   (file-remote-p default-directory 'localname)
+				   "\n")))
+	  (term program))))
+
 (with-eval-after-load "term"
   ;; We'd rather keep `ctrl-x-map' than be able to send raw C-x.
   (define-key term-raw-map (kbd "C-x") nil)
@@ -558,22 +602,23 @@ Checks if STRING contains a password prompt as defined by
 
 ;;; ERC
 (with-eval-after-load "erc"
-  (setq erc-default-server "chat.freenode.net")
+  (setq erc-default-server "irc.libera.chat")
   (when (gnutls-available-p)
 	;; Use TLS by default.
 	(setq erc-default-port erc-default-port-tls)
 	(setq erc-server-connect-function #'erc-open-tls-stream)))
 
 ;;; Rcirc
-;; freenode.net default port is 6667; 6697 for TLS connections
+;; libera.chat default port is 6667; 6697 for TLS connections
 (with-eval-after-load "rcirc"
   (if (gnutls-available-p)
 	  (add-to-list 'rcirc-server-alist
-				   '("chat.freenode.net"
+				   '("irc.libera.chat"
 					 :port 6697 :encryption tls))
 	(add-to-list 'rcirc-server-alist
-				 '("chat.freenode.net"	; :channels ("#rcirc")
-				   ;; Don't use the TLS port by default, in case gnutls is not available.
+				 '("irc.libera.chat"	; :channels ("#rcirc")
+				   ;; Don't use the TLS port by default, in case
+				   ;; gnutls is not available.
 				   :port 6667))))
 
 ;;; EWW
@@ -1048,19 +1093,20 @@ Afterwards, remove it from `after-make-frame-functions'."
   ;; Open PDFs in Emacs
   (setcdr (assoc "\\.pdf\\'" org-file-apps) 'emacs)
 
-  ;; TODO Maybe we don't need this due to the German babel language fix below.
   ;; Include babel or polyglossia for better LaTeX language settings.
-  ;; (add-to-list 'org-latex-packages-alist
-  ;; 			   '("AUTO" "babel" t ("pdflatex")))
-  ;; (add-to-list 'org-latex-packages-alist
-  ;; 			   '("AUTO" "polyglossia" t ("xelatex" "lualatex")))
+  (add-to-list 'org-latex-packages-alist
+			   '("AUTO" "babel" t ("pdflatex")))
+  (add-to-list 'org-latex-packages-alist
+			   '("AUTO" "polyglossia" t ("xelatex" "lualatex")))
 
+  ;; TODO automatically select dictionary depending on org language setting
+  ;; TODO automatically translate beamer toc frame/slide
 
-  ;; Enable LaTeX letter class
   (with-eval-after-load 'ox-latex
 	;; Fix German babel language
 	(setcdr (assoc "de" org-latex-babel-language-alist) "ngerman")
 
+	;; Enable LaTeX letter class
 	(add-to-list 'org-latex-classes
 				 '("letter" "\\documentclass[11pt]{letter}"
 				   ("\\opening{%s}")
@@ -1151,6 +1197,9 @@ and INFO the export communication channel."
 							  text backend info t t))
 
   (with-eval-after-load 'ox
+	;; Additional export backends
+	(require 'ox-md)
+
 	(setq org-export-filter-plain-text-functions
 		  (append org-export-filter-plain-text-functions
 				  (list #'my-org-plain-text-filter-no-break-space
@@ -1460,6 +1509,11 @@ which activates the dark theme variant."
 			  (setq-local fill-column 72)
 			  (setq-local whitespace-line-column 72))))
 
+;;; Slurm
+(require 'slurm-mode nil t)
+(when (require 'slurm-script-mode nil t)
+  (add-to-list 'auto-mode-alist '("\\.sbatch\\'" . slurm-script-mode)))
+
 ;;; EMMS
 (if (require 'emms-setup nil t)
 	(progn
@@ -1543,7 +1597,8 @@ The playlist must be in `my-music-dir'."
 
 ;;; dired-git-info
 (with-eval-after-load 'dired
-  (define-key dired-mode-map ")" 'dired-git-info-mode))
+  (define-key dired-mode-map ")" 'dired-git-info-mode)
+  (setq dgi-commit-message-format "%cr\t%s"))
 
 ;;; Undohist
 
@@ -1615,6 +1670,7 @@ The playlist must be in `my-music-dir'."
 	  (evil-set-initial-state 'help-mode     'emacs)
 	  (evil-set-initial-state 'messages-buffer-mode 'emacs)
 	  (evil-set-initial-state 'Info-mode     'emacs)
+	  (evil-set-initial-state 'Buffer-menu-mode 'emacs)
 	  (evil-set-initial-state 'Man-mode      'emacs)
 	  (evil-set-initial-state 'comint-mode   'emacs)
 	  (evil-set-initial-state 'shell-mode    'emacs)
@@ -1680,6 +1736,7 @@ The playlist must be in `my-music-dir'."
 	  ;; Ex state (minibuffer) mappings
 	  ;; C-b moves one char backward
 	  (define-key evil-ex-completion-map (kbd "C-b") 'backward-char)
+	  (define-key evil-ex-search-keymap (kbd "C-b") 'backward-char)
 	  ;; C-f moves one char forward
 	  (define-key evil-ex-completion-map (kbd "C-f") 'forward-char)
 	  (define-key evil-ex-completion-map (kbd "C-S-f") 'evil-ex-command-window)
@@ -2038,14 +2095,35 @@ and append it."
 ;; (add-hook 'vterm-mode-hook 'toggle-show-whitespace)
 (if (functionp 'vterm)
 	(progn
-	  (dolist (start-func '(vterm vterm-other-window))
-		(advice-add start-func :after
-					(lambda (&rest _args)
-					  (dont-show-whitespace)
-					  (disable-string-face))
-					'((name . "disable-special-visuals"))))
+	  (advice-add 'vterm--internal :after
+				  (lambda (&rest _args)
+					(dont-show-whitespace)
+					(disable-string-face))
+				  '((name . "disable-special-visuals")))
 	  (define-key my-extended-map (kbd "t") 'vterm)
 	  (define-key my-extended-map (kbd "4 t") 'vterm-other-window)
+
+	  (defun vterm-ssh (host)
+		"Start `vterm' and instantly SSH to HOST."
+		(vterm t)
+		(vterm-send-string (concat "ssh " host "\n")))
+
+	  ;; TODO support user + host
+	  ;; TODO merge this and term-tramp (DRY)
+	  (defun vterm-tramp (&optional arg)
+		"Optionally SSH to the current remote when starting `vterm'.
+If ARG is nil and we are not in a TRAMP buffer, reuse an existing vterm."
+		(interactive "P")
+		(let ((host (file-remote-p default-directory 'host))
+			  (user (file-remote-p default-directory 'user)))
+		  (if host
+			  (let ((full-host (concat (when user (concat user "@")) host)))
+				(vterm-ssh full-host)
+				(vterm-send-string
+				 (concat "cd "
+						 (file-remote-p default-directory 'localname)
+						 "\n")))
+			(vterm arg))))
 
 	  (with-eval-after-load "vterm"
 		;; Allow to send C-z easily (C-c C-z)
@@ -2077,6 +2155,10 @@ Checks if INPUT contains a password prompt as defined by
   (add-hook 'org-mode-hook 'toc-org-mode)
   (add-to-list 'org-tag-alist '("TOC" . ?T)))
 
+;;; org-gcal
+(setq org-gcal-remove-cancelled-events t)
+(setq org-gcal-remove-events-with-cancelled-todo t)
+
 ;;; Jupyter
 (when (>= emacs-major-version 26)
   (setq exec-path (append exec-path (list (expand-file-name my-jupyter-dir))))
@@ -2085,7 +2167,8 @@ Checks if INPUT contains a password prompt as defined by
 		  (append my-org-babel-load-languages
 				  '(
 					;; (julia . t)  TODO needs upstream fix; is too old
-					(jupyter . t))))))
+					;; (jupyter . t)
+					)))))
 
 ;;; Emacs IPython Notebook
 ;; Polymode for highlighting and editing
@@ -2114,9 +2197,6 @@ Checks if INPUT contains a password prompt as defined by
 
 
 ;;;; Programming mode-specific configuration
-
-;;; Shell mode
-(add-to-list 'auto-mode-alist '("\\.sbatch\\'" . sh-mode))
 
 ;;; JavaScript mode
 (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
@@ -2260,14 +2340,14 @@ Advice around ORIG-FUN, called with ARGS."
   ;; Parallel jobs for the LSP and store index in file
   (setq lsp-clients-clangd-args '("-j=4" "-background-index"))
 
-  ;; (setq lsp-pyls-plugins-pylint-enabled t) ; source also disables this
-  ;; (setq lsp-pyls-plugins-pycodestyle-max-line-length 100)
-  ;; (setq lsp-pyls-plugins-pycodestyle-max-line-length 100)
-  ;; (setq lsp-pyls-plugins-flake8-max-line-length 100)
-  (setq lsp-pyls-plugins-pydocstyle-enabled t)
-  (setq lsp-pyls-plugins-rope-completion-enabled t)
-  (setq lsp-pyls-plugins-yapf-enabled t)
-  (setq lsp-pyls-plugins-flake8-enabled t)
+  ;; Source also disables this due to config file being required for usefulness.
+  ;; (setq lsp-pylsp-plugins-pylint-enabled t)
+  ;; (setq lsp-pylsp-plugins-pycodestyle-max-line-length 100)
+  ;; (setq lsp-pylsp-plugins-flake8-max-line-length 100)
+  (setq lsp-pylsp-plugins-pydocstyle-enabled t)
+  (setq lsp-pylsp-plugins-rope-completion-enabled t)
+  (setq lsp-pylsp-plugins-yapf-enabled t)
+  (setq lsp-pylsp-plugins-flake8-enabled t)
 
   ;; lsp-julia
   (setq lsp-julia-default-environment my-julia-default-environment)
@@ -2280,12 +2360,12 @@ Advice around ORIG-FUN, called with ARGS."
 	)
 
 
-  ;; TRAMP enabled pyls example
+  ;; TRAMP enabled pylsp example
   ;; (lsp-register-client
-  ;;  (make-lsp-client :new-connection (lsp-tramp-connection "/path/to/pyls")
+  ;;  (make-lsp-client :new-connection (lsp-tramp-connection "/path/to/pylsp")
   ;; 					:major-modes '(python-mode)
   ;; 					:remote? t
-  ;; 					:server-id 'pyls-remote))
+  ;; 					:server-id 'pylsp-remote))
 
   ;; LSP config using local variables
   ;; (add-hook 'hack-local-variables-hook
@@ -2362,7 +2442,7 @@ Advice around ORIG-FUN, called with ARGS."
 	(push 'js-mode-hook my-eglot-hooks)
 	(push 'typescript-mode-hook my-eglot-hooks))
 
-  (when (executable-find "pyls")
+  (when (executable-find "pylsp")
 	(push 'python-mode-hook my-eglot-hooks))
 
   (when (executable-find "clangd")
@@ -2413,20 +2493,20 @@ Advice around ORIG-FUN, called with ARGS."
   ;; Example .dir-locals.el for per-project config (place in root folder)
   ;; ((python-mode
   ;; 	. ((eglot-workspace-configuration . (
-  ;; 										 (:pyls . (:plugins (:pycodestyle (:maxLineLength 100))))
-  ;; 										 (:pyls . (:plugins (:pydocstyle (:enabled t))))
-  ;; 										 (:pyls . (:plugins (:pydocstyle (:maxLineLength 100))))
+  ;; 										 (:pylsp . (:plugins (:pycodestyle (:maxLineLength 100))))
+  ;; 										 (:pylsp . (:plugins (:pydocstyle (:enabled t))))
+  ;; 										 (:pylsp . (:plugins (:pydocstyle (:maxLineLength 100))))
   ;; 										 ))
   ;; 	   (whitespace-line-column . 100))))
 
   ;; ... or maybe like this:
   ;; ((python-mode
-  ;;   . ((eglot-workspace-configuration . ((:pyls . (
-  ;; 												 (:plugins (:pycodestyle (:maxLineLength 100)))
-  ;; 												 (:plugins (:pydocstyle (:enabled t)))
-  ;; 												 (:plugins (:pydocstyle (:maxLineLength 100)))
-  ;; 												 ))))
-  ;; 	 (whitespace-line-column . 100))))
+  ;; 	. ((eglot-workspace-configuration . ((:pylsp . (
+  ;; 													(:plugins (:pycodestyle (:maxLineLength 100)))
+  ;; 													(:plugins (:pydocstyle (:enabled t)))
+  ;; 													(:plugins (:pydocstyle (:maxLineLength 100)))
+  ;; 													))))
+  ;; 	   (whitespace-line-column . 100))))
   )
 
 
@@ -2542,6 +2622,11 @@ OBTAIN-TEXT-FUNCTION is called with the result of calling function
   (interactive)
   (minibuffer-insert
    (lambda (&rest _args) default-directory)))
+
+(defun clear-kill-ring ()
+  "Clear all entries from the kill ring."
+  (interactive)
+  (setq kill-ring nil))
 
 (defun save-file-name ()
   "Append the current variable `buffer-file-name' to the kill ring.
@@ -3075,7 +3160,10 @@ If playing sound is not available or PATH is not readable, try to ring the bell.
 	   (lambda () (play-sound (list 'sound :file path)))))))
 
 (defvar my-last-alarm nil)
-(defvar my-timer-alist nil)
+(defvar my-timer-alist nil
+  "An alist of alarm lists.
+An alarm's main timer is the car of each list, connecting it to
+its other timers.")
 
 (defun decoded-time-set-current (time)
   "Set any nil values in `decoded-time' TIME to current time values."
@@ -3122,18 +3210,48 @@ Unknown values are gotten from the current time."
 		duration
 	  (encode-time (my-decode-time-string time-string)))))
 
-(defun set-alarm (time stop-time repeat-interval &optional alarm-message)
-  "Set and return an alarm for TIME.
+(defun alarm-preprocess-start-time (start-time)
+  "Return a timestamp for the given string or number START-TIME.
+The timestamp is in the style of `encode-time'."
+  (let* ((start-time (if (stringp start-time)
+						 (parse-alarm-time-string start-time)
+					   start-time))
+		 (start-time (if (numberp start-time)
+						 (time-add nil start-time)
+					   start-time)))
+	start-time))
+
+(defun alarm-preprocess-stop-time (stop-time start-time)
+  "Return a timestamp for the given STOP-TIME in relation to START-TIME.
+START-TIME is expected to be a timestamp in the style of `encode-time'.
+The returned timestamp is also in the style of `encode-time'."
+  (let* ((stop-time (if (stringp stop-time)
+						(if (string-prefix-p "+" stop-time)
+							;; Convert from a single number to a cons timestamp
+							(encode-time (decode-time
+										  (time-add start-time
+													(parse-alarm-time-string
+													 (substring stop-time 1)))))
+						  (parse-alarm-time-string stop-time))
+					  stop-time))
+		 (stop-time (if (numberp stop-time)
+						(time-add nil stop-time)
+					  stop-time)))
+	stop-time))
+
+(defun set-alarm (start-time stop-time repeat-interval &optional alarm-message)
+  "Set and return an alarm for START-TIME.
 STOP-TIME is a string indicating when to stop the timer (following the same
-format as TIME, except when prefixed by a plus-symbol ('+')).
+format as START-TIME, except when prefixed by a plus-symbol ('+')).
 REPEAT-INTERVAL is the number of seconds between each ding.
 ALARM-MESSAGE is a message to display when the alarm rings.
 
-Both TIME and STOP-TIME do not follow the `run-at-time' format for time strings
-exactly. Instead they use `parse-alarm-time-string' to handle more time formats
-but retain the duration format.
-Be careful as STOP-TIME duration is _not_ relative to TIME but also to the
-current time, unless it is prefix by a +."
+Both START-TIME and STOP-TIME do not follow the `run-at-time'
+format for time strings exactly. Instead they use
+`parse-alarm-time-string' to handle more time formats but retain
+the duration format.
+Be careful as STOP-TIME duration is _not_ relative to START-TIME
+but also to the current time, unless it is prefix by a +."
   (interactive
    (list
 	(read-string
@@ -3154,21 +3272,11 @@ current time, unless it is prefix by a +."
 	(read-string "Alarm message (optional): " nil nil nil)))
 
   (setup-alarm-ring)
-  (let* ((time (if (stringp time) (parse-alarm-time-string time) time))
-		 (time (if (numberp time) (time-add nil time) time))
-		 (stop-time (if (stringp stop-time)
-						(if (string-prefix-p "+" stop-time)
-							;; Convert from a single number to a cons timestamp
-							(encode-time (decode-time
-										  (time-add time
-													(parse-alarm-time-string
-													 (substring stop-time 1)))))
-						  (parse-alarm-time-string stop-time))
-					  stop-time))
-		 (stop-time (if (numberp stop-time) (time-add nil stop-time) stop-time))
-		 (timer (run-at-time time repeat-interval #'alarm-ding alarm-message))
+  (let* ((start-time (alarm-preprocess-start-time start-time))
+		 (stop-time (alarm-preprocess-stop-time stop-time start-time))
+		 (timer (run-at-time start-time repeat-interval #'alarm-ding alarm-message))
 		 (setter-timer
-		  (run-at-time time repeat-interval #'set-last-alarm timer))
+		  (run-at-time start-time repeat-interval #'set-last-alarm timer))
 		 (stop-timer (run-at-time stop-time nil #'cancel-alarm timer)))
 	(push (list timer setter-timer stop-timer) my-timer-alist)
 	(save-alarms)
@@ -3176,12 +3284,17 @@ current time, unless it is prefix by a +."
 	(apply #'message "Alarm will ring from %s to %s."
 		   (mapcar (lambda (time)
 					 (format-time-string "%F %T" time))
-				   (list time stop-time)))
+				   (list start-time stop-time)))
 	timer))
+
+(defun alarm-get-all-timers (timer)
+  "Return all timers for the alarm given by TIMER.
+Return nil when there is no associated alarm."
+  (assoc timer my-timer-alist))
 
 (defun set-last-alarm (timer)
   "Set `my-last-alarm' to TIMER."
-  (when (assoc timer my-timer-alist)
+  (when (alarm-get-all-timers timer)
 	(setq my-last-alarm timer)))
 
 (defun cancel-all-alarms ()
@@ -3194,7 +3307,7 @@ current time, unless it is prefix by a +."
 
 Also set `my-last-alarm' to the first timer in `my-timer-alist' or nil."
   (when timer
-	(mapc #'cancel-timer (assoc timer my-timer-alist))
+	(mapc #'cancel-timer (alarm-get-all-timers timer))
 	(setq my-timer-alist (assoc-delete-all timer my-timer-alist))
 	(save-alarms)
 	(when (equal my-last-alarm timer)
@@ -3206,6 +3319,31 @@ Also set `my-last-alarm' to the first timer in `my-timer-alist' or nil."
   "Cancel the alarm that you either set last or which rung last."
   (interactive)
   (cancel-alarm my-last-alarm))
+
+(defun alarm-get-start-time (timer)
+  "Return the start time of the alarm given by TIMER."
+  (list (timer--high-seconds timer)
+		(timer--low-seconds timer)
+		(timer--usecs timer)))
+
+(defun alarm-get-stop-time (timer)
+  "Return the stop time of the alarm given by TIMER."
+  (let* ((alarm (alarm-get-all-timers timer))
+		 (stop-timer (caddr alarm))
+		 (stop-time (list (timer--high-seconds stop-timer)
+					 (timer--low-seconds stop-timer)
+					 (timer--usecs stop-timer))))
+	stop-time))
+
+(defun alarm-get-repeat-interval (timer)
+  "Return the repeat interval of the alarm given by TIMER.
+Usually a number or nil."
+  (timer--repeat-delay timer))
+
+(defun alarm-get-message (timer)
+  "Return the message of the alarm given by TIMER.
+If it does not have a message, return nil."
+  (car (timer--args timer)))
 
 (defun save-alarms ()
   "Save all currently set alarms to `my-alarms-path'."
@@ -3245,6 +3383,33 @@ Also set `my-last-alarm' to the first timer in `my-timer-alist' or nil."
 ;; Listing alarms
 ;; Based on timer-list.el.gz
 
+(defun alarm-list-format (timer)
+  "Return a string for the alarm given by TIMER suitable for a list of alarms."
+  (format
+   "%4s %4s %21s %21s %8s %s"
+   ;; Idle.
+   (if (aref timer 7) "*" " ")
+   ;; Last alarm.
+   (if (equal timer my-last-alarm) "*" " ")
+   ;; Start time.
+   (let ((start-time (alarm-get-start-time timer)))
+	 (format-time-string "%F %T" start-time))
+   ;; Stop time.
+   (let ((stop-time (alarm-get-stop-time timer)))
+	 (format-time-string "%F %T" stop-time))
+   ;; Repeat.
+   (let ((repeat (alarm-get-repeat-interval timer)))
+	 (cond
+	  ((numberp repeat)
+	   (format "%.2f" repeat))
+	  ((null repeat)
+	   "-")
+	  (t
+	   (format "%s" repeat))))
+   ;; Message.
+   (let ((print-escape-newlines t))
+	 (alarm-get-message timer))))
+
 (defun list-alarms (&optional _ignore-auto _nonconfirm)
   "List all alarms in a buffer."
   (interactive)
@@ -3252,42 +3417,15 @@ Also set `my-last-alarm' to the first timer in `my-timer-alist' or nil."
   (let ((inhibit-read-only t))
 	(erase-buffer)
 	(alarm-list-mode)
-	(dolist (alarm my-timer-alist)
-	  (let ((timer (car alarm)))
-		(insert
-		 (format
-		  "%4s %4s %21s %21s %8s %s"
-		  ;; Idle.
-		  (if (aref timer 7) "*" " ")
-		  ;; Last alarm.
-		  (if (equal timer my-last-alarm) "*" " ")
-		  ;; Start time.
-		  (let ((time (list (aref timer 1)
-							(aref timer 2)
-							(aref timer 3))))
-			(format-time-string "%F %T" time))
-		  ;; Stop time.
-		  (let* ((stop-timer (caddr alarm))
-				 (time (list (aref stop-timer 1)
-							 (aref stop-timer 2)
-							 (aref stop-timer 3))))
-			(format-time-string "%F %T" time))
-		  ;; Repeat.
-		  (let ((repeat (aref timer 4)))
-			(cond
-			 ((numberp repeat)
-			  (format "%.2f" repeat))
-			 ((null repeat)
-			  "-")
-			 (t
-			  (format "%s" repeat))))
-		  ;; Message.
-		  (let ((print-escape-newlines t))
-			(car (aref timer 6)))))
-		(put-text-property (line-beginning-position)
-						   (1+ (line-beginning-position))
-						   'timer timer))
-	  (insert "\n")))
+	(mapc
+	 (lambda (alarm)
+	   (let ((timer (car alarm)))
+		 (insert (alarm-list-format timer))
+		 (put-text-property (line-beginning-position)
+							(1+ (line-beginning-position))
+							'timer timer))
+	   (insert "\n"))
+	 my-timer-alist))
   (goto-char (point-min)))
 
 (defvar alarm-list-mode-map
@@ -3313,13 +3451,19 @@ Also set `my-last-alarm' to the first timer in `my-timer-alist' or nil."
 		 (format "%4s %4s %21s %21s %8s %s"
 				 "Idle" "Last" "Start Time" "Stop Time" "Repeat" "Message"))))
 
-(defun alarm-list-cancel ()
-  "Cancel the alarm on the line under point."
-  (interactive)
+(defun alarm-at-point ()
+  "Return the alarm on the line under point."
   (let ((timer (get-text-property (line-beginning-position) 'timer))
 		(inhibit-read-only t))
 	(unless timer
 	  (error "No timer on the current line"))
+	timer))
+
+(defun alarm-list-cancel ()
+  "Cancel the alarm on the line under point."
+  (interactive)
+  (let ((timer (alarm-at-point))
+		(inhibit-read-only t))
 	(when (y-or-n-p "Really cancel alarm? ")
 	  (cancel-alarm timer)
 	  (delete-region (line-beginning-position)
@@ -3461,6 +3605,24 @@ currently active."
 	  (global-font-lock-mode 1)
 	(global-font-lock-mode 0)))
 
+(defun toggle-line-numbers ()
+  "Toggle display of line numbers.
+
+Rotate between no line numbers, relative line numbers, and
+absolute line numbers."
+  (interactive)
+  (cond
+   ((eq display-line-numbers nil) (setq display-line-numbers 'relative))
+   ((eq display-line-numbers 'relative) (setq display-line-numbers t))
+   (t (setq display-line-numbers nil))))
+
+(defun toggle-blink-cursor-mode ()
+  "Toggle Blink Cursor mode."
+  (interactive)
+  (if (eq blink-cursor-mode nil)
+	  (blink-cursor-mode 1)
+	(blink-cursor-mode 0)))
+
 (defun toggle-subword-mode ()
   "Toggle Subword mode."
   (interactive)
@@ -3479,6 +3641,13 @@ currently active."
 	"No op."
 	(interactive)
 	()))
+
+(defun toggle-semantic-mode ()
+  "Toggle Semantic mode."
+  (interactive)
+  (if (eq semantic-mode nil)
+	  (semantic-mode 1)
+	(semantic-mode 0)))
 
 (defun toggle-flyspell-mode ()
   "Toggle Flyspell mode."
@@ -3625,6 +3794,12 @@ currently active."
 ;; Toggle font-lock (C-c t c)
 (define-key my-toggle-map (kbd "c") 'toggle-font-lock-mode)
 
+;; Toggle line numbers (C-c t n)
+(define-key my-toggle-map (kbd "n") 'toggle-line-numbers)
+
+;; Toggle blinking cursor (C-c t B)
+(define-key my-toggle-map (kbd "B") 'toggle-blink-cursor-mode)
+
 ;; Toggle subword movement (C-c t W)
 (define-key my-toggle-map (kbd "W") 'toggle-subword-mode)
 
@@ -3636,6 +3811,9 @@ currently active."
 
 ;; Toggle truncation of long lines (C-c t l)
 (define-key my-toggle-map (kbd "l") 'toggle-truncate-lines)
+
+;; Toggle Semantic mode (C-c t S)
+(define-key my-toggle-map (kbd "S") 'toggle-semantic-mode)
 
 ;; Toggle Flyspell mode (C-c t s)
 (define-key my-toggle-map (kbd "s") 'toggle-flyspell-mode)
@@ -3774,5 +3952,6 @@ currently active."
 (put 'narrow-to-region 'disabled nil)
 (put 'dired-find-alternate-file 'disabled nil)
 (put 'list-timers 'disabled nil)
+(put 'erase-buffer 'disabled nil)
 
 ;;; init.el ends here

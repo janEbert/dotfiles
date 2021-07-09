@@ -170,6 +170,11 @@ gdrive-dl() {
     nohup nice curl -Lb "$filename.cookie" "https://drive.google.com/uc?export=download&confirm=$(awk '/download/ {print $NF}' "$filename.cookie")&id=$id" -o "$filename" > "$filename.out" &
 }
 
+fcalc() {
+    args="$@"
+    awk "BEGIN {print $args}"
+}
+
 elisp() {
     \emacs --batch --eval '(princ (format "%s\n" '"$1))"
 }

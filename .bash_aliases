@@ -163,6 +163,13 @@ closure-compile-css() {
          "${args_except_last[@]}" --output-file "$minified_name" "$last_arg"
 }
 
+gdrive-dl() {
+    id="$1"
+    filename="$2"
+    curl -c "$filename.cookie" -s -L "https://drive.google.com/uc?export=download&id=$id" > /dev/null
+    nohup nice curl -Lb "$filename.cookie" "https://drive.google.com/uc?export=download&confirm=$(awk '/download/ {print $NF}' "$filename.cookie")&id=$id" -o "$filename" > "$filename.out" &
+}
+
 elisp() {
     \emacs --batch --eval '(princ (format "%s\n" '"$1))"
 }

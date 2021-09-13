@@ -1605,8 +1605,8 @@ The playlist must be in `my-music-dir'."
 
 ;;; Undohist
 
-(autoload 'undohist-initialize "undohist")
-(undohist-initialize)
+(if (require 'undohist nil t)
+  (undohist-initialize))
 
 ;;;; Evil mode
 (setq evil-flash-delay 20)

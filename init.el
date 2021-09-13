@@ -1473,15 +1473,16 @@ which activates the dark theme variant."
 (add-hook 'LaTeX-mode-hook 'latex-electric-env-pair-mode)
 
 ;;; Num3 mode
-(global-num3-mode)
-;; (setq num3-threshold 4)
-;; TODO set num3-face-even to '((t :underline t :weight bold ; :slant italic
-;;))
-(face-spec-set 'num3-face-even '((t :underline t
-									:weight bold
-									;; :slant italic
-									))
-			   'face-defface-spec)
+(when (functionp 'global-num3-mode)
+  (global-num3-mode)
+  ;; (setq num3-threshold 4)
+  ;; TODO set num3-face-even to '((t :underline t :weight bold ; :slant italic
+  ;;))
+  (face-spec-set 'num3-face-even '((t :underline t
+									  :weight bold
+									  ;; :slant italic
+									  ))
+				 'face-defface-spec))
 
 ;;; Dumb Jump
 (when (functionp 'dumb-jump-xref-activate)

@@ -989,7 +989,8 @@ with second argument \"/docker:\"."
 
 (setq org-confirm-babel-evaluate nil)
 ;; Lexical binding by default
-(setcdr (assq :lexical org-babel-default-header-args:emacs-lisp) "yes")
+(with-eval-after-load 'ob-emacs-lisp
+  (setcdr (assq :lexical org-babel-default-header-args:emacs-lisp) "yes"))
 (setq org-src-preserve-indentation t)
 ;; (setq org-edit-src-content-indentation 0)
 

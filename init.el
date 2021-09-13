@@ -2836,8 +2836,8 @@ BASE-FREQ is the base frequency of the wave we want to rescale to (2 pi if nil).
   "Return SAMPLES mapped to [-1, 1].
 ABS-MAXIMUM, the absolute maximum value, may be given or will be found if nil."
   (let ((abs-maximum (or abs-maximum
-						 (reduce (lambda (a b) (max (abs a) (abs b)))
-								 samples))))
+						 (cl-reduce (lambda (a b) (max (abs a) (abs b)))
+									samples))))
 	(dotimes (i (length samples))
 	  (aset samples i (/ (aref samples i) abs-maximum)))
 	samples))
@@ -3115,8 +3115,8 @@ SAMPLE-WIDTH the number of bytes per sample."
 		 (xf (* 880 xx))
 		 (harmonics '(1 2 3 4)))
 	(* (1+ (wav-square (* xx 7)))
-	   (reduce #'+ (mapcar (lambda (harmonic) (wav-sin (/ xf harmonic)))
-						   harmonics)))))
+	   (cl-reduce #'+ (mapcar (lambda (harmonic) (wav-sin (/ xf harmonic)))
+							  harmonics)))))
 
 (defun my-alarm-ring-packed ()
   "Return a sound string for an alarm ring."

@@ -2700,7 +2700,7 @@ SAMPLE-RATE the number of samples per second,
 SAMPLE-WIDTH the number of bytes per sample."
   `((ckID . "RIFF")
 	(cksize . ,(+ 4 24 8 (* sample-width num-channels num-blocks)
-				  (if (oddp (* sample-width num-channels num-blocks)) 1 0)))
+				  (if (cl-oddp (* sample-width num-channels num-blocks)) 1 0)))
 	(WAVEID . "WAVE")
 	(ckID2 . "fmt ")
 	(cksize2 . 16)

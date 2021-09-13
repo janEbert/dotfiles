@@ -3676,7 +3676,11 @@ absolute line numbers."
 	  (interactive)
 	  (if (eq global-num3-mode nil)
 		  (global-num3-mode 1)
-		(global-num3-mode 0))))
+		(global-num3-mode 0)))
+  (defun toggle-global-num3-mode ()
+	"No op."
+	(interactive)
+	()))
 
 (when (functionp 'pdf-tools-install)
   ;; TODO turn this into minor mode

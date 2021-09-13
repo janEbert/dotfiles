@@ -1397,20 +1397,21 @@ which activates the dark theme variant."
 ;;;; Package config
 
 ;;; GNU Global
-(add-to-list 'load-path my-gtags-dir)
-(autoload 'gtags-mode "gtags" "" t)
+(when (file-exists-p my-gtags-dir)
+  (add-to-list 'load-path my-gtags-dir)
+  (autoload 'gtags-mode "gtags" "" t)
 
-(add-hook 'prog-mode-hook (lambda () (gtags-mode 1)))
+  (add-hook 'prog-mode-hook (lambda () (gtags-mode 1)))
 
-;;; Ggtags
-(add-hook 'c-mode-common-hook
-		  (lambda ()
-			(when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
-			  (progn
-				(ggtags-mode 1)
-				(setq-local hippie-expand-try-functions-list
-							(cons 'ggtags-try-complete-tag
-								  hippie-expand-try-functions-list))))))
+  ;; Ggtags
+  (add-hook 'c-mode-common-hook
+			(lambda ()
+			  (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
+				(progn
+				  (ggtags-mode 1)
+				  (setq-local hippie-expand-try-functions-list
+							  (cons 'ggtags-try-complete-tag
+									hippie-expand-try-functions-list)))))))
 
 ;;; Constants
 (autoload 'constants-insert "constants" "Insert constants into source." t)

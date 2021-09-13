@@ -29,6 +29,7 @@ tbg() {
     # FZF
     _gen_fzf_default_opts
     [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+    return 0
 }
 
 gitig() {

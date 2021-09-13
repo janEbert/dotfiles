@@ -2536,7 +2536,11 @@ deactivate them."
 	(setq my-lsp-package-active add-hooks-p)))
 
 ;; Autostart LSP package by default
-(my-modify-lsp-package-hooks t)
+(when (require (if (eq my-lsp-package 'all)
+				   my-autostart-lsp-package
+				 my-lsp-package)
+			   nil t)
+  (my-modify-lsp-package-hooks t))
 
 (defun my-toggle-lsp-package ()
   "Toggle whether `my-lsp-package' is activated for each new buffer."

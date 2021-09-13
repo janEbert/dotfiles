@@ -1542,6 +1542,34 @@ which activates the dark theme variant."
 							:background local-default-foreground
 							:foreground local-default-background))
 
+	  (defun emms-playlist-select-random--check-empty ()
+		"Select a random track in the current buffer.
+If there are no tracks, do not select anything."
+		;; Same function as in EMMS but with empty check.
+		(emms-playlist-ensure-playlist-buffer)
+		(save-excursion
+		  (let ((track-indices nil))
+			(goto-char (point-min))
+			(emms-walk-tracks
+			  (setq track-indices (cons (point)
+										track-indices)))
+			(setq track-indices (vconcat track-indices))
+			(unless (seq-empty-p track-indices)
+			  (emms-playlist-select (aref track-indices
+										  (random (length track-indices))))))))
+	  (advice-add 'emms-playlist-select-random :override
+				  #'emms-playlist-select-random--check-empty)
+
+	  (defun emms-start--check-empty ()
+		"Start playing the current track in the EMMS playlist if there is one."
+		(interactive)
+		(unless (or emms-player-playing-p
+					(condition-case nil (emms-playlist-next)
+					  (error t)))
+		  (emms-player-start (emms-playlist-current-selected-track))))
+	  (advice-add 'emms-start :override
+				  #'emms-start--check-empty)
+
 	  ;; Start EMMS right away
 	  (defun init-emms ()
 		"Prepare playing a random track in playlist \"emms-music\".

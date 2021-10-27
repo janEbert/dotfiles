@@ -3,7 +3,10 @@
 ;;; Commentary:
 ;; Build with:
 ;;    ./autogen.sh
-;;    ./configure --with-modules [--with-xwidgets] \
+;;    TODO make native-comp-compiler-options usage portable
+;;    TODO add BYTE_COMPILE_EXTRA_FLAGS=" --eval '(setq native-comp-compiler-options [...])'"
+;;    ./configure --with-modules [--with-json] [--with-native-compilation] \
+;;                [--with-rsvg] [--with-xwidgets] \
 ;;                [--with-x-toolkit=lucid] [--prefix=...]
 ;;    [sudo] make install
 ;; Execute:
@@ -48,6 +51,29 @@
 ;;    [sudo] make install
 
 ;;; Code:
+
+(defmacro checked-setq (&rest args)
+  "Check the symbols in ARGS and return the corresponding `setq' form.
+
+The symbols are checked for being buffer-local or having
+`defcustom' options that require the symbol to be set via
+`custom-set-variables'. As the required changes are only warned
+about, the `checked-setq' statements have to be manually
+changed."
+  (let ((retval (apply #'list 'setq args)))
+	(while args
+	  (let ((sym (car args))
+			(val (cadr args)))
+		(when (local-variable-if-set-p sym)
+		  (message "warning! variable `%s' is buffer-local!" sym))
+		(let ((csym (indirect-variable sym)))
+		  (when (get csym 'custom-set)
+			  (message "warning! variable `%s' has `:set` property'!" sym))
+		  (when (get csym 'custom-requests)
+		    (message "warning! variable `%s' has `:require` property'!" sym))
+		  )
+	  (setq args (cddr args))))
+	retval))
 
 (defconst my-emacs-dir "~/.emacs.d")
 (defconst my-backup-dir (expand-file-name "backups" my-emacs-dir))
@@ -163,6 +189,7 @@ hooks for `my-autostart-lsp-package'.")
 	 (awk-mode . "awk")
 	 (other . "java")))
  '(calendar-date-style 'iso)
+ '(calendar-week-start-day 1)
  '(column-number-mode t)
  '(completion-cycle-threshold 6)
  '(current-language-environment "UTF-8")
@@ -210,7 +237,7 @@ hooks for `my-autostart-lsp-package'.")
  '(package-menu-hide-low-priority t)
  '(package-quickstart t)
  '(package-selected-packages
-   '(markdown-toc org-gcal vlf counsel-dash dash-docs htmlize extempore-mode org lsp-mode project so-long xref undohist browse-at-remote mines magit julia-repl counsel swiper projectile rust-mode slime jsonrpc d-mode cider gdscript-mode disk-usage dart-mode gnuplot web-mode ada-ref-man docker dockerfile-mode dired-du dired-git-info purescript-mode js2-mode markdown-mode typescript-mode realgud dap-mode cobol-mode csharp-mode fsharp-mode go-mode num3-mode php-mode sed-mode smalltalk-mode stan-mode swift-mode zig-mode elixir-mode erlang clojure-mode cmake-mode haskell-snippets caml sml-mode haskell-mode lsp-julia nasm-mode yaml-mode ada-mode chess csv-mode json-mode vterm lua-mode python nov ein yasnippet-snippets texfrag eglot undo-propose ess form-feed nim-mode evil-collection evil-commentary evil-lion evil-magit evil-matchit evil-snipe evil-surround evil-visualstar landmark auctex zotxt company-quickhelp dumb-jump expand-region jupyter use-package gotham-theme zenburn-theme toc-org flymake tramp ivy ggtags pdf-tools yasnippet solarized-theme rainbow-delimiters julia-mode helm gnu-elpa-keyring-update forge evil emms darkroom company))
+   '(rmsbolt debbugs markdown-toc org-gcal vlf counsel-dash dash-docs htmlize extempore-mode org lsp-mode project so-long xref undohist browse-at-remote mines magit julia-repl counsel swiper projectile rust-mode slime jsonrpc d-mode cider gdscript-mode disk-usage dart-mode gnuplot web-mode ada-ref-man docker dockerfile-mode dired-du dired-git-info purescript-mode js2-mode markdown-mode typescript-mode realgud dap-mode cobol-mode csharp-mode fsharp-mode go-mode num3-mode php-mode sed-mode smalltalk-mode stan-mode swift-mode zig-mode elixir-mode erlang clojure-mode cmake-mode haskell-snippets caml sml-mode haskell-mode lsp-julia nasm-mode yaml-mode ada-mode chess csv-mode json-mode vterm lua-mode python nov ein yasnippet-snippets texfrag eglot undo-propose ess form-feed nim-mode evil-collection evil-commentary evil-lion evil-magit evil-matchit evil-snipe evil-surround evil-visualstar landmark auctex zotxt company-quickhelp dumb-jump expand-region jupyter use-package gotham-theme zenburn-theme toc-org flymake tramp ivy ggtags pdf-tools yasnippet solarized-theme rainbow-delimiters julia-mode helm gnu-elpa-keyring-update forge evil emms darkroom company))
  '(password-cache-expiry 1200)
  '(prettify-symbols-unprettify-at-point 'right-edge)
  '(read-buffer-completion-ignore-case t)
@@ -569,13 +596,39 @@ PROGRAM is the terminal program to start."
   "Relist the dired buffer with the human-readable switch appended."
   (interactive)
   (dired default-directory (concat dired-actual-switches "h")))
+
+(defun dired-open-externally ()
+  "Open marked files with the OS default."
+  (interactive)
+  (let* ((files (dired-get-marked-files))
+		 (files (mapc
+				 (lambda (file) (replace-regexp-in-string "'" "'\"'\"'" file))
+				 files)))
+	(dolist (file files)
+	  ;; FIXME use different command for different OS, make customizable
+	  (shell-command (format "xdg-open '%s'" file)))))
+
+(defun dired-browse-externally ()
+  "Browse current directory with the OS default."
+  (interactive)
+  (let* ((dir (dired-current-directory))
+		 (dir (replace-regexp-in-string "'" "'\"'\"'" dir)))
+	;; FIXME use different browser for different OS, make customizable
+	(shell-command (format "nautilus '%s'" dir))))
+
 (add-hook 'dired-after-readin-hook 'dont-show-whitespace)
 (add-hook 'dired-load-hook
 		  (lambda ()
 			(require 'dired-x)
 			;; Set human readability (C-c y h)
 			(define-key dired-mode-map (kbd "C-c y h")
-			  'dired-relist-human-readable)))
+			  'dired-relist-human-readable)
+			;; Open externally (C-c y f)
+			(define-key dired-mode-map (kbd "C-c y f")
+			  'dired-open-externally)
+			;; Open externally (C-c y d)
+			(define-key dired-mode-map (kbd "C-c y d")
+			  'dired-browse-externally)))
 
 ;;; Icomplete
 ;; (icomplete-mode 1)
@@ -1061,6 +1114,7 @@ Afterwards, remove it from `after-make-frame-functions'."
   (define-key my-org-map (kbd "t") 'org-todo-list)
   (define-key my-org-map (kbd "o") 'org-switchb)
   (define-key my-org-map (kbd "c") 'org-capture)
+  (define-key my-org-map (kbd "g") 'org-mark-ring-goto)
 
   ;; Non-disputed keybindings
   (with-eval-after-load 'org
@@ -1214,11 +1268,35 @@ and INFO the export communication channel."
   ;; TODO only load languages when they're in path; don't load shell on windows
   (setq my-org-babel-load-languages
 		(append my-org-babel-load-languages
-				'((emacs-lisp . t)
+				'(
+				  ;; Emacs
+				  (emacs-lisp . t)
+				  (calc . t)
+				  (org . t)
+
+				  ;; Unix
 				  (shell . t)
+				  (awk . t)
+				  (sed . t)
+
+				  ;; Scripting
 				  (python . t)
+				  (lua . t)
+				  (lisp . t)
+
+				  ;; Common languages
 				  (C . t)
-				  (js . t)))))
+				  (makefile . t)
+				  (js . t)
+
+				  ;; Database languages
+				  (sql . t)
+				  (sqlite . t)
+
+				  ;; Misc
+				  (gnuplot . t)
+				  (latex . t)
+				  ))))
 
 
 ;; load-theme "fixes"
@@ -1389,9 +1467,9 @@ which activates the dark theme variant."
 
 ;; Built-in modes
 (add-hook 'sh-mode-hook
-		  (lambda () (setq indent-tabs-mode nil)))
+		  (lambda () (setq-local indent-tabs-mode nil)))
 (add-hook 'picture-mode-hook
-		  (lambda () (setq indent-tabs-mode nil)))
+		  (lambda () (setq-local indent-tabs-mode nil)))
 
 
 ;;;; Package config
@@ -2160,7 +2238,9 @@ If ARG is nil and we are not in a TRAMP buffer, reuse an existing vterm."
 		;; Allow to send C-z easily (C-c C-z)
 		(define-key vterm-mode-map (kbd "C-c C-z") 'vterm-send-C-z)
 		;; Allow to send C-z easily (C-c y z)
-		(define-key vterm-mode-map (kbd "C-c y z") 'vterm-send-C-z))
+		(define-key vterm-mode-map (kbd "C-c y z") 'vterm-send-C-z)
+		;; Allow to send C-x easily (C-c y x)
+		(define-key vterm-mode-map (kbd "C-c y x") 'vterm-send-C-x))
 
 	  (setq vterm-max-scrollback 10000)
 
@@ -2238,7 +2318,7 @@ Checks if INPUT contains a password prompt as defined by
 (autoload 'php-mode-hook "php-mode")
 (add-hook 'php-mode-hook
 		  (lambda ()
-			(setq indent-tabs-mode t)
+			(setq-local indent-tabs-mode t)
 			(setq-local whitespace-line-column 120)))
 
 ;;; Web mode
@@ -2299,7 +2379,7 @@ Checks if INPUT contains a password prompt as defined by
 (autoload 'rust-mode-hook "rust-mode")
 (add-hook 'rust-mode-hook
 		  (lambda ()
-			(setq indent-tabs-mode nil)
+			(setq-local indent-tabs-mode nil)
 			;; For comments; not perfect though since indentation
 			;; should be ignored.
 			(setq-local fill-column 80)
@@ -3475,12 +3555,12 @@ If it does not have a message, return nil."
 
 (define-derived-mode alarm-list-mode special-mode "Alarm-List"
   "Mode for listing and controlling alarms."
-  (setq bidi-paragraph-direction 'left-to-right)
-  (setq truncate-lines t)
+  (setq-local bidi-paragraph-direction 'left-to-right)
+  (setq-local truncate-lines t)
   (buffer-disable-undo)
   (setq-local revert-buffer-function #'list-alarms)
-  (setq buffer-read-only t)
-  (setq header-line-format
+  (setq-local buffer-read-only t)
+  (setq-local header-line-format
 		(concat
 		 (propertize " " 'display '(space :align-to 0))
 		 (format "%4s %4s %21s %21s %8s %s"
@@ -3564,6 +3644,9 @@ TEXT is reversed literally (\"[a\" -> \"a[\")."
 
 (defun delete-around (count)
   "Delete COUNT characters before and after point or the region if active."
+  ;; FIXME delete the same no matter if point is at start of region or end
+  ;; FIXME same function but delete characters after and before point
+  ;;       (inner vs outer (current) deletion)
   (interactive "p")
   (if (region-active-p)
 	  (let ((beg (region-beginning)))
@@ -3624,13 +3707,13 @@ currently active."
 	(toggle-background-brightness)))
 
 (defun toggle-indent-tabs-mode ()
-  "Toggle `indent-tabs-mode' and re-tabify."
+  "Toggle variable `indent-tabs-mode' and re-tabify."
   (interactive)
   (if (eq indent-tabs-mode nil)
 	  (progn
-		(setq indent-tabs-mode t)
+		(setq-local indent-tabs-mode t)
 		(tabify (point-min) (point-max)))
-	(setq indent-tabs-mode nil)
+	(setq-local indent-tabs-mode nil)
 	(untabify (point-min) (point-max))))
 
 (defun toggle-font-lock-mode ()
@@ -3647,9 +3730,9 @@ Rotate between no line numbers, relative line numbers, and
 absolute line numbers."
   (interactive)
   (cond
-   ((eq display-line-numbers nil) (setq display-line-numbers 'relative))
-   ((eq display-line-numbers 'relative) (setq display-line-numbers t))
-   (t (setq display-line-numbers nil))))
+   ((eq display-line-numbers nil) (setq-local display-line-numbers 'relative))
+   ((eq display-line-numbers 'relative) (setq-local display-line-numbers t))
+   (t (setq-local display-line-numbers nil))))
 
 (defun toggle-blink-cursor-mode ()
   "Toggle Blink Cursor mode."

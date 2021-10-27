@@ -95,6 +95,56 @@ github_release_download() {
     fi
 }
 
+toggle_gnome_bool() {
+    setting_parent="$1"
+    setting_key="$2"
+    setting_name="$3"
+
+    if [ "$(gsettings get "$setting_parent" "$setting_key")" = 'true' ]; then
+        toggle_value='false'
+        status_after_toggle='disabled'
+    else
+        toggle_value='true'
+        status_after_toggle='enabled'
+    fi
+
+    gsettings set "$setting_parent" "$setting_key" "$toggle_value"
+    msg="$setting_name $status_after_toggle."
+    [ -n "$setting_name" ] && echo "$msg" && notify-send "$msg"
+    return 0
+}
+
+toggle_mouse_keys() {
+    toggle_gnome_bool org.gnome.desktop.a11y.keyboard \
+                      mousekeys-enable \
+                      'Mouse keys'
+}
+
+toggle_night_light() {
+    toggle_gnome_bool org.gnome.settings-daemon.plugins.color \
+                      night-light-enabled \
+                      'Night light'
+}
+
+gnome_change_brightness() {
+    if [ "$1" != 'Up' ] && [ "$1" != 'Down' ]; then
+        echo 'Need to provide either "Up" or "Down" as argument.'
+        return 1;
+    fi
+    gdbus call --session \
+          --dest org.gnome.SettingsDaemon.Power \
+          --object-path /org/gnome/SettingsDaemon/Power \
+          --method org.gnome.SettingsDaemon.Power.Screen.Step"$1"
+}
+
+gnome_brightness_up() {
+    gnome_change_brightness Up
+}
+
+gnome_brightness_down() {
+    gnome_change_brightness Down
+}
+
 change_monitor_brightness() {
     xrandr --output HDMI-1-2 --brightness $1
 }

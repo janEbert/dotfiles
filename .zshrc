@@ -223,6 +223,8 @@ export PATH="$HOME/.luarocks/bin:$PATH"
 export JULIA_NUM_THREADS=64
 # If Julia should automatically `]activate .` the current directory.
 # export JULIA_PROJECT=@.
+# Use system CUDA
+export JULIA_CUDA_USE_BINARYBUILDER=false
 
 # Rust
 export PATH="$HOME/.cargo/bin:$PATH"

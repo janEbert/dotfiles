@@ -230,6 +230,10 @@ elisp() {
     \emacs --batch --eval '(princ (format "%s\n" '"$1))"
 }
 
+get-native-march() {
+    gcc -Q -march=native --help=target | sed -n 's/^\s*-march=\s*\(.*\)$/\1/p'
+}
+
 alias untar="tar -xf"
 alias untargz="tar -xzf"
 alias egitig="\$EDITOR \$(git rev-parse --git-dir)/info/exclude"

@@ -5,7 +5,8 @@
 ;;    ./autogen.sh
 ;;    TODO make native-comp-compiler-options usage portable
 ;;    TODO add BYTE_COMPILE_EXTRA_FLAGS=" --eval '(setq native-comp-compiler-options [...])'"
-;;    ./configure --with-modules [--with-json] [--with-native-compilation] \
+;;    ./configure CFLAGS='-O2 -march=native -pipe' \
+;;                --with-modules [--with-json] [--with-native-compilation] \
 ;;                [--with-rsvg] [--with-xwidgets] \
 ;;                [--with-x-toolkit=lucid] [--prefix=...]
 ;;    [sudo] make install

@@ -13,6 +13,22 @@
 ;; Prefer more recent files when loading.
 (setq load-prefer-newer t)
 
+;; Improve native compilation options.
+(defun get-native-march ()
+  "Return the native CPU architecture string.
+This is the one chosen by GCC when specifying `march=native`."
+  (string-trim-right
+   (shell-command-to-string
+	(concat "gcc -Q -march=native --help=target "
+			"| sed -n 's/^\\s*-march=\\s*\\(.*\\)$/\\1/p'"))))
+
+(setq native-comp-compiler-options
+	  (list
+	   "-O2"
+	   ;; "-pipe"
+	   ;; `-march=native` is not supported by libgccjit.
+	   (concat "-march=" (get-native-march))))
+
 (setq package-quickstart t)
 ;; (setq package-enable-at-startup nil)
 ;; (setq package-load-list '(

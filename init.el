@@ -2554,6 +2554,7 @@ Advice around ORIG-FUN, called with ARGS."
 	(push 'typescript-mode-hook my-eglot-hooks))
 
   (when (executable-find "pylsp")
+	(setcdr (assoc 'python-mode eglot-server-programs) '("pylsp"))
 	(push 'python-mode-hook my-eglot-hooks))
 
   (when (executable-find "clangd")

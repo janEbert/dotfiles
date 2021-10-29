@@ -2768,6 +2768,15 @@ If variable `buffer-file-name' is nil, use `default-directory'."
 	(set-window-buffer other-window curr-buffer)
 	(switch-to-buffer other-buffer)))
 
+(defun has-final-newline ()
+  "Return whether the current buffer has a final newline."
+  (interactive)
+  ;; Adapted from `files.el`.
+  (message "%s" (not (and (> (point-max) (point-min))
+						  (/= (char-after (1- (point-max))) ?\n)
+						  (not (and (eq selective-display t)
+									(= (char-after (1- (point-max))) ?\r)))))))
+
 
 ;;; WAV
 

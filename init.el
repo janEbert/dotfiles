@@ -4,11 +4,11 @@
 ;; Build with:
 ;;    ./autogen.sh
 ;;    TODO make native-comp-compiler-options usage portable
-;;    TODO add BYTE_COMPILE_EXTRA_FLAGS=" --eval '(setq native-comp-compiler-options [...])'"
 ;;    ./configure CFLAGS='-O2 -march=native -pipe' \
 ;;                --with-modules [--with-json] [--with-native-compilation] \
 ;;                [--with-rsvg] [--with-xwidgets] \
 ;;                [--with-x-toolkit=lucid] [--prefix=...]
+;;    [sed -i -e "s/^BYTE_COMPILE_EXTRA_FLAGS =/BYTE_COMPILE_EXTRA_FLAGS = --eval '(setq native-comp-compiler-options (list \"-O2\" \"-march=$(gcc -Q -march=native --help=target | sed -n 's/^\s*-march=\s*\(.*\)$/\1/p')\"))'/" lisp/Makefile]
 ;;    [sudo] make install
 ;; Execute:
 ;;    emacsclient -c -a ''

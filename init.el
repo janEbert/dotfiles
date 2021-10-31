@@ -3,7 +3,6 @@
 ;;; Commentary:
 ;; Build with:
 ;;    ./autogen.sh
-;;    TODO make native-comp-compiler-options usage portable
 ;;    ./configure CFLAGS='-O2 -march=native -pipe' \
 ;;                --with-modules [--with-json] [--with-native-compilation] \
 ;;                [--with-rsvg] [--with-xwidgets] \

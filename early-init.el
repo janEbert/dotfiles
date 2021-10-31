@@ -22,12 +22,16 @@ This is the one chosen by GCC when specifying `march=native`."
 	(concat "gcc -Q -march=native --help=target "
 			"| sed -n 's/^\\s*-march=\\s*\\(.*\\)$/\\1/p'"))))
 
-(setq native-comp-compiler-options
-	  (list
-	   "-O2"
-	   ;; "-pipe"
-	   ;; `-march=native` is not supported by libgccjit.
-	   (concat "-march=" (get-native-march))))
+(when (and (fboundp 'native-comp-available-p)
+		   (native-comp-available-p))
+  (setq native-comp-compiler-options
+		(list
+		 "-O2"
+		 ;; `-march=native` is not supported by libgccjit.
+		 (concat "-march=" (get-native-march))
+		 ;; Currently not available in libgccjit.
+		 ;; "-pipe"
+		 )))
 
 (setq package-quickstart t)
 ;; (setq package-enable-at-startup nil)

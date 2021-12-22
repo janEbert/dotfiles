@@ -1118,6 +1118,7 @@ Afterwards, remove it from `after-make-frame-functions'."
   (define-key my-org-map (kbd "o") 'org-switchb)
   (define-key my-org-map (kbd "c") 'org-capture)
   (define-key my-org-map (kbd "g") 'org-mark-ring-goto)
+  (define-key my-org-map (kbd "k") 'org-cut-subtree)
 
   ;; Non-disputed keybindings
   (with-eval-after-load 'org

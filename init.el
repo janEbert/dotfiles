@@ -1248,7 +1248,14 @@ and INFO the export communication channel."
 	"Ensure the word \"C++\" looks good.
 TEXT is the text to be exported, BACKEND is the export backend
 and INFO the export communication channel."
-	(my-org-plain-text-filter "C\\+\\+" '((latex . "C\\texttt{++}"))
+	(my-org-plain-text-filter "C\\+\\+"
+							  '(
+								;; TODO make conditional depending on theme
+								;; When using metropolis, this looks
+								;; nicer without the filter.
+								(beamer . "C++")
+								(latex . "C\\texttt{++}")
+								)
 							  text backend info t t))
 
   (defun my-org-plain-text-filter-big-o (text backend info)

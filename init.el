@@ -1245,7 +1245,7 @@ and INFO the export communication channel."
 							  text backend info t t))
 
   (defun my-org-plain-text-filter-cpp (text backend info)
-	"Ensure the word 'C++' looks good.
+	"Ensure the word \"C++\" looks good.
 TEXT is the text to be exported, BACKEND is the export backend
 and INFO the export communication channel."
 	(my-org-plain-text-filter "C\\+\\+" '((latex . "C\\texttt{++}"))

@@ -607,7 +607,8 @@ PROGRAM is the terminal program to start."
 				 files)))
 	(dolist (file files)
 	  ;; FIXME use different command for different OS, make customizable
-	  (shell-command (format "xdg-open '%s'" file)))))
+	  (start-process "DiredOpenExternally" nil
+					 "xdg-open" file))))
 
 (defun dired-browse-externally ()
   "Browse current directory with the OS default."
@@ -615,7 +616,8 @@ PROGRAM is the terminal program to start."
   (let* ((dir (dired-current-directory))
 		 (dir (replace-regexp-in-string "'" "'\"'\"'" dir)))
 	;; FIXME use different browser for different OS, make customizable
-	(shell-command (format "nautilus '%s'" dir))))
+	(start-process "DiredBrowseExternally" nil
+				   "nautilus" dir)))
 
 (add-hook 'dired-after-readin-hook 'dont-show-whitespace)
 (add-hook 'dired-load-hook

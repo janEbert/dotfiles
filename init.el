@@ -1127,7 +1127,7 @@ Afterwards, remove it from `after-make-frame-functions'."
 
   ;; Use C-c C-b for navigation like always
   (with-eval-after-load 'ox-beamer
-			(define-key org-beamer-mode-map (kbd "C-c C-b") nil))
+	(define-key org-beamer-mode-map (kbd "C-c C-b") nil))
 
   ;; Activate beamer mode or select beamer environment (C-c o b)
   (define-key my-org-map (kbd "b")

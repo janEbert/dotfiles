@@ -2072,13 +2072,15 @@ The choice depends on the whether `evil-repeat-pop-next' makes sense to call."
 
   ;; Configure buffer-local `dash-docs-docsets' per mode.
   ;; It's undocumented but inspected from `dash-docs-buffer-local-docsets'.
-  (add-hook 'c-mode-hook (setq-local dash-docs-docsets '("C")))
-  (add-hook 'c++-mode-hook (setq-local dash-docs-docsets '("C++")))
+  (add-hook 'c-mode-hook (lambda () (setq-local dash-docs-docsets '("C"))))
+  (add-hook 'c++-mode-hook (lambda () (setq-local dash-docs-docsets '("C++"))))
   (when (functionp 'cmake-mode)
-	(add-hook 'cmake-mode-hook (setq-local dash-docs-docsets '("CMake"))))
+	(add-hook 'cmake-mode-hook (lambda ()
+								 (setq-local dash-docs-docsets '("CMake")))))
 
   ;; Search docs (C-c d)
   (define-key mode-specific-map (kbd "d") 'counsel-dash-at-point)
+  ;; FIXME needs different binding
   ;; Activate docset (C-c x D)
   (define-key my-extended-map (kbd "D") 'dash-docs-activate-docset))
 

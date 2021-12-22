@@ -2149,6 +2149,19 @@ The choice depends on the whether `evil-repeat-pop-next' makes sense to call."
 	;; (setq pdf-view-midnight-colors '("#60767e" . "#ffffee"))
 	)
 
+  ;; Do not blink cursor in pdfview buffers.
+  ;; TODO doesn't work
+  ;; (defun blink-cursor--unless-in-pdfview (old-result)
+  ;; 	  (and old-result (not (eq major-mode 'pdf-view-mode))))
+  ;; (advice-add 'blink-cursor--should-blink
+  ;; 			  :filter-return #'blink-cursor--unless-in-pdfview)
+  (defun blink-cursor--unless-in-pdfview ()
+	  (not (eq major-mode 'pdf-view-mode)))
+  (advice-add 'blink-cursor-end
+			  :before-while #'blink-cursor--unless-in-pdfview)
+  (advice-add 'blink-cursor-timer-function
+			  :before-while #'blink-cursor--unless-in-pdfview)
+
   ;; Ability to reset the cursor so it does not bother us.
   ;; Otherwise, the cursor may dangle behind the picture which is a
   ;; visual distraction.

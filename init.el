@@ -1642,13 +1642,13 @@ which activates the dark theme variant."
 
 	  (defun update-emms-faces ()
 		"Change EMMS faces to be consistent with the rest of Emacs."
-		(setq local-default-foreground (face-attribute 'default :foreground))
-		(setq local-default-background (face-attribute 'default :background))
-		(set-face-attribute 'emms-playlist-track-face nil
-							:foreground local-default-foreground)
-		(set-face-attribute 'emms-playlist-selected-face nil
-							:background local-default-foreground
-							:foreground local-default-background))
+		(let ((local-default-foreground (face-attribute 'default :foreground))
+			  (local-default-background (face-attribute 'default :background)))
+		  (set-face-attribute 'emms-playlist-track-face nil
+							  :foreground local-default-foreground)
+		  (set-face-attribute 'emms-playlist-selected-face nil
+							  :background local-default-foreground
+							  :foreground local-default-background)))
 
 	  (defun emms-playlist-select-random--check-empty ()
 		"Select a random track in the current buffer.

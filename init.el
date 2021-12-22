@@ -1133,6 +1133,9 @@ Afterwards, remove it from `after-make-frame-functions'."
   (define-key my-org-map (kbd "b")
 	'org-beamer-mode-or-select-beamer-environment)
 
+  ;; Fix C-c C-TAB
+  (define-key org-mode-map (kbd "C-c C-<tab>") 'org-force-cycle-archived)
+
   ;; Calendar minibuffer
   ;; Shift
   (define-key org-read-date-minibuffer-local-map (kbd "M-P")

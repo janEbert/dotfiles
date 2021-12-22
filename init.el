@@ -1620,8 +1620,10 @@ which activates the dark theme variant."
 
 ;;; Slurm
 (require 'slurm-mode nil t)
-(when (require 'slurm-script-mode nil t)
-  (add-to-list 'auto-mode-alist '("\\.sbatch\\'" . slurm-script-mode)))
+(let ((slurm-script-mode (if (require 'slurm-script-mode nil t)
+							 'slurm-script-mode
+						   'shell-script-mode)))
+  (add-to-list 'auto-mode-alist (cons "\\.sbatch\\'" slurm-script-mode)))
 
 ;;; EMMS
 (if (require 'emms-setup nil t)

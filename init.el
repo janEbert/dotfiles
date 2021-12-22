@@ -2103,7 +2103,9 @@ The choice depends on the whether `evil-repeat-pop-next' makes sense to call."
   (define-key yas-keymap (kbd "C-c e") 'yas-next-field-or-maybe-expand)
   (dolist (keymap (list yas-minor-mode-map yas-keymap))
 	(define-key keymap (kbd "TAB") nil)
-	(define-key keymap (kbd "<tab>") nil)))
+	(define-key keymap (kbd "<tab>") nil))
+
+  (push 'yas-hippie-try-expand hippie-expand-try-functions-list))
 
 ;;; Expand-region
 ;; (require 'expand-region)

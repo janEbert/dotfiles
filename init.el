@@ -1265,6 +1265,20 @@ and INFO the export communication channel."
 	(my-org-plain-text-filter "𝒪" '((latex . "\\mathcal{O}"))
 							  text backend info t t))
 
+  (defun my-org-plain-text-filter-eg (text backend info)
+	"Ensure the abbreviation \"e.g.\" is properly exported.
+TEXT is the text to be exported, BACKEND is the export backend
+and INFO the export communication channel."
+	(my-org-plain-text-filter "\\<e\\.g\\.\\(:? \\|$\\)" '((latex . "e.g.\\ "))
+							  text backend info t t))
+
+  (defun my-org-plain-text-filter-ie (text backend info)
+	"Ensure the abbreviation \"i.e.\" is properly exported.
+TEXT is the text to be exported, BACKEND is the export backend
+and INFO the export communication channel."
+	(my-org-plain-text-filter "\\<i\\.e\\.\\(:? \\|$\\)" '((latex . "i.e.\\ "))
+							  text backend info t t))
+
   (with-eval-after-load 'ox
 	;; Additional export backends
 	(require 'ox-md)

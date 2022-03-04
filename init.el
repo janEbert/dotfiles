@@ -2084,6 +2084,9 @@ The choice depends on the whether `evil-repeat-pop-next' makes sense to call."
 	(add-hook 'cmake-mode-hook (lambda ()
 								 (setq-local dash-docs-docsets '("CMake")))))
 
+  (add-hook 'python-mode-hook (lambda ()
+								(setq-local dash-docs-docsets '("Python_3"))))
+
   ;; Search docs (C-c d)
   (define-key mode-specific-map (kbd "d") 'counsel-dash-at-point)
   ;; FIXME needs different binding

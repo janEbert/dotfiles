@@ -2858,6 +2858,15 @@ If variable `buffer-file-name' is nil, use `default-directory'."
 						  (not (and (eq selective-display t)
 									(= (char-after (1- (point-max))) ?\r)))))))
 
+(defun unfill-region (from to &optional justify nosqueeze to-eop)
+  "Put all text in each paragraph in the region on one line.
+See `fill-region' for the arguments FROM, TO, JUSTIFY, NOSQUEEZE, and TO-EOP."
+  (interactive (progn
+				 (barf-if-buffer-read-only)
+				 (list (region-beginning) (region-end)
+					   (if current-prefix-arg 'full))))
+  (let ((fill-column most-positive-fixnum))
+	(fill-region from to justify nosqueeze to-eop)))
 
 ;;; WAV
 

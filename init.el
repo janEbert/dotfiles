@@ -1898,6 +1898,10 @@ The playlist must be in `my-music-dir'."
 	  ;; C-l in normal state to remove highlighting
 	  (define-key evil-normal-state-map (kbd "C-l") 'evil-ex-nohighlight)
 
+	  ;; Do not repeat Flymake motions
+	  (evil-declare-ignore-repeat 'flymake-goto-next-error)
+	  (evil-declare-ignore-repeat 'flymake-goto-prev-error)
+
 	  (defun my-maybe-evil-repeat-pop ()
 		"Execute `evil-repeat-pop' or `flyspell-auto-correct-word'.
 The choice depends on the whether `evil-repeat-pop' makes sense to call."

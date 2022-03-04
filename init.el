@@ -2612,7 +2612,31 @@ Advice around ORIG-FUN, called with ARGS."
 	(push 'typescript-mode-hook my-eglot-hooks))
 
   (when (executable-find "pylsp")
-	(setcdr (assoc 'python-mode eglot-server-programs) '("pylsp"))
+	(defun find-project-pylsp-bin (is-interactive)
+	  "Find a project-local Python binary for the current file."
+	  (let* ((file buffer-file-name)
+			 (project-dir (expand-file-name (project-root (project-current))))
+			 (venv-dir (seq-some (lambda (dir)
+								   (let ((file (locate-dominating-file
+												(file-name-directory file)
+												dir)))
+									 (and file (expand-file-name dir file))))
+								 (list "venv" "env")))
+			 (in-project (string=
+						  (substring-no-properties venv-dir
+												   nil
+												   (min
+													(length venv-dir)
+													(length project-dir)))
+						  project-dir)))
+
+		(let ((pylsp-bin
+			   (when in-project
+				 (expand-file-name "pylsp" (expand-file-name "bin" venv-dir)))))
+		  (list (if (and pylsp-bin (file-readable-p pylsp-bin))
+					pylsp-bin
+				  "pylsp")))))
+	(setcdr (assoc 'python-mode eglot-server-programs) 'find-project-pylsp-bin)
 	(push 'python-mode-hook my-eglot-hooks))
 
   (when (executable-find "clangd")

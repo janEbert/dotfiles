@@ -165,10 +165,6 @@ export PATH="$HOME/local/bin:$PATH"
 
 [ -f ~/.emacs.d/bin/doom ] && export PATH="$HOME/.emacs.d/bin:$PATH"
 
-if [[ "$INSIDE_EMACS" = 'vterm' ]]; then
-    alias clear='printf "\e]51;Evterm-clear-scrollback\e\\";tput clear'
-fi
-
 
 # CUDA path
 export PATH=/usr/local/cuda/bin${PATH:+:${PATH}}
@@ -320,12 +316,11 @@ fi
 
 
 # VTerm
-if [[ "$INSIDE_EMACS" = 'vterm' ]]; then
+if [[ -n "$(echo "$INSIDE_EMACS" | grep '\<vterm\>')" ]]; then
     # Print vterm escape sequences
-    function vterm_printf(){
-        if [ -n "$TMUX" ]; then
-            # tell tmux to pass the escape sequences through
-            # (Source: http://permalink.gmane.org/gmane.comp.terminal-emulators.tmux.user/1324)
+    vterm_printf(){
+        if [ -n "$TMUX" ] && ([ "${TERM%%-*}" = "tmux" ] || [ "${TERM%%-*}" = "screen" ] ); then
+            # Tell tmux to pass the escape sequences through
             printf "\ePtmux;\e\e]%s\007\e\\" "$1"
         elif [ "${TERM%%-*}" = "screen" ]; then
             # GNU screen (screen, screen-256color, screen-256color-bce)
@@ -335,24 +330,24 @@ if [[ "$INSIDE_EMACS" = 'vterm' ]]; then
         fi
     }
 
-    # TODO does not work/works without this using C-l
     # Enable clearing with C-c C-l
-    # alias clear='vterm_printf "51;Evterm-clear-scrollback";tput clear'
+    alias clear='vterm_printf "51;Evterm-clear-scrollback";tput clear'
 
     # Enable vterm directory tracking
     vterm_prompt_end() {
         vterm_printf "51;A$(whoami)@$(hostname):$(pwd)";
     }
+    setopt PROMPT_SUBST
     PROMPT=$PROMPT'%{$(vterm_prompt_end)%}'
-elif [[ -n "$(echo "$INSIDE_EMACS" | grep term)" ]]; then
+elif [[ -n "$(echo "$INSIDE_EMACS" | grep '\<eterm')" ]]; then
     # Emacs Term
-    printf '\033AnSiTh %s\n' "$(uname -n)"
-    printf '\033AnSiTu %s\n' "$(whoami)"
+    printf '\033AnSiTh %s\n' "$HOSTNAME"
+    printf '\033AnSiTu %s\n' "$USER"
     printf '\033AnSiTc %s\n' "$PWD"
 
-    cd()    { builtin cd "$@";    printf '\033AnSiTc %s\n' "$PWD"; }
-    pushd() { builtin pushd "$@"; printf '\033AnSiTc %s\n' "$PWD"; }
-    popd()  { builtin popd "$@";  printf '\033AnSiTc %s\n' "$PWD"; }
+    cd()    { builtin cd    "$@" && printf '\033AnSiTc %s\n' "$PWD"; }
+    pushd() { builtin pushd "$@" && printf '\033AnSiTc %s\n' "$PWD"; }
+    popd()  { builtin popd  "$@" && printf '\033AnSiTc %s\n' "$PWD"; }
 fi
 
 # Emacs TRAMP fix (keep this at the very end!)

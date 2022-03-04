@@ -2143,6 +2143,8 @@ The choice depends on the whether `evil-repeat-pop-next' makes sense to call."
 
 	;; Dark filters
 	;; (setq pdf-view-midnight-colors '("white" . "black"))
+	;; solarized-dark (base0 and base03)
+	;; (setq pdf-view-midnight-colors '("#839496" . "#002b36"))
 	;; solarized-dark-high-contrast (base0 and base03)
 	(setq pdf-view-midnight-colors '("#8d9fa1" . "#002732"))
 	;; solarized-light-high-contrast (base0 and base03)

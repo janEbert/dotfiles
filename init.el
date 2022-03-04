@@ -1636,7 +1636,7 @@ which activates the dark theme variant."
 	  (setq emms-random-playlist t)
 	  (setq emms-repeat-playlist t)
 
-	  (if (eq system-type 'gnu/linux)
+	  (if (and (eq system-type 'gnu/linux) (executable-find "find"))
 		  (setq emms-source-file-directory-tree-function
 				#'emms-source-file-directory-tree-find))
 

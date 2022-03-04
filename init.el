@@ -1672,8 +1672,10 @@ If there are no tracks, do not select anything."
 		"Start playing the current track in the EMMS playlist if there is one."
 		(interactive)
 		(unless (or emms-player-playing-p
-					(condition-case nil (emms-playlist-next)
-					  (error t)))
+					(with-current-emms-playlist
+					  (and (save-excursion (not (emms-playlist-track-at)))
+						   (condition-case nil (emms-playlist-next)
+							 (error t)))))
 		  (emms-player-start (emms-playlist-current-selected-track))))
 	  (advice-add 'emms-start :override
 				  #'emms-start--check-empty)

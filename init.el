@@ -594,7 +594,7 @@ PROGRAM is the terminal program to start."
 
 ;;; Dired
 (defun dired-relist-human-readable ()
-  "Relist the dired buffer with the human-readable switch appended."
+  "Relist the Dired buffer with the human-readable switch appended."
   (interactive)
   (dired default-directory (concat dired-actual-switches "h")))
 

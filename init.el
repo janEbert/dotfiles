@@ -634,8 +634,9 @@ PROGRAM is the terminal program to start."
 			  'dired-browse-externally)))
 
 ;;; Icomplete
-;; (icomplete-mode 1)
+(icomplete-mode 1)
 ;; (fido-mode 1)
+(icomplete-vertical-mode 1)
 
 ;; (add-hook 'icomplete-minibuffer-setup-hook
 ;; 		  (lambda ()
@@ -646,6 +647,7 @@ PROGRAM is the terminal program to start."
 ;; 			  (enlarge-window (1- icomplete-prospects-height)))))
 ;; (setq icomplete-in-buffer t)
 ;; (setq icomplete-show-matches-on-no-input nil)
+(setq icomplete-scroll t)
 (setq icomplete-hide-common-prefix t)
 (setq icomplete-tidy-shadowed-file-names t)
 ;; (setq icomplete-prospects-height 2)
@@ -2003,7 +2005,7 @@ The choice depends on the whether `evil-repeat-pop-next' makes sense to call."
 ;; 	(push 'company-lsp company-backends))
 
 ;;; Ivy
-(when (and (functionp 'ivy-mode) t)
+(when (and (functionp 'ivy-mode) nil)
   (ivy-mode 1)
   (setq ivy-use-virtual-buffers t)
   (setq ivy-count-format "(%d/%d) ")

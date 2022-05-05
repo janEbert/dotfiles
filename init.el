@@ -387,7 +387,7 @@ This way, the newly added directories have priority over old ones."
 
 ;; Use more flexible completion styles
 (setq completion-styles (append completion-styles
-								'(substring initials flex)))
+								'(substring initials)))
 
 ;; Do complete .bin files
 (setq completion-ignored-extensions

@@ -4088,6 +4088,9 @@ absolute line numbers."
 ;; Do not untabify before backspacing (default delete-backward-char)
 (global-set-key (kbd "DEL") 'backward-delete-char)
 
+;; Go to "real" next line, not just visual (C-c x f)
+(define-key my-extended-map (kbd "f") 'forward-line)
+
 ;; Find file at point (C-c f)
 (define-key mode-specific-map (kbd "f") 'find-file-at-point)
 
@@ -4096,6 +4099,12 @@ absolute line numbers."
 
 ;; undo-only (C-c u)
 (define-key mode-specific-map (kbd "u") 'undo-only)
+
+;; Previous other window (C-x O)
+(global-set-key (kbd "C-x O") (lambda ()
+								(interactive)
+								(setq repeat-map 'other-window-repeat-map)
+								(other-window -1)))
 
 ;; Better expanding (default dabbrev-expand)
 (global-set-key (kbd "M-/") 'hippie-expand)
@@ -4106,8 +4115,9 @@ absolute line numbers."
 
 ;; Like dt or df in Vim
 (global-set-key (kbd "M-z") 'zap-up-to-char)
-;; Zap to char (C-c x z)
-(define-key mode-specific-map (kbd "z") 'zap-to-char)
+;; Zap to char (C-c x z) or (M-Z)
+(define-key my-extended-map (kbd "z") 'zap-to-char)
+(define-key my-extended-map (kbd "M-Z") 'zap-to-char)
 
 ;; Swap literal and regex isearch
 ;; (we then don't need/want (search-default-mode t))
@@ -4132,6 +4142,12 @@ absolute line numbers."
 (define-key indent-rigidly-map (kbd "C-f") 'indent-rigidly-right)
 (define-key indent-rigidly-map (kbd "M-b") 'indent-rigidly-left-to-tab-stop)
 (define-key indent-rigidly-map (kbd "M-f") 'indent-rigidly-right-to-tab-stop)
+
+;; Open documentation (M-H)
+(global-set-key (kbd "M-H") 'eldoc)
+
+;; unfill-region (M-Q)
+(global-set-key (kbd "M-Q") 'unfill-region)
 
 ;; Indent using tabs or spaces (C-c t i)
 (define-key my-toggle-map (kbd "i") 'toggle-indent-tabs-mode)
@@ -4223,8 +4239,8 @@ absolute line numbers."
 ;; Diff buffers (preferably in split) (C-c x d)
 (define-key my-extended-map (kbd "d") 'ediff-buffers)
 
-;; Find file with find (C-c x f)
-(define-key my-extended-map (kbd "f") 'find-name-dired)
+;; Find file with find (C-c x F)
+(define-key my-extended-map (kbd "F") 'find-name-dired)
 
 ;; Insert the abbreviated `buffer-file-name' into the minibuffer (C-c x O f)
 (define-key my-other-map (kbd "f")
@@ -4285,6 +4301,7 @@ absolute line numbers."
 (define-key mode-specific-map (kbd "a") 'my-pairs-map)
 (define-key my-pairs-map (kbd "a") 'insert-same-pair)
 (define-key my-pairs-map (kbd "s") 'insert-same-pair)
+(define-key my-pairs-map (kbd "c") 'insert-char-pair)
 (define-key my-pairs-map (kbd "p") 'insert-differing-pair)
 (define-key my-pairs-map (kbd "r") 'insert-reversed-pair)
 (define-key my-pairs-map (kbd "t") 'insert-tag-pair)

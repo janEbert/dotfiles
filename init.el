@@ -847,6 +847,21 @@ If NEW-SESSION is non-nil, start a new session."
   ;; (add-to-list 'tramp-remote-process-environment
   ;; 			   (format "DISPLAY=localhost%s" (getenv "DISPLAY")))
 
+  ;; Do not save `tramp-open-shell' command in history.
+  (defun tramp-send-command--dont-save-in-history (args)
+	"Add a space before the given command so it is not saved in the history."
+	;; Why is `args' wrapped in another list, here?
+	(let* ((command (cadr args))
+		   (command (if (and (> (length command) 0)
+							 (string-match-p "^exec env TERM=.* -i$" command)
+							 (not (eq (aref command 0) ?\s)))
+						(concat " " command)
+					  command)))
+	  (append (list (car args)) (list command)
+					(when (> (length args) 2) (cddr args)))))
+  (advice-add 'tramp-send-command :filter-args
+			  #'tramp-send-command--dont-save-in-history)
+
   ;; Speed ups
   ;; If files are not updated outside of Tramp
   ;; (setq remote-file-name-inhibit-cache nil)

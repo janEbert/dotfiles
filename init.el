@@ -2728,20 +2728,25 @@ Advice around ORIG-FUN, called with ARGS."
 	(defun find-project-pylsp-bin (is-interactive)
 	  "Find a project-local Python binary for the current file."
 	  (let* ((file buffer-file-name)
-			 (project-dir (expand-file-name (project-root (project-current))))
-			 (venv-dir (seq-some (lambda (dir)
-								   (let ((file (locate-dominating-file
-												(file-name-directory file)
-												dir)))
-									 (and file (expand-file-name dir file))))
-								 (list "venv" "env")))
-			 (in-project (string=
-						  (substring-no-properties venv-dir
-												   nil
-												   (min
-													(length venv-dir)
-													(length project-dir)))
-						  project-dir)))
+			 (curr-project (project-current))
+			 (project-dir (and curr-project
+							   (expand-file-name (project-root curr-project))))
+			 (venv-dir (and
+						project-dir
+						(seq-some (lambda (dir)
+									(let ((file (locate-dominating-file
+												 (file-name-directory file)
+												 dir)))
+									  (and file (expand-file-name dir file))))
+								  (list "venv" "env"))))
+			 (in-project (and project-dir
+							  (string=
+							   (substring-no-properties venv-dir
+														nil
+														(min
+														 (length venv-dir)
+														 (length project-dir)))
+							   project-dir))))
 
 		(let ((pylsp-bin
 			   (when in-project

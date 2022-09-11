@@ -2124,7 +2124,9 @@ The choice depends on the whether `evil-repeat-pop-next' makes sense to call."
 	(global-set-key (kbd "<f2> i")	'counsel-info-lookup-symbol)
 	(global-set-key (kbd "<f2> u")	'counsel-unicode-char)
 
+	;; (C-c j)
 	(define-key mode-specific-map (kbd "j") 'counsel-semantic-or-imenu)
+	;; (C-c m o)
 	(define-key my-music-map	  (kbd "o") 'counsel-rhythmbox))
   )
 
@@ -2953,6 +2955,13 @@ See `fill-region' for the arguments FROM, TO, JUSTIFY, NOSQUEEZE, and TO-EOP."
 					   (if current-prefix-arg 'full))))
   (let ((fill-column most-positive-fixnum))
 	(fill-region from to justify nosqueeze to-eop)))
+
+(defun semantic-or-imenu ()
+  "Jump to a Semantic symbol when available, otherwise execute `imenu'."
+  (interactive)
+  (if (semantic-active-p)
+	  (call-interactively 'semantic-complete-jump-local)
+	(call-interactively 'imenu)))
 
 ;;; WAV
 
@@ -4158,10 +4167,15 @@ absolute line numbers."
 (define-key my-window-map (kbd "q") 'quit-other-window)
 (define-key my-window-map (kbd "R") 'redraw-display)
 
+;; Find library
+(unless (and (functionp 'counsel-find-library) ivy-mode)
+  (global-set-key (kbd "<f1> l") 'find-library))
+
 ;; imenu and ibuffer keybindings
+;; semantic/imenu (C-c j)
 (unless (and (functionp 'counsel-semantic-or-imenu) ivy-mode)
-  (define-key mode-specific-map (kbd "j") 'imenu))
-;; ibuffer is better standalone
+  (define-key mode-specific-map (kbd "j") 'semantic-or-imenu))
+;; ibuffer is better standalone (C-c b)
 (define-key mode-specific-map (kbd "b") 'ibuffer)
 
 ;; Remap `transpose-sexps' to M-S-t to avoid the Terminal shortcut.

@@ -634,9 +634,23 @@ PROGRAM is the terminal program to start."
 			  'dired-browse-externally)))
 
 ;;; Icomplete
-(icomplete-mode 1)
+(defun fido-mode-setup--not-only-flex (was-setup)
+  "Allow other completion styles than flex in `fido-mode'.
+Only matters if `fido-mode' WAS-SETUP."
+  (when was-setup
+	(setq-local completion-styles (list 'substring 'flex))))
+(advice-add 'icomplete--fido-mode-setup
+			:filter-return #'fido-mode-setup--not-only-flex)
+
+(setq icomplete-in-buffer nil)
+;; (icomplete-mode 1)
+;; (icomplete-vertical-mode 1)
 ;; (fido-mode 1)
-(icomplete-vertical-mode 1)
+(fido-vertical-mode 1)
+
+;; TODO these completions do not work with icomplete
+;; semantic
+;; dash-doc
 
 ;; (add-hook 'icomplete-minibuffer-setup-hook
 ;; 		  (lambda ()
@@ -645,7 +659,6 @@ PROGRAM is the terminal program to start."
 ;; 			  (setq icomplete-separator "\n")
 ;; 			  (setq truncate-lines t)
 ;; 			  (enlarge-window (1- icomplete-prospects-height)))))
-;; (setq icomplete-in-buffer t)
 ;; (setq icomplete-show-matches-on-no-input nil)
 (setq icomplete-scroll t)
 (setq icomplete-hide-common-prefix t)

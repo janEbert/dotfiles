@@ -1462,9 +1462,19 @@ which activates the dark theme variant."
   (font-lock-flush))
 
 ;;; Ripgrep
-(if (executable-find "rg")
-	(setq grep-command
-		  "rg --color always -nH --null --no-heading --smart-case -e "))
+(when (executable-find "rg")
+  (grep-compute-defaults)
+  (let ((localhost-defaults (assq 'localhost grep-host-defaults-alist)))
+	(unless localhost-defaults
+	  (setq localhost-defaults (cons 'localhost
+									 (list (list 'grep-command nil))))
+	  (push localhost-defaults grep-host-defaults-alist))
+	(setq localhost-defaults
+		  (delq (assq 'grep-command localhost-defaults) localhost-defaults))
+	(push (list 'grep-command nil) (cdr localhost-defaults))
+	(setcdr (assq 'grep-command localhost-defaults)
+			(list
+			 "rg --color always -nH --null --no-heading --smart-case -e "))))
 
 ;;; HTML
 (setcdr (assoc 'html-mode auto-insert-alist)

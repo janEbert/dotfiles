@@ -1159,6 +1159,39 @@ Afterwards, remove it from `after-make-frame-functions'."
 	(add-hook 'after-make-frame-functions
 			  'open-monthly-agenda-deselected-and-remove))
 
+  ;; Improve code execution speed during export.
+  (defvar my-org-tmp-vars ())
+  (add-hook 'org-export-before-processing-hook
+			(lambda (_)
+			  (unless my-org-tmp-vars
+				(setq my-org-tmp-vars
+					  (mapcar (lambda (v) (cons v (symbol-value v)))
+							  '(file-name-handler-alist
+								auto-mode-alist
+								inhibit-redisplay)))
+				(mapc (lambda (vv) (set (car vv) nil))
+					  my-org-tmp-vars))))
+  (add-hook 'org-export-before-parsing-hook
+			(lambda (_)
+			  (when my-org-tmp-vars
+				(mapc (lambda (vv) (set (car vv) (cdr vv)))
+					  my-org-tmp-vars)
+				(setq my-org-tmp-vars ()))))
+
+  (defun org-babel-python--shift-right--no-mode (body &optional count)
+	(with-temp-buffer
+	  (insert body)
+	  (goto-char (point-min))
+	  (while (not (eobp))
+		(unless (python-syntax-context 'string)
+		  (python-indent-shift-right (line-beginning-position)
+									 (line-end-position)
+									 count))
+		(forward-line 1))
+	  (buffer-string)))
+  (advice-add 'org-babel-python--shift-right :override
+			  #'org-babel-python--shift-right--no-mode)
+
   (add-hook 'org-babel-after-execute-hook 'org-display-inline-images)
   (add-hook 'org-mode-hook 'org-display-inline-images)
   (add-hook 'message-mode-hook 'turn-on-orgtbl)

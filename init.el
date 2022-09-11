@@ -1511,6 +1511,9 @@ which activates the dark theme variant."
 (add-hook 'picture-mode-hook
 		  (lambda () (setq-local indent-tabs-mode nil)))
 
+;; Use C++ mode for CUDA
+(add-to-list 'auto-mode-alist '("\\.cu\\'" . c++-mode))
+
 
 ;;;; Package config
 

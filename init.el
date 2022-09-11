@@ -1083,6 +1083,12 @@ with second argument \"/docker:\"."
 (setq org-pretty-entities t)
 ;; No subscript/superscript formatting
 (setq org-pretty-entities-include-sub-superscripts nil)
+(setq
+ org-entities-user
+ '(
+   ("epsilon" "\\epsilon" t "&varepsilon;" "varepsilon" "varepsilon" "ϵ")
+   ("varepsilon" "\\varepsilon" t "&epsilon;" "epsilon" "epsilon" "ε")
+   ))
 
 ;; Export settings
 

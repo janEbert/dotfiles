@@ -88,7 +88,7 @@ include "%L"
 <Multi_key> <n> <i> : "∍"
 
 <Multi_key> <E> <L> : "∉"
-<Multi_key> <L> <E> : "∌"
+<Multi_key> <N> <E> : "∌"
 
 <Multi_key> <u> <v> : "⊻"
 

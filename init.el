@@ -357,6 +357,10 @@ This way, the newly added directories have priority over old ones."
 ;; Extended custom commands (C-c x)
 (define-key mode-specific-map (kbd "x") 'my-extended-map)
 
+(define-prefix-command 'my-other-map)
+;; Other extended custom commands (C-c x O)
+(define-key my-extended-map (kbd "O") 'my-other-map)
+
 (define-prefix-command 'my-toggle-map)
 ;; Custom commands for toggling (C-c t)
 (define-key mode-specific-map (kbd "t") 'my-toggle-map)
@@ -2172,9 +2176,8 @@ The choice depends on the whether `evil-repeat-pop-next' makes sense to call."
 
   ;; Search docs (C-c d)
   (define-key mode-specific-map (kbd "d") 'counsel-dash-at-point)
-  ;; FIXME needs different binding
-  ;; Activate docset (C-c x D)
-  (define-key my-extended-map (kbd "D") 'dash-docs-activate-docset))
+  ;; Activate docset (C-c x O D)
+  (define-key my-other-map (kbd "D") 'dash-docs-activate-docset))
 
 ;;; Projectile
 (when (functionp 'projectile-mode)
@@ -4196,19 +4199,19 @@ absolute line numbers."
 ;; Find file with find (C-c x f)
 (define-key my-extended-map (kbd "f") 'find-name-dired)
 
-;; Insert the abbreviated `buffer-file-name' into the minibuffer (C-c x F)
-(define-key my-extended-map (kbd "F")
+;; Insert the abbreviated `buffer-file-name' into the minibuffer (C-c x O f)
+(define-key my-other-map (kbd "f")
   'minibuffer-insert-abbreviated-buffer-file-name)
 
-;; Insert `buffer-file-name' into the minibuffer (C-c x P)
-(define-key my-extended-map (kbd "P") 'minibuffer-insert-buffer-file-name)
+;; Insert `buffer-file-name' into the minibuffer (C-c x O F)
+(define-key my-other-map (kbd "F") 'minibuffer-insert-buffer-file-name)
 
-;; Insert the abbreviated `default-directory' into the minibuffer (C-c x D)
-(define-key my-extended-map (kbd "D")
+;; Insert the abbreviated `default-directory' into the minibuffer (C-c x O d)
+(define-key my-other-map (kbd "d")
   'minibuffer-insert-abbreviated-default-directory)
 
-;; Insert `default-directory' into the minibuffer (C-c x L)
-(define-key my-extended-map (kbd "L") 'minibuffer-insert-default-directory)
+;; Insert `default-directory' into the minibuffer (C-c x O D)
+(define-key my-other-map (kbd "D") 'minibuffer-insert-default-directory)
 
 ;; Describe char (C-c x c)
 (define-key my-extended-map (kbd "c") 'describe-char)

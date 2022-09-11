@@ -1,1 +1,4 @@
 .dir-locals.el
+.ipynb_checkpoints/
+*.pyc
+.DS_Store

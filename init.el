@@ -309,7 +309,7 @@ This way, the newly added directories have priority over old ones."
 			  (append
 			   (let ((load-path (copy-sequence load-path)))
 				 (append
-				  (copy-sequence (normal-top-level-add-to-load-path '(".")))
+				  (copy-sequence (normal-top-level-add-to-load-path (list ".")))
 				  (normal-top-level-add-subdirs-to-load-path)))
 			   load-path))
 	  (warn "%s does not exist; `load-path' was not modified" dir))))

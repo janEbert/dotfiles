@@ -1553,10 +1553,10 @@ which activates the dark theme variant."
 (autoload 'constants-replace "constants" "Replace name of a constant." t)
 (define-prefix-command 'my-constants-map)
 ;; Commands for constants (C-c x C)
-(define-key 'my-extended-map "C" 'my-constants-map)
-(define-key 'my-constants-map "i" 'constants-insert)
-(define-key 'my-constants-map "g" 'constants-get)
-(define-key 'my-constants-map "r" 'constants-replace)
+(define-key my-extended-map (kbd "C") 'my-constants-map)
+(define-key my-constants-map (kbd "i") 'constants-insert)
+(define-key my-constants-map (kbd "g") 'constants-get)
+(define-key my-constants-map (kbd "r") 'constants-replace)
 
 ;;; AUCTeX
 (setq TeX-auto-save t)
@@ -1766,7 +1766,7 @@ The playlist must be in `my-music-dir'."
 
 ;;; dired-git-info
 (with-eval-after-load 'dired
-  (define-key dired-mode-map ")" 'dired-git-info-mode)
+  (define-key dired-mode-map (kbd ")") 'dired-git-info-mode)
   (setq dgi-commit-message-format "%cr\t%s"))
 
 ;;; Undohist
@@ -3679,9 +3679,9 @@ If it does not have a message, return nil."
 
 (defvar alarm-list-mode-map
   (let ((map (make-sparse-keymap)))
-	(define-key map "c" 'alarm-list-cancel)
-	(define-key map "n" 'next-line)
-	(define-key map "p" 'previous-line)
+	(define-key map (kbd "c") 'alarm-list-cancel)
+	(define-key map (kbd "n") 'next-line)
+	(define-key map (kbd "p") 'previous-line)
 	(easy-menu-define nil map ""
 	  '("Alarms"
 		["Cancel" alarm-list-cancel t]))

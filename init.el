@@ -248,6 +248,8 @@ hooks for `my-autostart-lsp-package'.")
  '(recentf-max-saved-items 200)
  '(recentf-mode t)
  '(register-separator 43)
+ '(repeat-exit-timeout 5.0)
+ '(repeat-mode t)
  '(require-final-newline t)
  '(rmail-movemail-flags '("--tls"))
  '(save-interprogram-paste-before-kill t)
@@ -670,6 +672,18 @@ Only matters if `fido-mode' WAS-SETUP."
 ;; (ido-mode 1)
 ;; (add-hook 'ido-make-buffer-list-hook 'ido-summary-buffers-to-end)
 ;; TODO ido-everywhere seems to be removed
+
+;;; repeat-mode
+(defvar forward-line-repeat-map
+  (let ((map (make-sparse-keymap)))
+	(define-key map (kbd "f") 'forward-line)
+	(define-key map (kbd "F") (lambda ()
+								(interactive)
+								(setq repeat-map 'forward-line-repeat-map)
+								(forward-line -1)))
+	map)
+  "Keymap to repeat `forward-line' key sequences.  Used in `repeat-mode'.")
+(put 'forward-line 'repeat-map 'forward-line-repeat-map)
 
 ;;; ERC
 (with-eval-after-load "erc"
@@ -1150,6 +1164,15 @@ Afterwards, remove it from `after-make-frame-functions'."
 
   ;; Fix C-c C-TAB
   (define-key org-mode-map (kbd "C-c C-<tab>") 'org-force-cycle-archived)
+
+  ;; Repeats
+  (defvar org-cycle-list-bullet-repeat-map
+	(let ((map (make-sparse-keymap)))
+	  (define-key map (kbd "-") 'org-cycle-list-bullet)
+	  map)
+	(concat "Keymap to repeat Org list bullet cycle key sequences.  "
+			"Used in `repeat-mode'."))
+  (put 'org-cycle-list-bullet 'repeat-map 'org-cycle-list-bullet-repeat-map)
 
   ;; Calendar minibuffer
   ;; Shift
@@ -1739,6 +1762,35 @@ The playlist must be in `my-music-dir'."
 	  (define-key my-music-map (kbd "U") 'emms-play-url)
 	  (define-key my-music-map (kbd "+") 'emms-volume-raise)
 	  (define-key my-music-map (kbd "-") 'emms-volume-lower)
+
+	  ;; Repeats
+	  (defvar emms-track-change-repeat-map
+		(let ((map (make-sparse-keymap)))
+		  (define-key map (kbd "SPC") 'emms-pause)
+		  (define-key map (kbd "p") 'emms-previous)
+		  (define-key map (kbd "n") 'emms-next)
+		  (define-key map (kbd "r") 'emms-random)
+		  (define-key map (kbd "b") 'emms-seek-backward)
+		  (define-key map (kbd "f") 'emms-seek-forward)
+		  map)
+		(concat "Keymap to repeat EMMS track change key sequences.  "
+				"Used in `repeat-mode'."))
+	  (put 'emms-pause 'repeat-map 'emms-track-change-repeat-map)
+	  (put 'emms-previous 'repeat-map 'emms-track-change-repeat-map)
+	  (put 'emms-next 'repeat-map 'emms-track-change-repeat-map)
+	  (put 'emms-random 'repeat-map 'emms-track-change-repeat-map)
+	  (put 'emms-seek-backward 'repeat-map 'emms-track-change-repeat-map)
+	  (put 'emms-seek-forward 'repeat-map 'emms-track-change-repeat-map)
+
+	  (defvar emms-volume-change-repeat-map
+		(let ((map (make-sparse-keymap)))
+		  (define-key map (kbd "+") 'emms-volume-raise)
+		  (define-key map (kbd "-") 'emms-volume-lower)
+		  map)
+		(concat "Keymap to repeat EMMS volume change key sequences.  "
+				"Used in `repeat-mode'."))
+	  (put 'emms-volume-raise 'repeat-map 'emms-volume-change-repeat-map)
+	  (put 'emms-volume-lower 'repeat-map 'emms-volume-change-repeat-map)
 
 	  ;; Add some more radio stations
 	  (defconst my-emms-streams

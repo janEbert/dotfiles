@@ -390,6 +390,7 @@ This way, the newly added directories have priority over old ones."
 ;; Use more flexible completion styles
 (setq completion-styles (append completion-styles
 								'(substring initials)))
+(setq completion-ignore-case t)
 
 ;; Do complete .bin files
 (setq completion-ignored-extensions

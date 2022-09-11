@@ -4019,7 +4019,7 @@ absolute line numbers."
 
 ;; Swap literal and regex isearch
 ;; (we then don't need/want (search-default-mode t))
-(unless (functionp 'swiper)
+(unless (and (functionp 'swiper) ivy-mode)
   (global-set-key (kbd "C-s") 'isearch-forward-regexp))
 (global-set-key (kbd "C-r")   'isearch-backward-regexp)
 (global-set-key (kbd "C-M-s") 'isearch-forward)
@@ -4106,7 +4106,7 @@ absolute line numbers."
 (define-key my-window-map (kbd "R") 'redraw-display)
 
 ;; imenu and ibuffer keybindings
-(unless (functionp 'counsel-semantic-or-imenu)
+(unless (and (functionp 'counsel-semantic-or-imenu) ivy-mode)
   (define-key mode-specific-map (kbd "j") 'imenu))
 ;; ibuffer is better standalone
 (define-key mode-specific-map (kbd "b") 'ibuffer)

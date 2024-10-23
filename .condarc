@@ -1,5 +1,4 @@
 channel_priority: strict
 channels:
-  - pytorch
   - conda-forge
 auto_activate_base: false

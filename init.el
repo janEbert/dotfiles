@@ -1258,6 +1258,8 @@ Afterwards, remove it from `after-make-frame-functions'."
 			   '("AUTO" "babel" t ("pdflatex")))
   (add-to-list 'org-latex-packages-alist
 			   '("AUTO" "polyglossia" t ("xelatex" "lualatex")))
+  (add-to-list 'org-latex-packages-alist
+			   '("" "booktabs" t ()))
 
   ;; TODO automatically select dictionary depending on org language setting
   ;; TODO automatically translate beamer toc frame/slide

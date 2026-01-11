@@ -2447,13 +2447,14 @@ If ARG is nil and we are not in a TRAMP buffer, reuse an existing vterm."
 		"Prompt for password and send to PROCESS without echoing.
 Checks if INPUT contains a password prompt as defined by
 `comint-password-prompt-regexp'."
-		(when (let ((case-fold-search t))
-				(string-match comint-password-prompt-regexp input))
-		  (let* ((prompt (match-string 0 input))
-				 (password (read-passwd prompt)))
-			(vterm-send-string password)
-			(clear-string password)
-			(vterm-send-return))))
+		(with-current-buffer (process-buffer process)
+		  (when (let ((case-fold-search t))
+				  (string-match comint-password-prompt-regexp input))
+			(let* ((prompt (match-string 0 input))
+				   (password (read-passwd prompt)))
+			  (vterm-send-string password)
+			  (clear-string password)
+			  (vterm-send-return)))))
 
 	  (advice-add 'vterm--filter :after
 				  #'vterm--watch-for-password-prompt))

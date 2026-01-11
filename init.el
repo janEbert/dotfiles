@@ -2699,6 +2699,8 @@ Advice around ORIG-FUN, called with ARGS."
 (when (and (or (eq my-lsp-package 'eglot) (eq my-lsp-package 'all))
 		   (>= emacs-major-version 26)
 		   (require 'eglot nil t))
+  (setq eglot-report-progress nil)
+
   ;; Keybindings like for lsp-mode
   (define-prefix-command 'my-eglot-map)
 

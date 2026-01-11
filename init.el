@@ -3019,6 +3019,11 @@ See `fill-region' for the arguments FROM, TO, JUSTIFY, NOSQUEEZE, and TO-EOP."
   (let ((fill-column most-positive-fixnum))
 	(fill-region from to justify nosqueeze to-eop)))
 
+(defun yank-without-properties (&optional arg)
+  (interactive "*P")
+  (let ((yank-excluded-properties t))
+	(yank arg)))
+
 (defun semantic-or-imenu ()
   "Jump to a Semantic symbol when available, otherwise execute `imenu'."
   (interactive)

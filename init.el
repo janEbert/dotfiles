@@ -2004,7 +2004,7 @@ The playlist must be in `my-music-dir'."
 	  (define-key evil-insert-state-map   (kbd "C-l") 'evil-normal-state)
 	  (define-key evil-operator-state-map (kbd "C-l") 'evil-normal-state)
 	  (define-key evil-replace-state-map  (kbd "C-l") 'evil-normal-state)
-	  (define-key evil-visual-state-map   (kbd "C-l") 'evil-normal-state)
+	  (define-key evil-visual-state-map   (kbd "C-l") 'evil-exit-visual-state)
 	  ;; Here we do not necessarily go back to normal state but that's fine.
 	  (define-key evil-ex-completion-map  (kbd "C-l") 'abort-recursive-edit)
 	  (when (eq evil-disable-insert-state-bindings t)

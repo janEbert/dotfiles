@@ -1194,6 +1194,13 @@ Afterwards, remove it from `after-make-frame-functions'."
 
   (add-hook 'org-babel-after-execute-hook 'org-display-inline-images)
   (add-hook 'org-mode-hook 'org-display-inline-images)
+
+  (defun org-highlight-hrules ()
+	"Highlight horizontal rules as defined by Org."
+	(font-lock-add-keywords nil
+							'(("^-\\{5,\\}$" 0 font-lock-builtin-face t))))
+
+  (add-hook 'org-mode-hook 'org-highlight-hrules)
   (add-hook 'message-mode-hook 'turn-on-orgtbl)
   ;; (add-hook 'mail-mode-hook 'turn-on-orgtbl)
 

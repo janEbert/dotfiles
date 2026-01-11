@@ -1985,6 +1985,9 @@ The playlist must be in `my-music-dir'."
 	  ;; Leader key on SPC
 	  (evil-set-leader 'normal (kbd "SPC"))
 
+	  ;; Use ESC as META in normal state.
+	  (define-key evil-normal-state-map (kbd "ESC") nil)
+
 	  ;; Use previous substitute flags by default when repeating using &
 	  (define-key evil-normal-state-map (kbd "&")
 		'evil-ex-repeat-substitute-with-flags)

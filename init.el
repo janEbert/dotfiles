@@ -1723,6 +1723,9 @@ which activates the dark theme variant."
   (define-key my-magit-map (kbd "f") 'magit-file-dispatch)
   (define-key my-magit-map (kbd "M-G") 'magit-file-dispatch)
 
+  ;; Do not activate `magit-blob-mode' when visiting index files.
+  (remove-hook 'magit-find-index-hook #'magit-blob-mode)
+
   (setq git-commit-summary-max-length 50)
   ;; Setup fill column
   (add-hook 'git-commit-setup-hook

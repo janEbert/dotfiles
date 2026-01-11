@@ -2838,9 +2838,9 @@ Advice around ORIG-FUN, called with ARGS."
   ;; Example .dir-locals.el for per-project config (place in root folder)
   ;; ((python-mode
   ;; 	. ((eglot-workspace-configuration . (
-  ;; 										 (:pylsp . (:plugins (:pycodestyle (:maxLineLength 100))))
-  ;; 										 (:pylsp . (:plugins (:pydocstyle (:enabled t))))
-  ;; 										 (:pylsp . (:plugins (:pydocstyle (:maxLineLength 100))))
+  ;; 										 (:pylsp . (plugins (pycodestyle (maxLineLength 100))))
+  ;; 										 (:pylsp . (plugins (pydocstyle (enabled t))))
+  ;; 										 (:pylsp . (plugins (pydocstyle (maxLineLength 100))))
   ;; 										 ))
   ;; 	   (whitespace-line-column . 100))))
 

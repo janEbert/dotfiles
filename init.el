@@ -2541,6 +2541,7 @@ Checks if INPUT contains a password prompt as defined by
 		  (lambda ()
 			(setq-local whitespace-line-column 79)
 			(setq-local fill-column 72)
+			(setq-local comment-fill-column 79)
 			(kill-local-variable 'tab-width)
 			(kill-local-variable 'python-indent-offset)))
 

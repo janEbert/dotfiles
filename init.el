@@ -1865,6 +1865,84 @@ The playlist must be in `my-music-dir'."
 				   (metadata
 					"TechnoFM: Radio-1 192K MP3"
 					"http://stream.techno.fm/radio1-192k.mp3"
+					1 url))
+		  (*track* (type . url)
+				   (name . "https://somafm.com/defcon256.pls")
+				   (metadata
+					"SomaFM: DEF CON Radio 256k MP3"
+					"https://somafm.com/defcon256.pls"
+					1 url))
+		  (*track* (type . url)
+				   (name . "https://somafm.com/defcon.pls")
+				   (metadata
+					"SomaFM: DEF CON Radio 128k MP3"
+					"https://somafm.com/defcon.pls"
+					1 url))
+		  (*track* (type . url)
+				   (name . "https://somafm.com/groovesalad256.pls")
+				   (metadata
+					"SomaFM: Groove Salad 256k MP3"
+					"https://somafm.com/groovesalad256.pls"
+					1 url))
+		  (*track* (type . url)
+				   (name . "https://somafm.com/groovesalad.pls")
+				   (metadata
+					"SomaFM: Groove Salad 128k MP3"
+					"https://somafm.com/groovesalad.pls"
+					1 url))
+		  (*track* (type . url)
+				   (name . "https://somafm.com/gsclassic256.pls")
+				   (metadata
+					"SomaFM: Groove Salad Classic 256k MP3"
+					"https://somafm.com/gsclassic256.pls"
+					1 url))
+		  (*track* (type . url)
+				   (name . "https://somafm.com/gsclassic.pls")
+				   (metadata
+					"SomaFM: Groove Salad Classic 128k MP3"
+					"https://somafm.com/gsclassic.pls"
+					1 url))
+		  (*track* (type . url)
+				   (name . "https://ah.fm/live.m3u")
+				   (metadata
+					"AH.FM"
+					"https://ah.fm/live.m3u"
+					1 url))
+		  ;; (*track* (type . url)
+		  ;; 		   (name . "http://listen.di.fm/public3/techno.pls")
+		  ;; 		   (metadata
+		  ;; 			"DI.FM Techno"
+		  ;; 			"http://listen.di.fm/public3/techno.pls"
+		  ;; 			1 url))
+		  ;; (*track* (type . url)
+		  ;; 		   (name . "http://listen.di.fm/public3/classictechno.pls")
+		  ;; 		   (metadata
+		  ;; 			"DI.FM Oldschool Techno & Trance"
+		  ;; 			"http://listen.di.fm/public3/classictechno.pls"
+		  ;; 			1 url))
+		  ;; (*track* (type . url)
+		  ;; 		   (name . "http://listen.di.fm/public3/psybient.pls")
+		  ;; 		   (metadata
+		  ;; 			"DI.FM Psybient"
+		  ;; 			"http://listen.di.fm/public3/psybient.pls"
+		  ;; 			1 url))
+		  ;; (*track* (type . url)
+		  ;; 		   (name . "http://listen.di.fm/public3/psychill.pls")
+		  ;; 		   (metadata
+		  ;; 			"DI.FM Psychill"
+		  ;; 			"http://listen.di.fm/public3/psychill.pls"
+		  ;; 			1 url))
+		  ;; (*track* (type . url)
+		  ;; 		   (name . "http://listen.di.fm/public3/goapsy.pls")
+		  ;; 		   (metadata
+		  ;; 			"DI.FM Goa-Psy Trance"
+		  ;; 			"http://listen.di.fm/public3/goapsy.pls"
+		  ;; 			1 url))
+		  (*track* (type . url)
+				   (name . "https://stream-relay-geo.ntslive.net/stream")
+				   (metadata
+					"NTS Live Stream 1"
+					"https://stream-relay-geo.ntslive.net/stream"
 					1 url))))
 
 	  (setq emms-streams-built-in-list

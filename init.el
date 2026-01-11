@@ -4096,6 +4096,13 @@ absolute line numbers."
   (define-key my-toggle-map (kbd "p") 'toggle-presentation-mode))
 
 
+(when (executable-find "pandoc")
+  (defun convert-html-table-to-org ()
+	(interactive)
+	(shell-command-on-region (region-beginning) (region-end)
+							 "pandoc --from html --to org -o -"
+							 t t nil nil (region-noncontiguous-p))))
+
 (defun my-julia-repl ()
   "Start a Julia REPL in a terminal emulator in the selected window."
   (interactive)

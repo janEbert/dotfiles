@@ -3026,6 +3026,27 @@ See `fill-region' for the arguments FROM, TO, JUSTIFY, NOSQUEEZE, and TO-EOP."
 	  (call-interactively 'semantic-complete-jump-local)
 	(call-interactively 'imenu)))
 
+(defun my-time-zone ()
+  "Return the current local time zone in various formats.
+The formats are: UTC with offset in hours, the time zone's specific
+name, and UTC offset in seconds. The local time that was queried is also
+included as an ISO string."
+  (interactive)
+  (let* ((now-string (format-time-string "%FT%T%z"))
+		 (now-time (encode-time (parse-time-string
+								 (format-time-string "%FT%T%z"))))
+		 (time-zone-info (current-time-zone now-time))
+		 (utc-offset-s (car time-zone-info))
+		 (utc-offset-h (/ utc-offset-s 3600))
+		 (utc-offset-h-zero-padded
+		  (string-pad (number-to-string utc-offset-h) 2 ?0 t))
+		 (my-time-zone-info (list (concat "UTC+" utc-offset-h-zero-padded)
+								  (cadr time-zone-info)
+								  utc-offset-s
+								  now-string)))
+	(message "%S" my-time-zone-info)
+	my-time-zone-info))
+
 ;;; WAV
 
 (require 'bindat)

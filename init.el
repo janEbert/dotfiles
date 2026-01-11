@@ -1955,6 +1955,7 @@ The playlist must be in `my-music-dir'."
 	  (evil-set-initial-state 'Buffer-menu-mode 'emacs)
 	  (evil-set-initial-state 'Man-mode      'emacs)
 	  (evil-set-initial-state 'comint-mode   'emacs)
+	  (evil-set-initial-state 'term-mode     'emacs)
 	  (evil-set-initial-state 'shell-mode    'emacs)
 	  (evil-set-initial-state 'term-mode     'emacs)
 	  (evil-set-initial-state 'message-mode  'emacs)

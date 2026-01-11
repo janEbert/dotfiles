@@ -2773,6 +2773,7 @@ Advice around ORIG-FUN, called with ARGS."
 									  (and file (expand-file-name dir file))))
 								  (list "venv" "env"))))
 			 (in-project (and project-dir
+							  venv-dir
 							  (string=
 							   (substring-no-properties venv-dir
 														nil
@@ -2784,7 +2785,7 @@ Advice around ORIG-FUN, called with ARGS."
 		(let ((pylsp-bin
 			   (when in-project
 				 (expand-file-name "pylsp" (expand-file-name "bin" venv-dir)))))
-		  (list (if (and pylsp-bin (file-readable-p pylsp-bin))
+		  (list (if (and pylsp-bin (file-executable-p pylsp-bin))
 					pylsp-bin
 				  "pylsp")))))
 	(setcdr (assoc (list 'python-mode 'python-ts-mode) eglot-server-programs)

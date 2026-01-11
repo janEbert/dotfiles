@@ -2282,6 +2282,9 @@ The choice depends on the whether `evil-repeat-pop-next' makes sense to call."
 	;; Add some color filters
 	;; TODO add selector menu
 
+	;; Do not just invert, use colors.
+	(setq pdf-view-midnight-invert nil)
+
 	;; Dark filters
 	;; (setq pdf-view-midnight-colors '("white" . "black"))
 	;; solarized-dark (base0 and base03)

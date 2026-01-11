@@ -4298,8 +4298,11 @@ absolute line numbers."
 ;; View lossage (C-c x K)
 (define-key my-extended-map (kbd "K") 'view-lossage)
 
-;; Open Proced (C-c x p)
-(define-key my-extended-map (kbd "p") 'proced)
+;; Kill process (C-c x p)
+(define-key my-extended-map (kbd "p") 'kill-process)
+
+;; Open Proced (C-c x P)
+(define-key my-extended-map (kbd "P") 'proced)
 
 ;; Enter shell (C-c x S)
 (define-key my-extended-map (kbd "S") 'shell)

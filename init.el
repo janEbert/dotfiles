@@ -1608,7 +1608,7 @@ which activates the dark theme variant."
 		  (lambda () (setq-local indent-tabs-mode nil)))
 
 ;; Use C++ mode for CUDA
-(add-to-list 'auto-mode-alist '("\\.cu\\'" . c++-mode))
+(add-to-list 'auto-mode-alist '("\\.cuh?\\'" . c++-mode))
 
 
 ;;;; Package config

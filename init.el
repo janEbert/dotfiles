@@ -1234,6 +1234,16 @@ Afterwards, remove it from `after-make-frame-functions'."
 			"Used in `repeat-mode'."))
   (put 'org-cycle-list-bullet 'repeat-map 'org-cycle-list-bullet-repeat-map)
 
+  (defvar org-move-block-repeat-map
+	(let ((map (make-sparse-keymap)))
+	  (define-key map (kbd "M-b") 'org-previous-block)
+	  (define-key map (kbd "M-f") 'org-next-block)
+	  map)
+	(concat "Keymap to repeat Org block movement key sequences.  "
+			"Used in `repeat-mode'."))
+  (put 'org-previous-block 'repeat-map 'org-move-block-repeat-map)
+  (put 'org-next-block 'repeat-map 'org-move-block-repeat-map)
+
   ;; Calendar minibuffer
   ;; Shift
   (define-key org-read-date-minibuffer-local-map (kbd "M-P")

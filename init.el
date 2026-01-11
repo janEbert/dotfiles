@@ -3732,7 +3732,12 @@ If it does not have a message, return nil."
 			   (print-circle t))
 		   (format "(setq my-timer-alist %s%S)"
 				   (if my-timer-alist "'" "")
-				   my-timer-alist))))
+				   my-timer-alist)))
+		(let* ((my-alarms-backup-paths (find-backup-file-name my-alarms-path))
+			   (my-alarms-backup-path (car my-alarms-backup-paths))
+			   (my-alarms-backup-delete-paths (cdr my-alarms-backup-paths)))
+		  (copy-file my-alarms-path my-alarms-backup-path t t)
+		  (mapc (lambda (path) (delete-file path)) my-alarms-backup-delete-paths)))
 	(message (concat "cannot write alarms to " my-alarms-path))))
 
 (defun load-alarms ()

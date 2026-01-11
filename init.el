@@ -4176,6 +4176,9 @@ absolute line numbers."
 (define-key indent-rigidly-map (kbd "M-b") 'indent-rigidly-left-to-tab-stop)
 (define-key indent-rigidly-map (kbd "M-f") 'indent-rigidly-right-to-tab-stop)
 
+;; Cycle back in `kill-ring' with `yank-pop' (M-Y)
+(global-set-key (kbd "M-Y") (lambda () (interactive) (yank-pop -1)))
+
 ;; Open documentation (M-H)
 (global-set-key (kbd "M-H") 'eldoc)
 

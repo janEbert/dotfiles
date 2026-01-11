@@ -1658,7 +1658,7 @@ which activates the dark theme variant."
 (add-hook 'LaTeX-mode-hook (lambda () (electric-pair-local-mode 0)))
 (setq reftex-plug-into-AUCTeX t)
 ;; Find/visit `TeX-master' (C-c y v)
-(with-eval-after-load 'auctex
+(with-eval-after-load 'tex
   (define-key TeX-mode-map (kbd "C-c y v")
 	(lambda () (interactive) (find-file (concat (TeX-master-file) ".tex")))))
 

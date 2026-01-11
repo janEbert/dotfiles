@@ -1322,9 +1322,10 @@ and INFO the export communication channel."
 	;; FIXME Should only be treated this way if not at the start of the _file_.
 	;; We currently ignore the first char of the given text for simplicity.
 	(concat (substring text 0 1)
-			(my-org-plain-text-filter "﻿" '((latex . "\\nobreak{}")
-										   (html . "&#65279;"))
-									  text backend info t t nil 1)))
+			(or (my-org-plain-text-filter "﻿" '((latex . "\\nobreak{}")
+											   (html . "&#65279;"))
+										  text backend info t t nil 1)
+				(substring text 1))))
 
   (defun my-org-plain-text-filter-word-joiner (text backend info)
 	"Ensure word joiners (\"⁠\") are properly handled in Org export.
@@ -1338,8 +1339,24 @@ and INFO the export communication channel."
 	"Ensure narrow no-break spaces (\" \") are properly handled in Org export.
 TEXT is the text to be exported, BACKEND is the export backend
 and INFO the export communication channel."
-	(my-org-plain-text-filter " " '((latex . "\\,")
+	(my-org-plain-text-filter " " '((latex . "\\,")  ;; or \thinspace
 									(html . "&#8239;"))
+							  text backend info t t))
+
+  (defun my-org-plain-text-filter-en-dash (text backend info)
+	"Ensure en dashes (\"–\") are properly handled in Org export.
+TEXT is the text to be exported, BACKEND is the export backend
+and INFO the export communication channel."
+	(my-org-plain-text-filter "–" '((latex . "--")
+									(html . "&ndash;"))
+							  text backend info t t))
+
+  (defun my-org-plain-text-filter-em-dash (text backend info)
+	"Ensure em dashes (\"—\") are properly handled in Org export.
+TEXT is the text to be exported, BACKEND is the export backend
+and INFO the export communication channel."
+	(my-org-plain-text-filter "—" '((latex . "---")
+									(html . "&mdash;"))
 							  text backend info t t))
 
   (defun my-org-plain-text-filter-cpp (text backend info)
@@ -1367,15 +1384,17 @@ and INFO the export communication channel."
 	"Ensure the abbreviation \"e.g.\" is properly exported.
 TEXT is the text to be exported, BACKEND is the export backend
 and INFO the export communication channel."
-	(my-org-plain-text-filter "\\<e\\.g\\.\\(:? \\|$\\)" '((latex . "e.g.\\ "))
-							  text backend info t t))
+	(my-org-plain-text-filter "\\<\\([eE]\\)\\.g\\.\\(:? \\|$\\)"
+							  '((latex . "\\1.g.\\\\ "))
+							  text backend info t))
 
   (defun my-org-plain-text-filter-ie (text backend info)
 	"Ensure the abbreviation \"i.e.\" is properly exported.
 TEXT is the text to be exported, BACKEND is the export backend
 and INFO the export communication channel."
-	(my-org-plain-text-filter "\\<i\\.e\\.\\(:? \\|$\\)" '((latex . "i.e.\\ "))
-							  text backend info t t))
+	(my-org-plain-text-filter "\\<\\([iI]\\)\\.e\\.\\(:? \\|$\\)"
+							  '((latex . "\\1.e.\\\\ "))
+							  text backend info t))
 
   (with-eval-after-load 'ox
 	;; Additional export backends
@@ -1385,10 +1404,17 @@ and INFO the export communication channel."
 		  (append org-export-filter-plain-text-functions
 				  (list #'my-org-plain-text-filter-no-break-space
 						#'my-org-plain-text-filter-zero-width-space
+						#'my-org-plain-text-filter-zero-width-no-break-space
 						#'my-org-plain-text-filter-word-joiner
 						#'my-org-plain-text-filter-thin-no-break-space
+						#'my-org-plain-text-filter-en-dash
+						#'my-org-plain-text-filter-em-dash
 						#'my-org-plain-text-filter-cpp
-						#'my-org-plain-text-filter-big-o))))
+						#'my-org-plain-text-filter-big-o
+						#'my-org-plain-text-filter-eg
+						#'my-org-plain-text-filter-ie
+						)))
+	)
 
 
   ;; TODO only load languages when they're in path; don't load shell on windows

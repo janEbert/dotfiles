@@ -1941,6 +1941,7 @@ The playlist must be in `my-music-dir'."
 	  ;; Emacs state by default (must be added to head of list)
 	  ;; (add-to-list 'evil-buffer-regexps '("." . emacs))
 	  (setq evil-default-state 'emacs)
+	  (setq evil-insert-state-modes ())
 	  ;; Except in these modes
 	  (evil-set-initial-state 'prog-mode 'normal)
 	  (evil-set-initial-state 'text-mode 'normal)

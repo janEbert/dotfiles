@@ -2570,7 +2570,7 @@ Checks if INPUT contains a password prompt as defined by
 (setq inferior-lisp-program "sbcl")
 
 ;;; Extempore
-(setq extempore-path "~/Downloads/extempore")
+(setq extempore-path "~/Downloads/extempore/")
 
 ;; Flymake-ShellCheck
 ;; (autoload 'flymake-shellcheck-load "flymake-shellcheck")

@@ -1797,7 +1797,7 @@ If there are no tracks, do not select anything."
 The playlist must be in `my-music-dir'."
 		(interactive)
 		(let ((playlist-file (expand-file-name "emms-music" my-music-dir)))
-		  (if (file-exists-p playlist-file)
+		  (if (file-readable-p playlist-file)
 			  (emms-play-playlist playlist-file)))
 		(emms-random)
 		(emms-stop)

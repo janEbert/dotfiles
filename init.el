@@ -4152,6 +4152,12 @@ absolute line numbers."
 (define-key my-extended-map (kbd "z") 'zap-to-char)
 (define-key my-extended-map (kbd "M-Z") 'zap-to-char)
 
+;; GNOME messes with the original shortcuts, so add replacements:
+;; ispell-word (C-c x $)
+(define-key my-extended-map (kbd "$") 'ispell-word)
+;; not-modified (C-c x ~)
+(define-key my-extended-map (kbd "~") 'not-modified)
+
 ;; Swap literal and regex isearch
 ;; (we then don't need/want (search-default-mode t))
 (unless (and (functionp 'swiper) ivy-mode)

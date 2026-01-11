@@ -1204,6 +1204,12 @@ Afterwards, remove it from `after-make-frame-functions'."
   (add-hook 'message-mode-hook 'turn-on-orgtbl)
   ;; (add-hook 'mail-mode-hook 'turn-on-orgtbl)
 
+  (defun org-capture--set-alarm ()
+	(when (org-capture-get :set-alarm 'local)
+	  (condition-case nil (call-interactively 'set-alarm)
+		(quit nil))))
+  (add-hook 'org-capture-before-finalize-hook 'org-capture--set-alarm)
+
   ;; Org keybindings (C-c o)
   (define-prefix-command 'my-org-map)
   (define-key mode-specific-map (kbd "o") 'my-org-map)

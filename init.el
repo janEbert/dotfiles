@@ -1711,6 +1711,8 @@ which activates the dark theme variant."
 
 (when (and (>= emacs-major-version 26)
 		   (require 'magit nil t))
+  (require 'forge)
+
   ;; Always wants to save all files whenever we save anything in the repo
   ;; (magit-wip-mode 1)
 

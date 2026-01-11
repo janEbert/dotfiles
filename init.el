@@ -1223,7 +1223,7 @@ Afterwards, remove it from `after-make-frame-functions'."
 	'org-beamer-mode-or-select-beamer-environment)
 
   ;; Fix C-c C-TAB
-  (define-key org-mode-map (kbd "C-c C-<tab>") 'org-force-cycle-archived)
+  (define-key org-mode-map (kbd "C-c C-<tab>") 'org-cycle-force-archived)
 
   ;; Repeats
   (defvar org-cycle-list-bullet-repeat-map

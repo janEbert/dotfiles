@@ -2787,11 +2787,13 @@ Advice around ORIG-FUN, called with ARGS."
 		  (list (if (and pylsp-bin (file-readable-p pylsp-bin))
 					pylsp-bin
 				  "pylsp")))))
-	(setcdr (assoc 'python-mode eglot-server-programs) 'find-project-pylsp-bin)
+	(setcdr (assoc (list 'python-mode 'python-ts-mode) eglot-server-programs)
+			'find-project-pylsp-bin)
 	(push 'python-mode-hook my-eglot-hooks))
 
   (when (executable-find "clangd")
-	(add-to-list 'eglot-server-programs '((c++-mode c-mode) "clangd"))
+	(add-to-list 'eglot-server-programs
+				 '((c++-mode c++-ts-mode c-mode c-ts-mode) "clangd"))
 	(push 'c-mode-hook my-eglot-hooks)
 	(push 'c++-mode-hook my-eglot-hooks))
 

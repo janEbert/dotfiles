@@ -13,6 +13,8 @@
 ;; Execute:
 ;;    emacsclient -c -a ''
 ;; After upgrade:
+;;    find <package-user-dir> -iname '*.elc' -print0 | xargs -0 rm
+;;    # or...
 ;;    \emacs --batch --eval '(byte-recompile-directory <package-user-dir> nil t)'
 ;;    # or...
 ;;    \emacs -q

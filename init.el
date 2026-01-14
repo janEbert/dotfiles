@@ -279,7 +279,30 @@ FILENAME must not be defined."
  '(package-menu-hide-low-priority t)
  '(package-quickstart t)
  '(package-selected-packages
-   '(flymake-shellcheck rmsbolt debbugs markdown-toc org-gcal vlf counsel-dash dash-docs htmlize extempore-mode org lsp-mode project so-long xref undohist browse-at-remote mines magit julia-repl counsel swiper projectile rust-mode slime jsonrpc d-mode cider gdscript-mode disk-usage dart-mode gnuplot web-mode ada-ref-man docker dockerfile-mode dired-du dired-git-info purescript-mode js2-mode markdown-mode typescript-mode realgud dap-mode cobol-mode csharp-mode fsharp-mode go-mode num3-mode php-mode sed-mode smalltalk-mode stan-mode swift-mode zig-mode elixir-mode erlang clojure-mode cmake-mode haskell-snippets caml sml-mode haskell-mode lsp-julia nasm-mode yaml-mode ada-mode chess csv-mode json-mode vterm lua-mode python nov ein yasnippet-snippets texfrag eglot undo-propose ess form-feed nim-mode evil-collection evil-commentary evil-lion evil-magit evil-matchit evil-snipe evil-surround evil-visualstar landmark auctex zotxt company-quickhelp dumb-jump expand-region jupyter use-package gotham-theme zenburn-theme toc-org flymake tramp ivy ggtags pdf-tools yasnippet solarized-theme rainbow-delimiters julia-mode helm gnu-elpa-keyring-update forge evil emms darkroom company))
+   '(ada-mode ada-ref-man auctex biblio browse-at-remote caml chess cider
+			  clojure-mode cmake-mode cobol-mode company
+			  company-quickhelp counsel counsel-dash csv-mode d-mode
+			  dap-mode dape darkroom dart-mode dash-docs debbugs
+			  dired-du dired-git-info disk-usage docker
+			  dockerfile-mode dumb-jump eglot ein elixir-mode emms erc
+			  erlang ess evil evil-collection evil-commentary
+			  evil-lion evil-magit evil-matchit evil-snipe
+			  evil-surround evil-visualstar expand-region
+			  extempore-mode flymake flymake-shellcheck forge
+			  form-feed fsharp-mode gdscript-mode ggtags
+			  gnu-elpa-keyring-update gnuplot go-mode gotham-theme
+			  gptel haskell-mode haskell-snippets helm htmlize ivy
+			  js2-mode json-mode jsonrpc julia-mode julia-repl jupyter
+			  landmark lean-mode lsp-julia lsp-mode lua-mode magit
+			  markdown-mode markdown-toc mines nasm-mode nim-mode nov
+			  num3-mode org org-gcal pdf-tools php-mode project
+			  projectile purescript-mode python racket-mode
+			  rainbow-delimiters realgud rmsbolt rust-mode sed-mode
+			  slime smalltalk-mode sml-mode so-long solarized-theme
+			  sqlite3 stan-mode swift-mode swiper texfrag toc-org
+			  tramp typescript-mode undo-propose undohist use-package
+			  vlf vterm web-mode xref yaml-mode yasnippet
+			  yasnippet-snippets zenburn-theme zig-mode zotxt))
  '(password-cache-expiry 1200)
  '(prettify-symbols-unprettify-at-point 'right-edge)
  '(read-buffer-completion-ignore-case t)

@@ -882,6 +882,17 @@ If NEW-SESSION is non-nil, start a new session."
 	(when method
 	  (setq tramp-default-method method)))
 
+  (defun reset-tramp ()
+	"Reset TRAMP, unloading and reloading it."
+	(interactive)
+	(tramp-unload-tramp)
+	(require 'tramp)
+	;; We hardcode the same setting as above because it's reset.
+	(let ((method (seq-find (lambda (x) (executable-find x))
+							'("rsync" "sftp"))))
+	  (when method
+		(setq tramp-default-method method))))
+
   (defun remote-shell ()
 	"Start a remote shell with the correct TERM environment variable."
 	(interactive)

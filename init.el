@@ -222,11 +222,8 @@ FILENAME must not be defined."
  '(bookmark-save-flag 1)
  '(c-basic-offset 4)
  '(c-default-style
-   '((c-mode . "k&r")
-	 (c++-mode . "k&r")
-	 (java-mode . "java")
-	 (awk-mode . "awk")
-	 (other . "java")))
+   '((c-mode . "k&r") (c++-mode . "k&r") (java-mode . "java")
+	 (awk-mode . "awk") (other . "java")))
  '(calendar-date-style 'iso)
  '(calendar-week-start-day 1)
  '(column-number-mode t)
@@ -278,10 +275,7 @@ FILENAME must not be defined."
 	  (file+olp+datetree "~/fzj-projects/fzj-calendar.org" "Calendar")
 	  "* %?\12  %T\12  %a" :time-prompt t :set-alarm t)))
  '(package-archive-priorities
-   '(("gnu" . 9)
-	 ("nongnu" . 7)
-	 ("melpa" . 5)
-	 ("melpa-stable" . 3)))
+   '(("gnu" . 9) ("nongnu" . 7) ("melpa" . 5) ("melpa-stable" . 3)))
  '(package-menu-hide-low-priority t)
  '(package-quickstart t)
  '(package-selected-packages
@@ -302,7 +296,9 @@ FILENAME must not be defined."
  '(save-interprogram-paste-before-kill t)
  '(save-place-mode t)
  '(savehist-additional-variables
-   '(tablist-named-filter command-history search-ring regexp-search-ring kill-ring extended-command-history compile-command))
+   '(tablist-named-filter command-history search-ring regexp-search-ring
+						  kill-ring extended-command-history
+						  compile-command))
  '(savehist-mode t)
  '(scroll-bar-mode 'right)
  '(semantic-mode nil)
@@ -310,8 +306,7 @@ FILENAME must not be defined."
  '(sentence-end-double-space nil)
  '(set-mark-command-repeat-pop t)
  '(shell-command-prompt-show-cwd t)
- '(shell-prompt-pattern "^\\(?:###\\)?[^#$%>
-]*[#$%>] *")
+ '(shell-prompt-pattern "^\\(?:###\\)?[^#$%>\12]*[#$%>] *")
  '(show-paren-mode t)
  '(show-paren-style 'parenthesis nil nil "Originally parenthesis. Maybe try out expression or mixed.")
  '(show-paren-when-point-in-periphery t)
@@ -325,8 +320,7 @@ FILENAME must not be defined."
  '(tool-bar-mode nil)
  '(tool-bar-position 'top)
  '(tramp-shell-prompt-pattern
-   "\\(?:^\\|\\)\\(?:###\\)?[^]#$%>
-]*#?[]#$%>] *\\(\\[[0-9;]*[a-zA-Z] *\\)*")
+   "\\(?:^\\|\15\\)\\(?:###\\)?[^]#$%>\12]*#?[]#$%>] *\\(\33\\[[0-9;]*[a-zA-Z] *\\)*")
  '(uniquify-buffer-name-style 'forward nil (uniquify))
  '(url-automatic-caching t)
  '(url-cookie-confirmation t)

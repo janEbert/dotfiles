@@ -138,6 +138,16 @@ hooks for `my-autostart-lsp-package'.")
 				  gc-cons-percentage 0.1
 				  file-name-handler-alist my-tmp-file-name-handler-alist)))
 
+;; Possibly increase performance
+;; Ensure the value is less than or equal to
+;; `/proc/sys/fs/pipe-max-size`.
+(let ((pipe-max-size-file-path "/proc/sys/fs/pipe-max-size"))
+  (when (file-readable-p pipe-max-size-file-path)
+	(let ((pipe-max-size-byte (string-to-number
+							   (read-file-to-string pipe-max-size-file-path))))
+	  ;; Divide by 4 to have some arbitrary leeway.
+	  (setq read-process-output-max (floor (/ pipe-max-size-byte 4))))))
+
 ;; Windows performance improvements TODO (?)
 (when (eq system-type 'windows-nt)
 	(setq-default w32-pipe-read-delay 0

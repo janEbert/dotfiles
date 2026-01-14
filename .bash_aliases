@@ -235,6 +235,16 @@ fcalc() {
     awk "BEGIN {print $args}"
 }
 
+# Check if file ends in newline.
+haseofnl() {
+    has_nl="$(tail -c 1 "$1" | wc -l)"
+    return "$has_nl"
+}
+
+no-net() {
+    unshare -r -n -- "$@"
+}
+
 elisp() {
     \emacs --batch --eval '(princ (format "%s\n" '"$1))"
 }
@@ -243,13 +253,24 @@ get-native-march() {
     gcc -Q -march=native --help=target | sed -n 's/^\s*-march=\s*\(.*\)$/\1/p'
 }
 
+reload_kernel_module() {
+    sudo modprobe -r "$1" && sudo modprobe "$1"
+}
+
 alias untar="tar xf"
 alias untargz="tar xzf"
 alias egitig="\$EDITOR \$(git rev-parse --git-dir)/info/exclude"
 alias pullsubs="find . -name '.git' -type d -prune | xargs -P5 -I{} git --git-dir={} --work-tree=\$PWD/{}/.. pull"
 # When not starting from shell, use `zsh -ic 'emacsclient -c -a "" -n'
 alias emacs="emacsclient -c -a ''"
+alias nemacs="\emacs -Q --eval='(setq make-backup-files nil)'"
 alias dex="stack exec dex --"
 alias rgp="rg --pre to_text"
 alias maxcompr="7z a -t7z -mx9 -m0=lzma2 -mmt2 -md1024m"
 alias mkpatch="env LC_ALL=C TZ=UTC0 diff -Naur"
+# Add newline at EOF if it doesn't exist.
+# sed -e '$a\'
+alias eofnl="sed -e '\$a\\'"
+
+alias reload_cuda='sudo modprobe -r nvidia_uvm && sudo modprobe nvidia_uvm'
+alias curr_file='echo "${BASH_SOURCE[0]:-${(%):-%x}}"'

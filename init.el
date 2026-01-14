@@ -2273,6 +2273,9 @@ The playlist must be in `my-music-dir'."
 	  (evil-set-initial-state 'picture-mode  'emacs)
 	  (evil-set-initial-state 'compilation-mode 'emacs)
 
+	  ;; *Warnings* buffer
+	  (add-to-list 'evil-buffer-regexps '("^\\*Warnings\\*$" . emacs))
+
 	  ;; Magit message editing
 	  (add-to-list 'evil-buffer-regexps '("^[^_]*_EDITMSG$" . emacs))
 

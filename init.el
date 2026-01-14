@@ -118,6 +118,13 @@ hooks for `my-autostart-lsp-package'.")
 
 (defconst my-start-time (current-time))
 
+;; Convenience function to read in a file.
+(defun read-file-to-string (filename)
+  "Return the contents of FILENAME as a string."
+  (with-temp-buffer
+	(insert-file-contents filename)
+	(buffer-string)))
+
 ;; For faster initialization
 (defvar my-tmp-file-name-handler-alist file-name-handler-alist)
 (setq gc-cons-threshold 402653184

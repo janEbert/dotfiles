@@ -1612,9 +1612,8 @@ and INFO the export communication channel."
   "Restore variable `scroll-bar-mode' after theme switch.
 Adice around ORIG-FUN, called with ARGS."
   (let ((current-scroll-bar-mode (get-scroll-bar-mode)))
-	(progn
-	  (apply orig-fun args)
-	  (set-scroll-bar-mode current-scroll-bar-mode))))
+	(apply orig-fun args)
+	(set-scroll-bar-mode current-scroll-bar-mode)))
 (advice-add 'load-theme :around #'load-theme--restore-scroll-bar-mode)
 
 (defun safe-load-theme (theme default-theme)
@@ -1802,11 +1801,10 @@ which activates the dark theme variant."
   (add-hook 'c-mode-common-hook
 			(lambda ()
 			  (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
-				(progn
-				  (ggtags-mode 1)
-				  (setq-local hippie-expand-try-functions-list
-							  (cons 'ggtags-try-complete-tag
-									hippie-expand-try-functions-list)))))))
+				(ggtags-mode 1)
+				(setq-local hippie-expand-try-functions-list
+							(cons 'ggtags-try-complete-tag
+								  hippie-expand-try-functions-list))))))
 
 ;;; Constants
 (autoload 'constants-insert "constants" "Insert constants into source." t)

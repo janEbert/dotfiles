@@ -248,6 +248,7 @@ export PATH="$HOME/.nimble/bin:$PATH"
 
 # Go
 export PATH="$HOME/Downloads/go/bin:$PATH"
+export PATH="$HOME/go/bin:$PATH"
 
 # Use "emulate sh -c '. file.sh'" when compatibility demands it.
 

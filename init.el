@@ -895,47 +895,47 @@ If NEW-SESSION is non-nil, start a new session."
   ;; 				 "/ssh:%u@my.domain.org:"))
 
   ;; Docker integration on Linux ("/docker:")
-  (when (and (not (package-installed-p 'docker)) (eq system-type 'gnu/linux))
-	(push
-	 (cons
-	  "docker"
-	  '((tramp-login-program "docker")
-		(tramp-login-args (("exec" "-it") ("%h") ("/bin/bash")))
-		(tramp-remote-shell "/bin/sh")
-		(tramp-remote-shell-args ("-i") ("-c"))))
-	 tramp-methods)
+;;   (when (and (not (package-installed-p 'docker)) (eq system-type 'gnu/linux))
+;; 	(push
+;; 	 (cons
+;; 	  "docker"
+;; 	  '((tramp-login-program "docker")
+;; 		(tramp-login-args (("exec" "-it") ("%h") ("/bin/bash")))
+;; 		(tramp-remote-shell "/bin/sh")
+;; 		(tramp-remote-shell-args ("-i") ("-c"))))
+;; 	 tramp-methods)
 
-	(defun tramp-completion-handle-file-name-all-completions--docker-containers
-		(orig-fun &rest args)
-	  "Return a list of active Docker container names concatenated with colons.
-Activated when
-`tramp-completion-handle-file-name-all-completions' is called
-with second argument \"/docker:\"."
-	  (if (equal (nth 1 args) "/docker:")
-		  (let* ((dockernames-raw
-				  (shell-command-to-string
-				   "docker ps | awk '$NF != \"NAMES\" { print $NF \":\" }'"))
-				 (dockernames
-				  (cl-remove-if-not
-				   (lambda (dockerline) (string-match ":$" dockerline))
-				   (split-string dockernames-raw "\n"))))
-			dockernames)
-		(apply orig-fun args)))
-	(advice-add
-	 'tramp-completion-handle-file-name-all-completions :around
-	 #'tramp-completion-handle-file-name-all-completions--docker-containers))
+;; 	(defun tramp-completion-handle-file-name-all-completions--docker-containers
+;; 		(orig-fun &rest args)
+;; 	  "Return a list of active Docker container names concatenated with colons.
+;; Activated when
+;; `tramp-completion-handle-file-name-all-completions' is called
+;; with second argument \"/docker:\"."
+;; 	  (if (equal (nth 1 args) "/docker:")
+;; 		  (let* ((dockernames-raw
+;; 				  (shell-command-to-string
+;; 				   "docker ps | awk '$NF != \"NAMES\" { print $NF \":\" }'"))
+;; 				 (dockernames
+;; 				  (cl-remove-if-not
+;; 				   (lambda (dockerline) (string-match ":$" dockerline))
+;; 				   (split-string dockernames-raw "\n"))))
+;; 			dockernames)
+;; 		(apply orig-fun args)))
+;; 	(advice-add
+;; 	 'tramp-completion-handle-file-name-all-completions :around
+;; 	 #'tramp-completion-handle-file-name-all-completions--docker-containers))
 
-	;; (defadvice tramp-completion-handle-file-name-all-completions
-	;; 	(around dotemacs-completion-docker activate)
-	;;   "(tramp-completion-handle-file-name-all-completions \"\" \"/docker:\" returns
-	;; a list of active Docker container names, followed by colons."
-	;;   (if (equal (ad-get-arg 1) "/docker:")
-	;; 	  (let* ((dockernames-raw (shell-command-to-string "docker ps | awk '$NF != \"NAMES\" { print $NF \":\" }'"))
-	;; 			 (dockernames (cl-remove-if-not
-	;; 						   (lambda (dockerline) (string-match ":$" dockerline))
-	;; 						   (split-string dockernames-raw "\n"))))
-	;; 		(setq ad-return-value dockernames))
-	;; 	ad-do-it))
+;; 	;; (defadvice tramp-completion-handle-file-name-all-completions
+;; 	;; 	(around dotemacs-completion-docker activate)
+;; 	;;   "(tramp-completion-handle-file-name-all-completions \"\" \"/docker:\" returns
+;; 	;; a list of active Docker container names, followed by colons."
+;; 	;;   (if (equal (ad-get-arg 1) "/docker:")
+;; 	;; 	  (let* ((dockernames-raw (shell-command-to-string "docker ps | awk '$NF != \"NAMES\" { print $NF \":\" }'"))
+;; 	;; 			 (dockernames (cl-remove-if-not
+;; 	;; 						   (lambda (dockerline) (string-match ":$" dockerline))
+;; 	;; 						   (split-string dockernames-raw "\n"))))
+;; 	;; 		(setq ad-return-value dockernames))
+;; 	;; 	ad-do-it))
   )
 
 ;;; Flymake

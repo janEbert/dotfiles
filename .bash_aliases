@@ -6,6 +6,15 @@ tbg() {
     else
         export SOLARIZED_THEME="dark"
     fi
+    # Unset these variables so they lose the default they were set to.
+    unset CURRENT_FG
+    unset CURRENT_DEFAULT_FG
+    unset AGNOSTER_DIR_FG
+    # unset AGNOSTER_CONTEXT_FG
+    unset AGNOSTER_GIT_CLEAN_FG
+    unset AGNOSTER_BZR_CLEAN_FG
+    unset AGNOSTER_HG_CLEAN_FG
+    # unset AGNOSTER_STATUS_FG
 
     # Gnome Terminal
     if [ -x "$(command -v dconf)" ]; then

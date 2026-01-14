@@ -34,6 +34,9 @@ else
     export ZSH_THEME=""
 fi
 
+export AGNOSTER_CONTEXT_FG=default
+export AGNOSTER_STATUS_FG=default
+
 bindkey -e
 
 # Set list of themes to pick from when loading at random

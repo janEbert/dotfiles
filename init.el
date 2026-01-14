@@ -102,7 +102,7 @@ changed."
 (defconst my-julia-bin "~/local/bin/julia")
 (defconst my-julia-default-environment "~/.julia/environments/v1.3")
 (defconst my-jupyter-dir "~/miniforge3/envs/jupyter/bin")
-;; (defconst my-godot-bin "~/local/bin/godot")
+(defconst my-godot-bin "~/local/bin/godot")
 
 (defconst my-lsp-package 'eglot "Which LSP package to use.
 Can be a symbol in (lsp-mode eglot all). If it is \"all\", only activate the

@@ -847,6 +847,27 @@ If NEW-SESSION is non-nil, start a new session."
   ;; (add-to-list 'tramp-remote-process-environment
   ;; 			   (format "DISPLAY=localhost%s" (getenv "DISPLAY")))
 
+  ;; Use SSH connection sharing
+  (with-eval-after-load "tramp-sh"
+	(customize-set-variable
+	 'tramp-ssh-controlmaster-options
+	 (concat
+	  ;; Version from documentation
+	  ;; "-o ControlPath=/tmp/ssh-ControlPath-%%r@%%h:%%p "
+	  ;; Version from implementation (what `tramp-use-connection-share'
+	  ;; uses)
+	  "-o ControlPath="
+	  (if (eq system-type 'darwin)
+		  (if (tramp-ssh-option-exists-p () "ControlPath=tramp.%C")
+			  "tramp.%%C" "tramp.%%r@%%h:%%p")
+		(expand-file-name
+		 (if (tramp-ssh-option-exists-p () "ControlPath=tramp.%C")
+			 "tramp.%%C" "tramp.%%r@%%h:%%p")
+		 (or small-temporary-file-directory
+			 tramp-compat-temporary-file-directory)))
+	  " "
+	  "-o ControlMaster=auto -o ControlPersist=4h")))
+
   ;; Do not save `tramp-open-shell' command in history.
   (defun tramp-send-command--dont-save-in-history (args)
 	"Add a space before the given command so it is not saved in the history."

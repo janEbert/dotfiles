@@ -213,6 +213,11 @@ fi
 # Files with .h suffix are treated as C++ source files.
 export GTAGSFORCECPP=false
 
+# TeX Live (LaTeX)
+# export PATH="$HOME/texlive/2025/bin/x86_64-linux:$PATH"
+# export MANPATH="$HOME/texlive/2025/texmf-dist/doc/man:$MANPATH"
+# export INFOPATH="$HOME/texlive/2025/texmf-dist/doc/info:$INFOPATH"
+
 # Node.js
 export NVM_DIR="$HOME/.nvm"
 # We do not source because it makes startup slow

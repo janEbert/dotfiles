@@ -31,8 +31,8 @@ tbg() {
         dconf write "$gnome_term_profiles${first_profile}foreground-color" "$fg_color"
     fi
 
-    if [ "x$ZSH_THEME" != x ]; then
-        source $ZSH/oh-my-zsh.sh
+    if [ "x$ZSH_THEME" != x ] && [ -f "$ZSH/oh-my-zsh.sh" ]; then
+        source "$ZSH/oh-my-zsh.sh"
     fi
 
     # FZF

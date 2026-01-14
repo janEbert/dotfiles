@@ -10,7 +10,7 @@ case "$1" in
 		fi
 		;;
 	*.docx|*.odt|*.epub|*.ipynb)
-		exec pandoc "$1" -t markdown -o -
+		exec pandoc "$1" -t plain -o -
 		;;
 	*.sqlite|*.db)
 		exec sqlite "$1" .dump

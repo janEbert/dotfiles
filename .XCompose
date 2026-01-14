@@ -1,5 +1,7 @@
 include "%L"
 
+# Original at /usr/share/X11/locale/en_US.UTF-8/Compose
+
 <Multi_key> <g> <a> : "α"
 <Multi_key> <g> <b> : "β"
 <Multi_key> <g> <c> : "ξ"
@@ -65,11 +67,16 @@ include "%L"
 <Multi_key> <O> <b> : "∘"
 <Multi_key> <F> <A> : "∘"
 <Multi_key> <f> <a> : "∀"
-<Multi_key> <v> <-> : "∀"
+<Multi_key> <v> <minus> : "∀"
 <Multi_key> <e> <x> : "∃"
 <Multi_key> <n> <x> : "∄"
 
-<Multi_key> <<> <3> : "❤"
+<Multi_key> <N> <N> : "ℕ"
+<Multi_key> <Z> <N> : "ℤ"
+<Multi_key> <R> <N> : "ℝ"
+<Multi_key> <C> <N> : "ℂ"
+
+<Multi_key> <greater> <3> : "❤"
 <Multi_key> <6> <9> : "💩"
 
 <Multi_key> <o> <k> : "✓"
@@ -79,8 +86,9 @@ include "%L"
 <Multi_key> <e> <q> : "≡"
 <Multi_key> <n> <e> : "≠"
 <Multi_key> <A> <X> : "≈"
-<Multi_key> <G> <E> : "≥"
-<Multi_key> <L> <E> : "≤"
+<Multi_key> <G> <e> : "≥"
+<Multi_key> <L> <e> : "≤"
+<Multi_key> <O> <x> : "⊗"
 
 <Multi_key> <e> <l> : "∈"
 <Multi_key> <l> <e> : "∋"
@@ -90,6 +98,16 @@ include "%L"
 <Multi_key> <E> <L> : "∉"
 <Multi_key> <N> <E> : "∌"
 
+<Multi_key> <u> <n> : "​∪"
+
 <Multi_key> <u> <v> : "⊻"
 
-<Multi_key> <q> <e> : "∎"
+<Multi_key> <z> <w> <s> : "​"
+<Multi_key> <z> <w> <n> <s> : "﻿"
+<Multi_key> <z> <w> <j> : "‍"
+<Multi_key> <z> <w> <n> <j> : "‌"
+
+<Multi_key> <less> <greater> : "↔"
+<Multi_key> <U2227> <U2228> : "↕"
+
+<Multi_key> <q> <e> <d> : "∎"

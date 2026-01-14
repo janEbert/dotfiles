@@ -485,7 +485,8 @@ Afterwards, remove this hook from `after-make-frame-functions'."
 
 ;; Use tab for completion if line is already indented.
 ;; Activate if it is dangerous (to go alone (without `company')).
-(unless (functionp 'company-complete)
+(setq enable-company nil)
+(unless (and enable-company (functionp 'company-complete))
   (setq tab-always-indent 'complete))
 
 ;; Deactive subword mode for transposing words.
@@ -2316,7 +2317,7 @@ The choice depends on the whether `evil-repeat-pop-next' makes sense to call."
 
 
 ;;; Company
-(when (functionp 'global-company-mode)
+(when (and enable-company (functionp 'global-company-mode))
 	  (add-hook 'after-init-hook 'global-company-mode)
 	  ;; Faster auto completion
 	  (setq company-minimum-prefix-length 2)
@@ -2353,7 +2354,7 @@ The choice depends on the whether `evil-repeat-pop-next' makes sense to call."
 						  (company-mode 0)))))))
 
 ;;; Company quickhelp
-(when (functionp 'company-quickhelp-mode)
+(when (and enable-company (functionp 'company-quickhelp-mode))
   (company-quickhelp-mode)
   (setq company-quickhelp-delay 0.65)
   (define-key company-active-map
@@ -4439,7 +4440,7 @@ absolute line numbers."
 (global-set-key (kbd "M-/") 'hippie-expand)
 
 ;; Better completion mapping (C-c n)
-(unless (functionp 'company-complete)
+(unless (and enable-company (functionp 'company-complete))
   (define-key mode-specific-map (kbd "n") 'completion-at-point))
 
 ;; Like dt or df in Vim

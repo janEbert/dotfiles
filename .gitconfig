@@ -78,3 +78,8 @@
 	pr = !sh -c 'git fetch origin pull/$1/head:pr-$1' -
 	prc = !sh -c 'git fetch origin pull/$1/head:pr-$1 && git checkout pr-$1' -
 	pruneall = !git remote | xargs -n 1 git remote prune
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true

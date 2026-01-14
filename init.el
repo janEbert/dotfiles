@@ -717,6 +717,10 @@ Only matters if `fido-mode' WAS-SETUP."
 ;; (add-hook 'ido-make-buffer-list-hook 'ido-summary-buffers-to-end)
 ;; TODO ido-everywhere seems to be removed
 
+;;; Completion Preview mode
+(global-completion-preview-mode)
+(setq completion-preview-idle-delay 0.1)
+
 ;;; repeat-mode
 (defvar forward-line-repeat-map
   (let ((map (make-sparse-keymap)))

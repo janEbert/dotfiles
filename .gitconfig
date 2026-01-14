@@ -56,6 +56,9 @@
 	sa = submodule add
 	si = submodule init
 	sm = submodule
+	# Sign off the most recent commit non-interactively. Can be used
+	# in an interactive rebase.
+	so = commit --amend --signoff --no-edit
 	sp = push --recurse-submodules=on-demand
 	st = stash
 	sta = stash apply

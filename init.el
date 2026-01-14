@@ -362,6 +362,33 @@ FILENAME must not be defined."
  ;; If there is more than one, they won't work right.
  )
 
+;; Safety list of packages.
+;;  '(package-selected-packages
+;;    '(ada-mode ada-ref-man auctex biblio browse-at-remote caml chess cider
+;; 			  clojure-mode cmake-mode cobol-mode company
+;; 			  company-quickhelp counsel counsel-dash csv-mode d-mode
+;; 			  dap-mode dape darkroom dart-mode dash-docs debbugs
+;; 			  dired-du dired-git-info disk-usage docker
+;; 			  dockerfile-mode dumb-jump eglot ein elixir-mode emms erc
+;; 			  erlang ess evil evil-collection evil-commentary
+;; 			  evil-lion evil-magit evil-matchit evil-snipe
+;; 			  evil-surround evil-visualstar expand-region
+;; 			  extempore-mode flymake flymake-shellcheck forge
+;; 			  form-feed fsharp-mode gdscript-mode ggtags
+;; 			  gnu-elpa-keyring-update gnuplot go-mode gotham-theme
+;; 			  gptel haskell-mode haskell-snippets helm htmlize ivy
+;; 			  js2-mode json-mode jsonrpc julia-mode julia-repl jupyter
+;; 			  landmark lean-mode lsp-julia lsp-mode lua-mode magit
+;; 			  markdown-mode markdown-toc mines nasm-mode nim-mode nov
+;; 			  num3-mode org org-gcal pdf-tools php-mode project
+;; 			  projectile purescript-mode python racket-mode
+;; 			  rainbow-delimiters realgud rmsbolt rust-mode sed-mode
+;; 			  slime smalltalk-mode sml-mode so-long solarized-theme
+;; 			  sqlite3 stan-mode swift-mode swiper texfrag toc-org
+;; 			  tramp typescript-mode undo-propose undohist use-package
+;; 			  vlf vterm web-mode xref yaml-mode yasnippet
+;; 			  yasnippet-snippets zenburn-theme zig-mode zotxt))
+
 (setq package-check-signature t)
 
 (defun add-dir-tree-to-front-of-load-path (dir)

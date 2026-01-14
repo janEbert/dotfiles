@@ -2,10 +2,11 @@
 
 ;;; Commentary:
 ;; Build with:
+;;    [adjust LD_LIBRARY_PATH="<libtree-sitter-so-dir>:$LD_LIBRARY_PATH"]
 ;;    ./autogen.sh
 ;;    ./configure CFLAGS='-O2 -march=native -pipe' \
-;;                --with-modules [--with-json] [--with-native-compilation] \
-;;                [--with-rsvg] [--with-xwidgets] \
+;;                --with-modules [--with-native-compilation] \
+;;                [--with-rsvg] [--with-xwidgets] [--with-tree-sitter] \
 ;;                [--with-x-toolkit=lucid] [--prefix=...]
 ;;    [sed -i -e "s/^BYTE_COMPILE_EXTRA_FLAGS =/BYTE_COMPILE_EXTRA_FLAGS = --eval '(setq native-comp-compiler-options (list \"-O2\" \"-march=$(gcc -Q -march=native --help=target | sed -n 's/^\s*-march=\s*\(.*\)$/\1/p')\"))'/" lisp/Makefile]
 ;;    [sudo] make install

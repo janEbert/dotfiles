@@ -97,7 +97,7 @@ plugins=(
     pyenv
     pylint
     python
-    wd
+    # wd
 )
 
 [ -f $ZSH/oh-my-zsh.sh ] && source $ZSH/oh-my-zsh.sh

@@ -286,14 +286,14 @@ FILENAME must not be defined."
 			  dired-du dired-git-info disk-usage docker
 			  dockerfile-mode dumb-jump eglot ein elixir-mode emms erc
 			  erlang ess evil evil-collection evil-commentary
-			  evil-lion evil-magit evil-matchit evil-snipe
+			  evil-lion evil-matchit evil-snipe
 			  evil-surround evil-visualstar expand-region
 			  extempore-mode flymake flymake-shellcheck forge
 			  form-feed fsharp-mode gdscript-mode ggtags
 			  gnu-elpa-keyring-update gnuplot go-mode gotham-theme
 			  gptel haskell-mode haskell-snippets helm htmlize ivy
 			  js2-mode json-mode jsonrpc julia-mode julia-repl jupyter
-			  landmark lean-mode lsp-julia lsp-mode lua-mode magit
+			  landmark lsp-julia lsp-mode lua-mode magit
 			  markdown-mode markdown-toc mines nasm-mode nim-mode nov
 			  num3-mode org org-gcal pdf-tools php-mode project
 			  projectile purescript-mode python racket-mode
@@ -371,14 +371,14 @@ FILENAME must not be defined."
 ;; 			  dired-du dired-git-info disk-usage docker
 ;; 			  dockerfile-mode dumb-jump eglot ein elixir-mode emms erc
 ;; 			  erlang ess evil evil-collection evil-commentary
-;; 			  evil-lion evil-magit evil-matchit evil-snipe
+;; 			  evil-lion evil-matchit evil-snipe
 ;; 			  evil-surround evil-visualstar expand-region
 ;; 			  extempore-mode flymake flymake-shellcheck forge
 ;; 			  form-feed fsharp-mode gdscript-mode ggtags
 ;; 			  gnu-elpa-keyring-update gnuplot go-mode gotham-theme
 ;; 			  gptel haskell-mode haskell-snippets helm htmlize ivy
 ;; 			  js2-mode json-mode jsonrpc julia-mode julia-repl jupyter
-;; 			  landmark lean-mode lsp-julia lsp-mode lua-mode magit
+;; 			  landmark lsp-julia lsp-mode lua-mode magit
 ;; 			  markdown-mode markdown-toc mines nasm-mode nim-mode nov
 ;; 			  num3-mode org org-gcal pdf-tools php-mode project
 ;; 			  projectile purescript-mode python racket-mode
@@ -2228,8 +2228,6 @@ The playlist must be in `my-music-dir'."
 	  ;; Setup Evil Collection (also uncomment above to use)
 	  ;; (when (require 'evil-collection nil t)
 	  ;;   (evil-collection-init))
-	  ;; evil-magit
-	  ;; (require 'evil-magit)
 
 	  ;; Other Evil packages
 	  ;; Evil Surround

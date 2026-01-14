@@ -100,7 +100,7 @@ plugins=(
     # wd
 )
 
-[ -f $ZSH/oh-my-zsh.sh ] && source $ZSH/oh-my-zsh.sh
+[ -f "$ZSH/oh-my-zsh.sh" ] && source "$ZSH/oh-my-zsh.sh"
 
 # Only change prompt if there already is one and we have no theme.
 if [ "x$ZSH_THEME" = x ] && [ "${PS1+set}" = set ] \

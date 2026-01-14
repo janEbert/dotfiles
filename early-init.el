@@ -7,7 +7,7 @@
 ;;; Code:
 
 ;; Less GC during initialization (reset in init.el)
-(setq gc-cons-threshold 402653184
+(setq gc-cons-threshold 536870912		; 2^29 or 512 MiB
 	  gc-cons-percentage 0.6)
 
 ;; Prefer more recent files when loading.

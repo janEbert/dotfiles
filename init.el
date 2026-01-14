@@ -127,14 +127,14 @@ hooks for `my-autostart-lsp-package'.")
 
 ;; For faster initialization
 (defvar my-tmp-file-name-handler-alist file-name-handler-alist)
-(setq gc-cons-threshold 402653184
+(setq gc-cons-threshold 536870912		; 2^29 or 512 MiB
 	  gc-cons-percentage 0.6
 	  file-name-handler-alist nil)
 
 ;; Restore (better) GC defaults afterwards
 (add-hook 'after-init-hook				; or 'emacs-startup-hook
 		  (lambda ()
-			(setq gc-cons-threshold 16777216
+			(setq gc-cons-threshold 16777216 ; 2^24 or 16 MiB
 				  gc-cons-percentage 0.1
 				  file-name-handler-alist my-tmp-file-name-handler-alist)))
 

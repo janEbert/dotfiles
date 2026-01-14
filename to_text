@@ -37,7 +37,7 @@ case "$1" in
 		exec gunzip -c "$1"
 		;;
 	*)
-		case $(file "$1") in
+		case "$(file "$1")" in
 			*Zstandard*)
 				exec pzstd -cdq
 				;;

@@ -34,6 +34,7 @@
 ;;   - [ats2-mode](https://github.com/githwxi/ATS-Postiats) (in utils/emacs)
 ;;   - [flymake-ats2](https://github.com/githwxi/ATS-Postiats) (in utils/emacs)
 ;;   - [lsp-julia](https://github.com/non-Jedi/lsp-julia) (optional)
+;;   - [eplot](https://github.com/larsmagne/eplot) (optional)
 ;;
 ;; Themes to download:
 ;;   - none yet

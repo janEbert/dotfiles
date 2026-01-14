@@ -1097,6 +1097,17 @@ with second argument \"/docker:\"."
 (setq org-html-doctype "html5")
 (setq org-html-html5-fancy t)
 
+(defun my-seed-org-export-new-reference (references)
+  "Set a seed for returning a deterministic sequence of unique references.
+REFERENCES is an alist whose values are in-use references, as
+numbers.  See also `org-export-new-reference'."
+  (if references
+	  (random (cdar references))
+	(random "org-ref")))
+
+(advice-add 'org-export-new-reference
+			:before #'my-seed-org-export-new-reference)
+
 ;;; Org Babel
 
 (setq org-confirm-babel-evaluate nil)

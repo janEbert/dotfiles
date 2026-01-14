@@ -271,6 +271,12 @@ FILENAME must not be defined."
  '(mouse-yank-at-point t)
  '(nnmail-expiry-wait 'never)
  '(org-agenda-files '("~/Documents/life.org"))
+ '(org-capture-templates
+   '(("t" "Task" entry (file+headline "" "Tasks")
+	  "* TODO %?\12  %u\12  %a")
+	 ("c" "FZJ Calendar Entry" entry
+	  (file+olp+datetree "~/fzj-projects/fzj-calendar.org" "Calendar")
+	  "* %?\12  %T\12  %a" :time-prompt t :set-alarm t)))
  '(package-archive-priorities
    '(("gnu" . 9)
 	 ("nongnu" . 7)

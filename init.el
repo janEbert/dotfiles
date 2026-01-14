@@ -125,6 +125,12 @@ hooks for `my-autostart-lsp-package'.")
 	(insert-file-contents filename)
 	(buffer-string)))
 
+;; Convenience macro for custom binary paths in this file.
+(defmacro custom-binary-available-p (filename)
+  "Return whether the binary at FILENAME is executable.
+FILENAME must not be defined."
+  (and (boundp (quote filename)) filename (file-exists-p filename)))
+
 ;; For faster initialization
 (defvar my-tmp-file-name-handler-alist file-name-handler-alist)
 (setq gc-cons-threshold 536870912		; 2^29 or 512 MiB
@@ -2840,7 +2846,8 @@ Checks if INPUT contains a password prompt as defined by
 ;;; Julia mode
 ;; (require 'julia-mode)
 (autoload 'julia-mode-hook "julia-mode")
-(setq julia-program my-julia-bin)
+(when (custom-binary-available-p my-julia-bin)
+  (setq julia-program my-julia-bin))
 (add-hook 'julia-mode-hook
 		  (lambda () (setq-local whitespace-line-column 92)))
 
@@ -2848,7 +2855,8 @@ Checks if INPUT contains a password prompt as defined by
 ;; deactivate automatic loading of `ess-julia-mode'
 (setq auto-mode-alist
 	  (delete (rassoc 'ess-julia-mode auto-mode-alist) auto-mode-alist))
-(setq inferior-julia-program my-julia-bin)
+(when (custom-binary-available-p my-julia-bin)
+  (setq inferior-julia-program my-julia-bin))
 (setq inferior-julia-args "--color=yes")
 
 ;;; julia-repl
@@ -2885,7 +2893,8 @@ Checks if INPUT contains a password prompt as defined by
 
 ;;; GDScript mode
 (autoload 'gdscript-mode-hook "gdscript-mode")
-;; (setq gdscript-godot-executable my-godot-bin)
+(when (custom-binary-available-p my-godot-bin)
+  (setq gdscript-godot-executable my-godot-bin))
 (add-hook 'gdscript-mode-hook
 		  (lambda ()
 			(setq-local whitespace-line-column 100)))
@@ -4434,7 +4443,9 @@ absolute line numbers."
 (defun my-julia-repl ()
   "Start a Julia REPL in a terminal emulator in the selected window."
   (interactive)
-  (term (expand-file-name my-julia-bin)))
+  (if (custom-binary-available-p my-julia-bin)
+	  (term (expand-file-name my-julia-bin))
+	(message "%s" "Julia binary is not available.")))
 
 (defun my-julia-repl-split-right ()
   "Start a Julia REPL in a window to the side of the selected window."

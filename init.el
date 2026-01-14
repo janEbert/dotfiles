@@ -154,6 +154,18 @@ hooks for `my-autostart-lsp-package'.")
 				  inhibit-compacting-font-caches t
 				  bidi-display-reordering nil))
 
+;; Use RAM disk
+(let* ((small-tmp-dir-root "/dev/shm")
+	   (small-tmp-dir
+		(expand-file-name "tmp" (expand-file-name "emacs" small-tmp-dir-root))))
+  (when (and (not (memq system-type '(windows-nt ms-dos)))
+			 (file-directory-p small-tmp-dir-root))
+	(condition-case nil
+		(progn
+		 (make-directory small-tmp-dir t)
+		 (set-file-modes small-tmp-dir #o700))
+	  (:success (setq small-temporary-file-directory small-tmp-dir)))))
+
 (defun find-init-file ()
   "Find init.el in `my-emacs-dir'."
   (interactive)

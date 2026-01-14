@@ -674,6 +674,10 @@ PROGRAM is the terminal program to start."
   (define-key dired-mode-map (kbd "C-c y d")
 			  'dired-browse-externally))
 
+(with-eval-after-load "dired-aux"
+  (add-to-list 'dired-compress-files-alist
+			   (cons "\\.tar\\'" "tar cf - %i > %o")))
+
 ;;; Icomplete
 (defun fido-mode-setup--not-only-flex (was-setup)
   "Allow other completion styles than flex in `fido-mode'.

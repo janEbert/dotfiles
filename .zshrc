@@ -218,6 +218,12 @@ export NVM_DIR="$HOME/.nvm"
 # We do not source because it makes startup slow
 # See `source-nvm` in .bash_aliases
 
+# Deno
+# Add deno completions to search path
+if [[ ":$FPATH:" != *":$HOME/.zsh/completions:"* ]]; then export FPATH="$HOME/.zsh/completions:$FPATH"; fi
+
+. "$HOME/.deno/env"
+
 # Lua
 export PATH="$HOME/.luarocks/bin:$PATH"
 

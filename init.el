@@ -601,10 +601,41 @@ PROGRAM is the terminal program to start."
   (define-key term-raw-map (kbd "M-x") nil))
 
 ;;; Dired
-(defun dired-relist-human-readable ()
-  "Relist the Dired buffer with the human-readable switch appended."
+(defun dired-toggle-human-readable ()
+  "Relist the Dired buffer with the human-readable switch toggled."
   (interactive)
-  (dired default-directory (concat dired-actual-switches "h")))
+  (setq-local
+   dired-actual-switches
+   (if (string-match
+		(concat "\\(?:\\(--human-readable\\)\\|^\\(-h\\)$"
+				"\\|\\([[:space:]]+-h\\)[[:space:]]"
+				"\\|\\(^-h[[:space:]]+\\)\\|\\([[:space:]]+-h$\\)"
+				"\\|-[^[:space:]]*\\(h\\)\\)")
+		dired-actual-switches)
+	   (let ((match-index (seq-find (lambda (g) (match-beginning g))
+									(number-sequence 1 6))))
+		 (message "match-index %s" match-index)
+		 (replace-match "" t nil dired-actual-switches match-index))
+	 (concat dired-actual-switches " -h")))
+  (revert-buffer))
+
+(defun dired-toggle-sort-by-file-size ()
+  "Relist the Dired buffer with the sort-by-file-size switch toggled."
+  (interactive)
+  (setq-local
+   dired-actual-switches
+   (if (string-match
+		(concat "\\(?:^\\(-S\\)$"
+				"\\|\\([[:space:]]+-S\\)[[:space:]]"
+				"\\|\\(^-S[[:space:]]+\\)\\|\\([[:space:]]+-S$\\)"
+				"\\|-[^[:space:]]*\\(S\\)\\)")
+		dired-actual-switches)
+	   (let ((match-index (seq-find (lambda (g) (match-beginning g))
+									(number-sequence 1 5))))
+		 (message "match-index %s" match-index)
+		 (replace-match "" t nil dired-actual-switches match-index))
+	 (concat dired-actual-switches " -S")))
+  (revert-buffer))
 
 (defun dired-open-externally ()
   "Open marked files with the OS default."
@@ -615,7 +646,7 @@ PROGRAM is the terminal program to start."
 				 files)))
 	(dolist (file files)
 	  ;; FIXME use different command for different OS, make customizable
-	  (start-process "DiredOpenExternally" nil
+	  (start-process "DiredOpenExternally" "*dired-open-externally*"
 					 "xdg-open" file))))
 
 (defun dired-browse-externally ()
@@ -628,18 +659,20 @@ PROGRAM is the terminal program to start."
 				   "nautilus" dir)))
 
 (add-hook 'dired-after-readin-hook 'dont-show-whitespace)
-(add-hook 'dired-load-hook
-		  (lambda ()
-			(require 'dired-x)
-			;; Set human readability (C-c y h)
-			(define-key dired-mode-map (kbd "C-c y h")
-			  'dired-relist-human-readable)
-			;; Open externally (C-c y f)
-			(define-key dired-mode-map (kbd "C-c y f")
+(with-eval-after-load "dired"
+  (require 'dired-x)
+  ;; Set human readability (C-c y h)
+  (define-key dired-mode-map (kbd "C-c y h")
+			  'dired-toggle-human-readable)
+  ;; Sort by file size (C-c y s)
+  (define-key dired-mode-map (kbd "C-c y s")
+			  'dired-toggle-sort-by-file-size)
+  ;; Open externally (C-c y f)
+  (define-key dired-mode-map (kbd "C-c y f")
 			  'dired-open-externally)
-			;; Open externally (C-c y d)
-			(define-key dired-mode-map (kbd "C-c y d")
-			  'dired-browse-externally)))
+  ;; Open externally (C-c y d)
+  (define-key dired-mode-map (kbd "C-c y d")
+			  'dired-browse-externally))
 
 ;;; Icomplete
 (defun fido-mode-setup--not-only-flex (was-setup)

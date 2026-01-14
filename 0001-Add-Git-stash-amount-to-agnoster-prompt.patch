@@ -1,18 +1,18 @@
-From 27c633691ecb83c56e1861c6f4cfc1f4ee52fc3a Mon Sep 17 00:00:00 2001
+From 95bd054e827947d670b3c800fceab60be9666a34 Mon Sep 17 00:00:00 2001
 From: janEbert <janpublicebert@posteo.net>
 Date: Thu, 6 Feb 2020 23:32:12 +0100
-Subject: [PATCH] Add git stash amount to agnoster prompt
+Subject: [PATCH] Add Git stash amount to agnoster prompt
 
 ---
  themes/agnoster.zsh-theme | 9 +++++++++
  1 file changed, 9 insertions(+)
 
 diff --git a/themes/agnoster.zsh-theme b/themes/agnoster.zsh-theme
-index 8c700d06..eadbba93 100644
+index 63452378..c54084ce 100644
 --- a/themes/agnoster.zsh-theme
 +++ b/themes/agnoster.zsh-theme
-@@ -93,6 +93,14 @@ prompt_context() {
-   fi
+@@ -177,6 +177,14 @@ prompt_git_relative() {
+   fi;
  }
  
 +# From https://lobste.rs/s/x5ioqm/what_does_your_shell_prompt_look_like#c_eejehg
@@ -26,14 +26,14 @@ index 8c700d06..eadbba93 100644
  # Git: branch/detached head, dirty status
  prompt_git() {
    (( $+commands[git] )) || return
-@@ -136,6 +144,7 @@ prompt_git() {
-     zstyle ':vcs_info:*' actionformats ' %u%c'
+@@ -236,6 +244,7 @@ prompt_git() {
      vcs_info
-     echo -n "${ref/refs\/heads\//$PL_BRANCH_CHAR }${vcs_info_msg_0_%% }${mode}"
+     echo -n "${${ref:gs/%/%%}/refs\/heads\//$PL_BRANCH_CHAR }${vcs_info_msg_0_%% }${mode}"
+     [[ $AGNOSTER_GIT_INLINE == 'true' ]] && prompt_git_relative
 +    git_stash_count
    fi
  }
  
 -- 
-2.20.1
+2.34.1
 

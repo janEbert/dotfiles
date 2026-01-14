@@ -4692,6 +4692,9 @@ absolute line numbers."
 ;; Insert `default-directory' into the minibuffer (C-c x O D)
 (define-key my-other-map (kbd "D") 'minibuffer-insert-default-directory)
 
+;; Save `buffer-file-name' or `default-directory' to kill ring (C-c x O s)
+(define-key my-other-map (kbd "s") 'save-file-name)
+
 ;; Describe char (C-c x c)
 (define-key my-extended-map (kbd "c") 'describe-char)
 
